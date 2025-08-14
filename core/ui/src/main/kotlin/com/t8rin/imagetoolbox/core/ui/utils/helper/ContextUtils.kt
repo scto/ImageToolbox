@@ -32,8 +32,10 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import android.webkit.MimeTypeMap
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.Composable
@@ -50,9 +52,11 @@ import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import androidx.core.graphics.toColorInt
+import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import androidx.documentfile.provider.DocumentFile
 import com.t8rin.imagetoolbox.core.domain.model.PerformanceClass
+import com.t8rin.imagetoolbox.core.domain.utils.FileMode
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.ui.utils.helper.image_vector.toImageBitmap
 import com.t8rin.imagetoolbox.core.ui.utils.navigation.Screen
@@ -232,7 +236,7 @@ object ContextUtils {
                             Locale.ENGLISH,
                             "/sys/devices/system/cpu/cpu%d/cpufreq/cpuinfo_max_freq",
                             i
-                        ), "r"
+                        ), FileMode.Read.mode
                     )
                     val line = reader.readLine()
                     if (line != null) {
@@ -495,4 +499,19 @@ object ContextUtils {
             override val fontScale: Float
                 get() = resources.configuration.fontScale
         }
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    fun manageAllFilesIntent() = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    fun Context.manageAppAllFilesIntent(): Intent {
+        return Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+            .setData("package:${packageName}".toUri())
+    }
+
+    fun Context.appSettingsIntent(): Intent {
+        return Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+            .setData("package:${packageName}".toUri())
+    }
+
 }

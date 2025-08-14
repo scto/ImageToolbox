@@ -21,7 +21,6 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -38,7 +37,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.FormatColorFill
 import androidx.compose.material3.Badge
@@ -60,9 +58,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -89,7 +85,10 @@ import com.t8rin.imagetoolbox.core.ui.widget.dialogs.LoadingDialog
 import com.t8rin.imagetoolbox.core.ui.widget.dialogs.OneTimeImagePickingDialog
 import com.t8rin.imagetoolbox.core.ui.widget.dialogs.OneTimeSaveLocationSelectionDialog
 import com.t8rin.imagetoolbox.core.ui.widget.image.Picture
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.clearFocusOnTap
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.tappable
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.transparencyChecker
 import com.t8rin.imagetoolbox.core.ui.widget.text.marquee
 import com.t8rin.imagetoolbox.core.ui.widget.utils.AutoContentBasedColors
@@ -177,15 +176,13 @@ fun MarkupLayersContent(
         mutableStateOf(false)
     }
 
-    val focus = LocalFocusManager.current
     AdaptiveBottomScaffoldLayoutScreen(
         autoClearFocus = false,
-        modifier = Modifier.pointerInput(Unit) {
-            detectTapGestures {
-                focus.clearFocus()
+        modifier = Modifier
+            .clearFocusOnTap()
+            .tappable {
                 component.deactivateAllLayers()
-            }
-        },
+            },
         title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -264,11 +261,11 @@ fun MarkupLayersContent(
                             .padding(16.dp)
                             .aspectRatio(aspectRatio, isPortrait)
                             .fillMaxSize()
-                            .clip(RoundedCornerShape(2.dp))
+                            .clip(ShapeDefaults.extremeSmall)
                             .border(
                                 width = 1.dp,
                                 color = MaterialTheme.colorScheme.outlineVariant(),
-                                shape = RoundedCornerShape(2.dp)
+                                shape = ShapeDefaults.extremeSmall
                             )
                             .background(MaterialTheme.colorScheme.surfaceContainerLow),
                         contentAlignment = Alignment.Center
@@ -332,7 +329,7 @@ fun MarkupLayersContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .container(
-                                shape = RoundedCornerShape(24.dp)
+                                shape = ShapeDefaults.extraLarge
                             )
                     )
                 }

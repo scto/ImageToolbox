@@ -22,7 +22,7 @@
     <string name="nothing_found_by_search">検索クエリに一致するものが見つかりませんでした</string>
     <string name="size">サイズ %1$s</string>
     <string name="loading">読み込み中…</string>
-    <string name="image_too_large_preview">画像がプレビューには大きすぎますが、保存は試行されます</string>
+    <string name="image_too_large_preview">画像はプレビューするには大きすぎますが、保存は試みます</string>
     <string name="pick_image">画像を選択して開始</string>
     <string name="width">幅 %1$s</string>
     <string name="height">高さ %1$s</string>
@@ -60,7 +60,7 @@
     <string name="check_source_code">ソースコード</string>
     <string name="single_edit">単一編集</string>
     <string name="single_edit_sub">指定された単一の画像の仕様を変更</string>
-    <string name="pick_color">色を選択</string>
+    <string name="pick_color">色を抽出</string>
     <string name="pick_color_sub">画像から色を選んで、コピーまたは共有</string>
     <string name="image">画像</string>
     <string name="color">色</string>
@@ -182,12 +182,12 @@
     <string name="dilation">拡張</string>
     <string name="sphere_refraction">球面屈折</string>
     <string name="color_matrix">カラーマトリックス</string>
-    <string name="limits_resize">制限によるサイズ変更</string>
+    <string name="limits_resize">制限付きサイズ変更</string>
     <string name="non_maximum_suppression">非最大抑制</string>
     <string name="stack_blur">スタックぼかし</string>
     <string name="luminance_threshold">輝度しきい値</string>
     <string name="second_color">第二色</string>
-    <string name="load_image_from_net">インターネットから画像を読み込む</string>
+    <string name="load_image_from_net">Webから画像を読み込む</string>
     <string name="load_image_from_net_sub">インターネットから任意の画像を読み込んでプレビュー、ズーム、編集し、必要に応じて保存できます。</string>
     <string name="fit">フィット</string>
     <string name="explicit_description">指定された高さと幅に画像のサイズを変更します。画像のアスペクト比が変わる可能性があります。</string>
@@ -438,12 +438,12 @@
     <string name="pixelation_sub">プライバシーぼかしに似ていますが、ぼかす代わりにピクセル化します</string>
     <string name="fabs_shadow">FAB</string>
     <string name="buttons_shadow">ボタン</string>
-    <string name="sliders_shadow_sub">スライダー背後の影の描画を有効にします</string>
-    <string name="switches_shadow_sub">スイッチ背後の影の描画を有効にします</string>
-    <string name="fabs_shadow_sub">フローティングアクションボタン背後の影の描画を有効にします</string>
-    <string name="buttons_shadow_sub">デフォルトボタン背後の影の描画を有効にします</string>
+    <string name="sliders_shadow_sub">スライダーの背後に影を描画する</string>
+    <string name="switches_shadow_sub">スイッチの背後に影を描画する</string>
+    <string name="fabs_shadow_sub">フローティングアクションボタンの背後に影を描画する</string>
+    <string name="buttons_shadow_sub">ボタンの背後に影を描画する</string>
     <string name="app_bars_shadow">アプリバー</string>
-    <string name="app_bars_shadow_sub">アプリバー背後の影の描画を有効にします</string>
+    <string name="app_bars_shadow_sub">アプリバーの背後に影を描画する</string>
     <string name="line_arrow">線矢印</string>
     <string name="arrow">矢印</string>
     <string name="line">線</string>
@@ -469,7 +469,7 @@
     <string name="hermite_sub">曲線セグメントのエンドポイントでの値と導関数を使用して滑らかで連続的な曲線を生成する数学的補間技術</string>
     <string name="lanczos_sub">ピクセル値に重み付けされたsinc関数を適用することで高品質の補間を維持するリサンプリング方法</string>
     <string name="mitchell_sub">スケーリングされた画像の鮮明さとアンチエイリアシングのバランスを取るために調整可能なパラメータを持つ畳み込みフィルターを使用するリサンプリング方法</string>
-    <string name="spline_sub">曲線または表面を滑らかに補間および近似するために区分的に定義された多項式関数を利用し、柔軟で連続的な形状表現を提供します</string>
+    <string name="spline_sub">区分的に定義された多項式関数を使用して、曲線または面を滑らかに補間および近似し、柔軟で連続的な形状表現を提供します</string>
     <string name="only_clip_sub">ストレージへの保存は行われず、クリップボードにのみ画像を配置しようとします</string>
     <string name="restore_background_sub">ブラシは消去する代わりに背景を復元します</string>
     <string name="force_exif_widget_initial_value">初期値を強制</string>
@@ -513,7 +513,7 @@
     <string name="frame_delay">フレーム遅延</string>
     <string name="millis">ミリ秒</string>
     <string name="fps">FPS</string>
-    <string name="secure_mode_sub">終了時にコンテンツを非表示にし、画面をキャプチャまたは記録することもできません</string>
+    <string name="secure_mode_sub">最近使用したアプリのアプリコンテンツを非表示にします。キャプチャや録画はできません。</string>
     <string name="quantizier">量子化器</string>
     <string name="gray_scale">グレースケール</string>
     <string name="bayer_two_dithering">ベイヤー2×2ディザリング</string>
@@ -681,7 +681,7 @@
     <string name="random_dithering">ランダムディザリング</string>
     <string name="simple_threshold_dithering">シンプルしきい値ディザリング</string>
     <string name="max_colors_count">最大色数</string>
-    <string name="crashlytics_sub">アプリがクラッシュレポートを手動で収集できるようにします</string>
+    <string name="crashlytics_sub">アプリがクラッシュレポートを自動的に収集できるようにします</string>
     <string name="analytics">分析</string>
     <string name="analytics_sub">匿名のアプリ使用統計情報の収集を許可する</string>
     <string name="effort">エフォート</string>
@@ -772,7 +772,7 @@
     <string name="horizontal_grid">水平グリッド</string>
     <string name="vertical_grid">垂直グリッド</string>
     <string name="use_pixel_switch">ピクセルスイッチを使用</string>
-    <string name="use_pixel_switch_sub">GoogleのマテリアルYouベースのスイッチの代わりにPixelライクなスイッチが使用されます</string>
+    <string name="use_pixel_switch_sub">Pixelのようなスイッチを使用</string>
     <string name="saved_to_original">元の場所に%s名で上書きされました</string>
     <string name="magnifier">拡大鏡</string>
     <string name="magnifier_sub">アクセシビリティ向上のため、描画モードで指先の上に拡大鏡を有効にします</string>
@@ -789,7 +789,7 @@
     <string name="auto_rotate_limits">自動回転</string>
     <string name="auto_rotate_limits_sub">リミットボックスが画像の向きに適応することを許可します</string>
     <string name="containers_shadow">コンテナ</string>
-    <string name="containers_shadow_sub">コンテナ背後の影の描画を有効にします</string>
+    <string name="containers_shadow_sub">コンテナの背後に影を描画する</string>
     <string name="sliders_shadow">スライダー</string>
     <string name="switches_shadow">スイッチ</string>
     <string name="invert_colors">色を反転</string>

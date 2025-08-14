@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.ProvidedValue
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -37,7 +38,9 @@ import com.t8rin.imagetoolbox.core.ui.theme.ImageToolboxThemeSurface
 import com.t8rin.imagetoolbox.core.ui.utils.confetti.ConfettiHost
 import com.t8rin.imagetoolbox.core.ui.utils.confetti.LocalConfettiHostState
 import com.t8rin.imagetoolbox.core.ui.utils.confetti.rememberConfettiHostState
-import com.t8rin.imagetoolbox.core.ui.utils.helper.LocalFilterPreviewModel
+import com.t8rin.imagetoolbox.core.ui.utils.helper.LocalFilterPreviewModelProvider
+import com.t8rin.imagetoolbox.core.ui.utils.helper.rememberFilterPreviewProvider
+import com.t8rin.imagetoolbox.core.ui.utils.navigation.Screen
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.rememberEnhancedHapticFeedback
 import com.t8rin.imagetoolbox.core.ui.widget.other.LocalToastHostState
 import com.t8rin.imagetoolbox.core.ui.widget.other.ToastHost
@@ -49,6 +52,8 @@ fun ImageToolboxCompositionLocals(
     settingsState: UiSettingsState,
     toastHostState: ToastHostState = rememberToastHostState(),
     filterPreviewModel: ImageModel? = null,
+    canSetDynamicFilterPreview: Boolean = false,
+    currentScreen: Screen? = null,
     simpleSettingsInteractor: SimpleSettingsInteractor? = null,
     content: @Composable BoxScope.() -> Unit
 ) {
@@ -57,6 +62,12 @@ fun ImageToolboxCompositionLocals(
     val context = LocalContext.current
     val customHapticFeedback = rememberEnhancedHapticFeedback(settingsState.hapticsStrength)
     val screenSize = rememberScreenSize()
+    val previewProvider = filterPreviewModel?.let {
+        rememberFilterPreviewProvider(
+            preview = it,
+            canSetDynamicFilterPreview = canSetDynamicFilterPreview
+        )
+    }
 
     val values = remember(
         context,
@@ -67,7 +78,8 @@ fun ImageToolboxCompositionLocals(
         confettiHostState,
         customHapticFeedback,
         screenSize,
-        filterPreviewModel
+        filterPreviewModel,
+        currentScreen
     ) {
         derivedStateOf {
             listOfNotNull(
@@ -75,10 +87,11 @@ fun ImageToolboxCompositionLocals(
                 LocalSettingsState provides settingsState,
                 LocalSimpleSettingsInteractor providesOrNull simpleSettingsInteractor,
                 LocalEditPresetsController provides editPresetsController,
-                LocalFilterPreviewModel providesOrNull filterPreviewModel,
+                LocalFilterPreviewModelProvider providesOrNull previewProvider,
                 LocalConfettiHostState provides confettiHostState,
                 LocalHapticFeedback provides customHapticFeedback,
-                LocalScreenSize provides screenSize
+                LocalScreenSize provides screenSize,
+                LocalCurrentScreen provides currentScreen
             ).toTypedArray()
         }
     }
@@ -96,6 +109,12 @@ fun ImageToolboxCompositionLocals(
         }
     )
 }
+
+val LocalCurrentScreen =
+    compositionLocalOf<Screen?> { error("LocalCurrentScreen not present") }
+
+@Composable
+fun currentScreenTwoToneIcon() = LocalCurrentScreen.current?.twoToneIcon
 
 private infix fun <T : Any> ProvidableCompositionLocal<T>.providesOrNull(
     value: T?

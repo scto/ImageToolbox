@@ -18,6 +18,7 @@
 package com.t8rin.imagetoolbox.feature.filters.data.model
 
 import android.graphics.Bitmap
+import androidx.core.graphics.scale
 import com.t8rin.imagetoolbox.core.data.utils.safeConfig
 import com.t8rin.imagetoolbox.core.domain.model.IntegerSize
 import com.t8rin.imagetoolbox.core.domain.transformation.Transformation
@@ -26,7 +27,7 @@ import kotlin.math.roundToInt
 
 
 internal class FastBlurFilter(
-    override val value: Pair<Float, Int> = 0.5f to 5,
+    override val value: Pair<Float, Float> = 0.5f to 5f,
 ) : Transformation<Bitmap>, Filter.FastBlur {
     override val cacheKey: String
         get() = (value).hashCode().toString()
@@ -34,7 +35,10 @@ internal class FastBlurFilter(
     override suspend fun transform(
         input: Bitmap,
         size: IntegerSize
-    ): Bitmap = input.fastBlur(value.first, value.second)
+    ): Bitmap = input.fastBlur(
+        scale = value.first,
+        radius = value.second.roundToInt()
+    )
 
 }
 
@@ -45,7 +49,7 @@ private fun Bitmap.fastBlur(
     var sentBitmap = this@fastBlur
     val width = (sentBitmap.width * scale).roundToInt().coerceAtLeast(1)
     val height = (sentBitmap.height * scale).roundToInt().coerceAtLeast(1)
-    sentBitmap = Bitmap.createScaledBitmap(sentBitmap, width, height, true)
+    sentBitmap = sentBitmap.scale(width, height)
     val bitmap = sentBitmap.copy(sentBitmap.safeConfig, true)
     if (radius < 1) {
         return this
@@ -149,10 +153,8 @@ private fun Bitmap.fastBlur(
         x++
     }
     bitmap.setPixels(pix, 0, w, 0, 0, w, h)
-    return Bitmap.createScaledBitmap(
-        bitmap,
-        (bitmap.width / scale).toInt(),
-        (bitmap.height / scale).toInt(),
-        true
+    return bitmap.scale(
+        width = (bitmap.width / scale).toInt(),
+        height = (bitmap.height / scale).toInt()
     )
 }

@@ -35,7 +35,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.t8rin.imagetoolbox.core.domain.model.ImageModel
 import com.t8rin.imagetoolbox.core.domain.utils.roundTo
-import com.t8rin.imagetoolbox.core.filters.domain.model.PaletteTransferSpace
+import com.t8rin.imagetoolbox.core.filters.domain.model.enums.PaletteTransferSpace
 import com.t8rin.imagetoolbox.core.filters.presentation.model.UiFilter
 import com.t8rin.imagetoolbox.core.filters.presentation.utils.translatedName
 import com.t8rin.imagetoolbox.core.resources.R
@@ -43,7 +43,7 @@ import com.t8rin.imagetoolbox.core.ui.utils.helper.toImageModel
 import com.t8rin.imagetoolbox.core.ui.widget.controls.selection.ImageSelector
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedButtonGroup
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedSliderItem
-import com.t8rin.imagetoolbox.core.ui.widget.modifier.ContainerShapeDefaults
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
 
 @Composable
@@ -90,7 +90,7 @@ internal fun FloatPaletteImageModelTripleItem(
         modifier = Modifier
             .padding(horizontal = 16.dp)
             .container(
-                shape = ContainerShapeDefaults.topShape,
+                shape = ShapeDefaults.top,
                 color = MaterialTheme.colorScheme.surfaceContainerLow
             )
     ) {
@@ -143,7 +143,7 @@ internal fun FloatPaletteImageModelTripleItem(
             )
         },
         subtitle = null,
-        shape = ContainerShapeDefaults.bottomShape
+        shape = ShapeDefaults.bottom
     )
     Spacer(Modifier.height(16.dp))
 }

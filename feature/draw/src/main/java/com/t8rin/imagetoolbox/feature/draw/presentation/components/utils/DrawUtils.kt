@@ -60,6 +60,7 @@ import androidx.core.graphics.createBitmap
 import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.toBitmap
+import com.t8rin.imagetoolbox.core.data.image.utils.drawBitmap
 import com.t8rin.imagetoolbox.core.data.utils.safeConfig
 import com.t8rin.imagetoolbox.core.domain.model.IntegerSize
 import com.t8rin.imagetoolbox.core.domain.model.Pt
@@ -200,19 +201,14 @@ fun Canvas.drawInfiniteLine(
 internal fun ImageBitmap.clipBitmap(
     path: Path,
     paint: Paint,
-): ImageBitmap {
-    val bitmap = this.asAndroidBitmap()
-    val newPath = NativePath(path.asAndroidPath())
-    Canvas(bitmap).apply {
+): ImageBitmap = asAndroidBitmap().applyCanvas {
         drawPath(
-            newPath.apply {
+            NativePath(path.asAndroidPath()).apply {
                 fillType = NativePath.FillType.INVERSE_WINDING
             },
             paint.asFrameworkPaint()
         )
-    }
-    return bitmap.asImageBitmap()
-}
+}.asImageBitmap()
 
 internal fun ImageBitmap.overlay(overlay: ImageBitmap): ImageBitmap {
     val image = this.asAndroidBitmap()
@@ -221,8 +217,8 @@ internal fun ImageBitmap.overlay(overlay: ImageBitmap): ImageBitmap {
         height = image.height,
         config = image.safeConfig
     ).applyCanvas {
-        drawBitmap(image, Matrix(), null)
-        drawBitmap(overlay.asAndroidBitmap(), 0f, 0f, null)
+        drawBitmap(image)
+        drawBitmap(overlay.asAndroidBitmap())
     }.asImageBitmap()
 }
 

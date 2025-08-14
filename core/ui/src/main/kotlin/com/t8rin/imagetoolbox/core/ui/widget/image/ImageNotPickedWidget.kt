@@ -17,12 +17,15 @@
 
 package com.t8rin.imagetoolbox.core.ui.widget.image
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,46 +38,51 @@ import androidx.compose.material.icons.twotone.Image
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import androidx.graphics.shapes.Morph
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.resources.shapes.MorphShape
+import com.t8rin.imagetoolbox.core.ui.theme.mixedContainer
+import com.t8rin.imagetoolbox.core.ui.theme.onMixedContainer
+import com.t8rin.imagetoolbox.core.ui.utils.animation.springySpec
+import com.t8rin.imagetoolbox.core.ui.utils.provider.currentScreenTwoToneIcon
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.hapticsClickable
+import com.t8rin.imagetoolbox.core.ui.widget.enhanced.longPress
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.animateContentSizeNoClip
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
+import com.t8rin.imagetoolbox.core.ui.widget.text.AutoSizeText
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterIsInstance
 
 @Composable
 fun ImageNotPickedWidget(
     onPickImage: () -> Unit,
     modifier: Modifier = Modifier,
     text: String = stringResource(R.string.pick_image),
+    containerColor: Color = Color.Unspecified,
 ) {
-    Column(
-        modifier = modifier.container(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(Modifier.height(16.dp))
-        ClickableActionIcon(
-            icon = Icons.TwoTone.Image,
-            onClick = onPickImage
-        )
-        Text(
-            text = text,
-            modifier = Modifier.padding(16.dp),
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
+    val currentIcon = currentScreenTwoToneIcon() ?: Icons.TwoTone.Image
+
+    SourceNotPickedWidget(
+        onClick = onPickImage,
+        modifier = modifier,
+        text = text,
+        icon = currentIcon,
+        containerColor = containerColor
+    )
 }
 
 @Composable
@@ -82,37 +90,76 @@ fun FileNotPickedWidget(
     onPickFile: () -> Unit,
     modifier: Modifier = Modifier,
     text: String = stringResource(R.string.pick_file_to_start),
-    icon: ImageVector = Icons.TwoTone.FileOpen
+    containerColor: Color = Color.Unspecified,
 ) {
-    Column(
-        modifier = modifier.container(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+    val currentIcon = currentScreenTwoToneIcon() ?: Icons.TwoTone.FileOpen
+
+    SourceNotPickedWidget(
+        onClick = onPickFile,
+        modifier = modifier,
+        text = text,
+        icon = currentIcon,
+        containerColor = containerColor
+    )
+}
+
+@Composable
+fun SourceNotPickedWidget(
+    modifier: Modifier,
+    onClick: () -> Unit,
+    text: String,
+    icon: ImageVector,
+    containerColor: Color = Color.Unspecified,
+) {
+    BoxWithConstraints(
+        contentAlignment = Alignment.Center
     ) {
-        Spacer(Modifier.height(16.dp))
-        ClickableActionIcon(
-            icon = icon,
-            onClick = onPickFile
-        )
-        Text(
-            text = text,
-            modifier = Modifier.padding(16.dp),
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        val targetSize = min(min(maxWidth, maxHeight), 300.dp)
+
+        Column(
+            modifier = modifier
+                .animateContentSizeNoClip()
+                .container(color = containerColor),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(Modifier.height(16.dp))
+            ClickableActionIcon(
+                icon = icon,
+                onClick = onClick,
+                modifier = Modifier.size(targetSize / 3)
+            )
+            AutoSizeText(
+                text = text,
+                modifier = Modifier.padding(16.dp),
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                key = { it.length },
+                maxLines = 2
+            )
+        }
     }
 }
 
 @Composable
 fun ClickableActionIcon(
     icon: ImageVector,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
+    val haptics = LocalHapticFeedback.current
+
+    LaunchedEffect(interactionSource, haptics) {
+        interactionSource.interactions.filterIsInstance<PressInteraction>().collectLatest {
+            haptics.longPress()
+        }
+    }
+
     val percentage = animateFloatAsState(
-        if (pressed) 1f
-        else 0f
+        targetValue = if (pressed) 1f else 0.2f,
+        animationSpec = springySpec()
     )
     val scale by animateFloatAsState(
         if (pressed) 1f
@@ -124,34 +171,42 @@ fun ClickableActionIcon(
             end = MaterialShapes.Square
         )
     }
-    val shape = MorphShape(
-        morph = morph,
-        percentage = percentage.value
-    )
+    val shape = remember {
+        MorphShape(
+            morph = morph,
+            percentage = { percentage.value }
+        )
+    }
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .size(100.dp)
             .scale(scale)
             .container(
                 shape = shape,
                 resultPadding = 0.dp,
-                color = MaterialTheme.colorScheme.secondaryContainer
+                color = MaterialTheme.colorScheme.mixedContainer.copy(0.8f)
             )
             .hapticsClickable(
                 onClick = onClick,
                 interactionSource = interactionSource,
-                indication = LocalIndication.current
+                indication = LocalIndication.current,
+                enableHaptics = false
             )
             .scale(1f / scale)
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp),
-            tint = MaterialTheme.colorScheme.onSecondaryContainer
-        )
+        AnimatedContent(
+            targetState = icon,
+            modifier = Modifier.fillMaxSize()
+        ) { imageVector ->
+            Icon(
+                imageVector = imageVector,
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(12.dp),
+                tint = MaterialTheme.colorScheme.onMixedContainer
+            )
+        }
     }
 }

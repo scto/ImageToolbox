@@ -35,7 +35,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -58,7 +57,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -67,6 +65,8 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.t8rin.imagetoolbox.core.domain.model.IntegerSize
+import com.t8rin.imagetoolbox.core.ui.widget.enhanced.longPress
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
 import kotlinx.coroutines.launch
 
 @Composable
@@ -75,7 +75,7 @@ fun BoxWithConstraintsScope.EditBox(
     onTap: () -> Unit,
     modifier: Modifier = Modifier,
     onLongTap: (() -> Unit)? = null,
-    shape: Shape = RoundedCornerShape(4.dp),
+    shape: Shape = ShapeDefaults.extraSmall,
     content: @Composable BoxScope.() -> Unit
 ) {
     val parentSize by remember(constraints) {
@@ -104,7 +104,7 @@ fun EditBox(
     parentSize: IntegerSize,
     modifier: Modifier = Modifier,
     onLongTap: (() -> Unit)? = null,
-    shape: Shape = RoundedCornerShape(4.dp),
+    shape: Shape = ShapeDefaults.extraSmall,
     content: @Composable BoxScope.() -> Unit
 ) {
     if (!state.isVisible) return
@@ -135,7 +135,7 @@ fun EditBox(
     val scope = rememberCoroutineScope()
     val haptics = LocalHapticFeedback.current
     val animateTap = {
-        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+        haptics.longPress()
         scope.launch {
             tapScale.animateTo(0.98f)
             tapScale.animateTo(1.02f)
@@ -199,17 +199,16 @@ fun EditBox(
     }
 
     if (state.isActive) {
-        val globalTransformState =
-            rememberTransformableState { zoomChange, offsetChange, rotationChange ->
-                state.applyChanges(
-                    parentMaxWidth = parentMaxWidth,
-                    parentMaxHeight = parentMaxHeight,
-                    contentSize = contentSize,
-                    zoomChange = zoomChange,
-                    offsetChange = Offset.Zero,
-                    rotationChange = rotationChange
-                )
-            }
+        val globalTransformState = rememberTransformableState { zoomChange, _, rotationChange ->
+            state.applyChanges(
+                parentMaxWidth = parentMaxWidth,
+                parentMaxHeight = parentMaxHeight,
+                contentSize = contentSize,
+                zoomChange = zoomChange,
+                offsetChange = Offset.Zero,
+                rotationChange = rotationChange
+            )
+        }
 
         Box(
             Modifier

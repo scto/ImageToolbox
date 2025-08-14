@@ -18,6 +18,7 @@
 package com.t8rin.imagetoolbox.feature.base64_tools.presentation
 
 import android.net.Uri
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
@@ -42,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import coil3.toBitmap
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.resources.icons.BrokenImageAlt
+import com.t8rin.imagetoolbox.core.ui.theme.takeUnless
 import com.t8rin.imagetoolbox.core.ui.utils.content_pickers.Picker
 import com.t8rin.imagetoolbox.core.ui.utils.content_pickers.rememberImagePicker
 import com.t8rin.imagetoolbox.core.ui.utils.helper.ImageUtils.safeAspectRatio
@@ -56,6 +58,7 @@ import com.t8rin.imagetoolbox.core.ui.widget.controls.selection.QualitySelector
 import com.t8rin.imagetoolbox.core.ui.widget.dialogs.LoadingDialog
 import com.t8rin.imagetoolbox.core.ui.widget.dialogs.OneTimeImagePickingDialog
 import com.t8rin.imagetoolbox.core.ui.widget.dialogs.OneTimeSaveLocationSelectionDialog
+import com.t8rin.imagetoolbox.core.ui.widget.image.ImageNotPickedWidget
 import com.t8rin.imagetoolbox.core.ui.widget.image.Picture
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.animateContentSizeNoClip
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
@@ -143,37 +146,52 @@ fun Base64ToolsContent(
             )
         },
         imagePreview = {
-            Box(
-                modifier = Modifier
-                    .container()
-                    .padding(4.dp)
-                    .animateContentSizeNoClip(
-                        alignment = Alignment.Center
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                var aspectRatio by remember {
-                    mutableFloatStateOf(1f)
-                }
-                Picture(
-                    model = component.base64String,
-                    contentScale = ContentScale.FillBounds,
-                    modifier = Modifier.aspectRatio(aspectRatio),
-                    onSuccess = {
-                        aspectRatio = it.result.image.toBitmap().safeAspectRatio
-                    },
-                    error = {
-                        Icon(
-                            imageVector = Icons.Rounded.BrokenImageAlt,
-                            contentDescription = null,
-                            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+            AnimatedContent(component.base64String.isEmpty()) { isEmpty ->
+                if (isEmpty) {
+                    ImageNotPickedWidget(
+                        onPickImage = pickImage,
+                        modifier = Modifier.padding(20.dp),
+                        text = stringResource(R.string.pick_image_or_base64),
+                        containerColor = MaterialTheme
+                            .colorScheme
+                            .surfaceContainerLowest
+                            .takeUnless(isPortrait)
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .container()
+                            .padding(4.dp)
+                            .animateContentSizeNoClip(
+                                alignment = Alignment.Center
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        var aspectRatio by remember {
+                            mutableFloatStateOf(1f)
+                        }
+                        Picture(
+                            model = component.base64String,
+                            contentScale = ContentScale.FillBounds,
+                            modifier = Modifier.aspectRatio(aspectRatio),
+                            onSuccess = {
+                                aspectRatio = it.result.image.toBitmap().safeAspectRatio
+                            },
+                            error = {
+                                Icon(
+                                    imageVector = Icons.Rounded.BrokenImageAlt,
+                                    contentDescription = null,
+                                    modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                                )
+                            },
+                            shape = MaterialTheme.shapes.medium,
+                            isLoadingFromDifferentPlace = component.isImageLoading
                         )
-                    },
-                    shape = MaterialTheme.shapes.medium,
-                    isLoadingFromDifferentPlace = component.isImageLoading
-                )
+                    }
+                }
             }
         },
+        showImagePreviewAsStickyHeader = component.base64String.isNotEmpty(),
         controls = {
             if (isPortrait) Spacer(Modifier.height(8.dp))
             Base64ToolsTiles(component)

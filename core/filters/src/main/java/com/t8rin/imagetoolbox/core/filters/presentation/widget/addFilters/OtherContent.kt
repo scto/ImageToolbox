@@ -33,8 +33,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ImageSearch
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.TableChart
@@ -60,7 +60,8 @@ import com.t8rin.imagetoolbox.core.filters.presentation.model.UiFilter
 import com.t8rin.imagetoolbox.core.filters.presentation.utils.collectAsUiState
 import com.t8rin.imagetoolbox.core.filters.presentation.widget.FilterSelectionItem
 import com.t8rin.imagetoolbox.core.resources.R
-import com.t8rin.imagetoolbox.core.ui.utils.helper.LocalFilterPreviewModel
+import com.t8rin.imagetoolbox.core.ui.theme.takeColorFromScheme
+import com.t8rin.imagetoolbox.core.ui.utils.helper.LocalFilterPreviewModelProvider
 import com.t8rin.imagetoolbox.core.ui.utils.provider.rememberLocalEssentials
 import com.t8rin.imagetoolbox.core.ui.widget.buttons.ShareButton
 import com.t8rin.imagetoolbox.core.ui.widget.controls.selection.ImageSelector
@@ -68,7 +69,7 @@ import com.t8rin.imagetoolbox.core.ui.widget.dialogs.OneTimeSaveLocationSelectio
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedIconButton
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.hapticsClickable
 import com.t8rin.imagetoolbox.core.ui.widget.image.Picture
-import com.t8rin.imagetoolbox.core.ui.widget.modifier.ContainerShapeDefaults
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
 import com.t8rin.imagetoolbox.core.ui.widget.preferences.PreferenceItemOverload
 import com.t8rin.imagetoolbox.core.ui.widget.text.AutoSizeText
@@ -85,7 +86,7 @@ internal fun OtherContent(
     onFilterPicked: (UiFilter<*>) -> Unit,
     previewBitmap: Bitmap?,
 ) {
-    val previewModel = LocalFilterPreviewModel.current
+    val previewModel = LocalFilterPreviewModelProvider.current.preview
     val essentials = rememberLocalEssentials()
     val showConfetti: () -> Unit = essentials::showConfetti
     val favoriteFilters by component.favoritesFlow.collectAsUiState()
@@ -98,6 +99,9 @@ internal fun OtherContent(
     ) {
         if (tabs[page].first == Icons.Rounded.Speed) {
             item {
+                val previewProvider = LocalFilterPreviewModelProvider.current
+                val canSetDynamicFilterPreview = previewProvider.canSetDynamicFilterPreview
+
                 Row(
                     modifier = Modifier
                         .padding(bottom = 8.dp)
@@ -115,13 +119,37 @@ internal fun OtherContent(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight(),
-                        shape = RoundedCornerShape(
-                            topEnd = 4.dp,
-                            topStart = 16.dp,
-                            bottomEnd = 4.dp,
-                            bottomStart = 16.dp
-                        )
+                        shape = ShapeDefaults.start
                     )
+                    val containerColor by animateColorAsState(
+                        if (canSetDynamicFilterPreview) {
+                            MaterialTheme.colorScheme.secondary
+                        } else {
+                            MaterialTheme.colorScheme.secondaryContainer
+                        }
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .clip(ShapeDefaults.center)
+                            .hapticsClickable {
+                                component.setCanSetDynamicFilterPreview(true)
+                            }
+                            .container(
+                                color = containerColor,
+                                shape = ShapeDefaults.center,
+                                resultPadding = 0.dp
+                            )
+                            .padding(horizontal = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.ImageSearch,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.contentColorFor(containerColor)
+                        )
+                    }
                     Column(
                         modifier = Modifier
                             .fillMaxHeight()
@@ -130,29 +158,18 @@ internal fun OtherContent(
                     ) {
                         repeat(2) { index ->
                             val shape = if (index == 0) {
-                                RoundedCornerShape(
-                                    topEnd = 16.dp,
-                                    topStart = 4.dp,
-                                    bottomEnd = 4.dp,
-                                    bottomStart = 4.dp
-                                )
+                                ShapeDefaults.topEnd
                             } else {
-                                RoundedCornerShape(
-                                    topEnd = 4.dp,
-                                    topStart = 4.dp,
-                                    bottomEnd = 16.dp,
-                                    bottomStart = 4.dp
-                                )
+                                ShapeDefaults.bottomEnd
                             }
-                            val containerColor by animateColorAsState(
-                                if (previewModel.data == R.drawable.filter_preview_source && index == 0) {
-                                    MaterialTheme.colorScheme.secondary
-                                } else if (previewModel.data == R.drawable.filter_preview_source_3 && index == 1) {
-                                    MaterialTheme.colorScheme.secondary
-                                } else {
-                                    MaterialTheme.colorScheme.secondaryContainer
+                            val containerColor = takeColorFromScheme {
+                                when {
+                                    canSetDynamicFilterPreview -> secondaryContainer
+                                    previewModel.data == R.drawable.filter_preview_source && index == 0 -> secondary
+                                    previewModel.data == R.drawable.filter_preview_source_3 && index == 1 -> secondary
+                                    else -> secondaryContainer
                                 }
-                            )
+                            }
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
@@ -187,7 +204,7 @@ internal fun OtherContent(
                 PreferenceItemOverload(
                     title = stringResource(R.string.save_empty_lut),
                     subtitle = stringResource(R.string.save_empty_lut_sub),
-                    shape = ContainerShapeDefaults.defaultShape,
+                    shape = ShapeDefaults.default,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 8.dp),
@@ -274,7 +291,7 @@ internal fun OtherContent(
                     }
                 },
                 onRequestFilterMapping = onRequestFilterMapping,
-                shape = ContainerShapeDefaults.shapeForIndex(
+                shape = ShapeDefaults.byIndex(
                     index = index,
                     size = filters.size
                 ),

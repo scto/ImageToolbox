@@ -24,7 +24,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material3.Icon
@@ -34,12 +34,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.t8rin.imagetoolbox.core.resources.R
+import com.t8rin.imagetoolbox.core.ui.widget.enhanced.longPress
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.shapeByInteraction
 
 @Composable
@@ -51,8 +52,8 @@ fun ShowOriginalButton(
     val interactionSource = remember { MutableInteractionSource() }
 
     val shape = shapeByInteraction(
-        shape = RoundedCornerShape(100),
-        pressedShape = RoundedCornerShape(8.dp),
+        shape = CircleShape,
+        pressedShape = ShapeDefaults.mini,
         interactionSource = interactionSource
     )
 
@@ -66,9 +67,7 @@ fun ShowOriginalButton(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = {
-                        haptics.performHapticFeedback(
-                            HapticFeedbackType.LongPress
-                        )
+                        haptics.longPress()
                         val press = PressInteraction.Press(it)
                         interactionSource.emit(press)
                         if (canShow) onStateChange(true)

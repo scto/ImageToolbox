@@ -18,29 +18,48 @@
 package com.t8rin.imagetoolbox.feature.filters.data.utils.serialization
 
 import com.t8rin.imagetoolbox.core.domain.model.ColorModel
+import com.t8rin.imagetoolbox.core.domain.model.toColorModel
 import com.t8rin.imagetoolbox.core.domain.utils.ListUtils.component6
+import com.t8rin.imagetoolbox.core.domain.utils.ListUtils.component7
+import com.t8rin.imagetoolbox.core.domain.utils.ListUtils.component8
+import com.t8rin.imagetoolbox.core.domain.utils.ListUtils.component9
+import com.t8rin.imagetoolbox.core.domain.utils.Quad
 import com.t8rin.imagetoolbox.core.domain.utils.simpleName
-import com.t8rin.imagetoolbox.core.filters.domain.model.BlurEdgeMode
-import com.t8rin.imagetoolbox.core.filters.domain.model.ClaheParams
-import com.t8rin.imagetoolbox.core.filters.domain.model.EnhancedZoomBlurParams
-import com.t8rin.imagetoolbox.core.filters.domain.model.FadeSide
 import com.t8rin.imagetoolbox.core.filters.domain.model.FilterValueWrapper
-import com.t8rin.imagetoolbox.core.filters.domain.model.GlitchParams
-import com.t8rin.imagetoolbox.core.filters.domain.model.LinearGaussianParams
-import com.t8rin.imagetoolbox.core.filters.domain.model.LinearTiltShiftParams
-import com.t8rin.imagetoolbox.core.filters.domain.model.MirrorSide
-import com.t8rin.imagetoolbox.core.filters.domain.model.PopArtBlendingMode
-import com.t8rin.imagetoolbox.core.filters.domain.model.RadialTiltShiftParams
-import com.t8rin.imagetoolbox.core.filters.domain.model.SideFadeParams
-import com.t8rin.imagetoolbox.core.filters.domain.model.ToneCurvesParams
-import com.t8rin.imagetoolbox.core.filters.domain.model.TransferFunc
-import com.t8rin.imagetoolbox.core.filters.domain.model.WaterParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.enums.BlurEdgeMode
+import com.t8rin.imagetoolbox.core.filters.domain.model.enums.FadeSide
+import com.t8rin.imagetoolbox.core.filters.domain.model.enums.MirrorSide
+import com.t8rin.imagetoolbox.core.filters.domain.model.enums.PolarCoordinatesType
+import com.t8rin.imagetoolbox.core.filters.domain.model.enums.PopArtBlendingMode
+import com.t8rin.imagetoolbox.core.filters.domain.model.enums.TransferFunc
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.ArcParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.AsciiParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.BilaterialBlurParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.ChannelMixParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.ClaheParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.CropOrPerspectiveParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.EnhancedZoomBlurParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.GlitchParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.KaleidoscopeParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.LinearGaussianParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.LinearTiltShiftParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.PinchParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.RadialTiltShiftParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.RubberStampParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.SideFadeParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.SmearParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.SparkleParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.ToneCurvesParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.VoronoiCrystallizeParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.WaterParams
+import kotlin.io.encoding.Base64
 
 internal fun Any.toPair(): Pair<String, String>? {
     return when (this) {
         is Int -> Int::class.simpleName() to toString()
         is Float -> Float::class.simpleName() to toString()
         is Unit -> Unit::class.simpleName() to "Unit"
+        is PolarCoordinatesType -> PolarCoordinatesType::class.simpleName() to name
         is FloatArray -> FloatArray::class.simpleName() to joinToString(separator = PROPERTIES_SEPARATOR) { it.toString() }
         is FilterValueWrapper<*> -> {
             when (wrapped) {
@@ -69,6 +88,20 @@ internal fun Any.toPair(): Pair<String, String>? {
                 firstPart,
                 secondPart,
                 thirdPart
+            ).joinToString(PROPERTIES_SEPARATOR)
+        }
+
+        is Quad<*, *, *, *> -> {
+            val firstPart = first!!.toPart()
+            val secondPart = second!!.toPart()
+            val thirdPart = third!!.toPart()
+            val fourthPart = fourth!!.toPart()
+
+            "${Quad::class.simpleName}{${first!!::class.simpleName}$PROPERTIES_SEPARATOR${second!!::class.simpleName}$PROPERTIES_SEPARATOR${third!!::class.simpleName}$PROPERTIES_SEPARATOR${fourth!!::class.simpleName}}" to listOf(
+                firstPart,
+                secondPart,
+                thirdPart,
+                fourthPart
             ).joinToString(PROPERTIES_SEPARATOR)
         }
 
@@ -155,6 +188,123 @@ internal fun Any.toPair(): Pair<String, String>? {
             }
         }
 
+        is BilaterialBlurParams -> {
+            BilaterialBlurParams::class.simpleName() to listOf(
+                radius,
+                spatialSigma,
+                rangeSigma,
+                edgeMode.name
+            ).joinToString(PROPERTIES_SEPARATOR)
+        }
+
+        is KaleidoscopeParams -> {
+            KaleidoscopeParams::class.simpleName() to listOf(
+                angle,
+                angle2,
+                centreX,
+                centreY,
+                sides,
+                radius
+            ).joinToString(PROPERTIES_SEPARATOR)
+        }
+
+        is ChannelMixParams -> {
+            ChannelMixParams::class.simpleName() to listOf(
+                blueGreen,
+                redBlue,
+                greenRed,
+                intoR,
+                intoG,
+                intoB
+            ).joinToString(PROPERTIES_SEPARATOR)
+        }
+
+        is VoronoiCrystallizeParams -> {
+            VoronoiCrystallizeParams::class.simpleName!! to listOf(
+                borderThickness,
+                scale,
+                randomness,
+                shape,
+                turbulence,
+                angle,
+                stretch,
+                amount,
+                color.colorInt
+            ).joinToString(PROPERTIES_SEPARATOR)
+        }
+
+        is PinchParams -> {
+            PinchParams::class.simpleName!! to listOf(
+                angle,
+                centreX,
+                centreY,
+                radius,
+                amount
+            ).joinToString(PROPERTIES_SEPARATOR)
+        }
+
+        is RubberStampParams -> {
+            RubberStampParams::class.simpleName!! to listOf(
+                threshold,
+                softness,
+                radius,
+                firstColor.colorInt,
+                secondColor.colorInt,
+            ).joinToString(PROPERTIES_SEPARATOR)
+        }
+
+        is SmearParams -> {
+            SmearParams::class.simpleName!! to listOf(
+                angle,
+                density,
+                mix,
+                distance,
+                shape,
+            ).joinToString(PROPERTIES_SEPARATOR)
+        }
+
+        is ArcParams -> {
+            ArcParams::class.simpleName!! to listOf(
+                radius,
+                height,
+                angle,
+                spreadAngle,
+                centreX,
+                centreY
+            ).joinToString(PROPERTIES_SEPARATOR)
+        }
+
+        is SparkleParams -> {
+            SparkleParams::class.simpleName!! to listOf(
+                amount,
+                rays,
+                radius,
+                randomness,
+                centreX,
+                centreY,
+                color.colorInt
+            ).joinToString(PROPERTIES_SEPARATOR)
+        }
+
+        is AsciiParams -> {
+            AsciiParams::class.simpleName!! to listOf(
+                Base64.encode(gradient.toByteArray(Charsets.UTF_8)),
+                fontSize,
+                backgroundColor.colorInt,
+                isGrayscale
+            ).joinToString(PROPERTIES_SEPARATOR)
+        }
+
+        is CropOrPerspectiveParams -> {
+            CropOrPerspectiveParams::class.simpleName!! to listOf(
+                topLeft.join(),
+                topRight.join(),
+                bottomLeft.join(),
+                bottomRight.join(),
+                isAbsolute
+            ).joinToString(PROPERTIES_SEPARATOR)
+        }
+
         else -> null
     }
 }
@@ -164,10 +314,11 @@ internal fun Pair<String, String>.fromPair(): Any? {
     val value = second.trim()
 
     return when {
-        name == Int::class.simpleName -> second.toInt()
-        name == Float::class.simpleName -> second.toFloat()
-        name == Boolean::class.simpleName -> second.toBoolean()
+        name == Int::class.simpleName -> value.toInt()
+        name == Float::class.simpleName -> value.toFloat()
+        name == Boolean::class.simpleName -> value.toBoolean()
         name == Unit::class.simpleName -> Unit
+        name == PolarCoordinatesType::class.simpleName -> PolarCoordinatesType.valueOf(value)
         name == FloatArray::class.simpleName -> value.split(PROPERTIES_SEPARATOR)
             .map { it.toFloat() }
             .toFloatArray()
@@ -193,6 +344,18 @@ internal fun Pair<String, String>.fromPair(): Any? {
                 firstPart.fromPart(firstType),
                 secondPart.fromPart(secondType),
                 thirdPart.fromPart(thirdType)
+            )
+        }
+
+        "${Quad::class.simpleName}{" in name -> {
+            val (firstType, secondType, thirdType, fourthType) = name.getTypeFromBraces()
+                .split(PROPERTIES_SEPARATOR)
+            val (firstPart, secondPart, thirdPart, fourthPart) = value.split(PROPERTIES_SEPARATOR)
+            Quad(
+                firstPart.fromPart(firstType),
+                secondPart.fromPart(secondType),
+                thirdPart.fromPart(thirdType),
+                fourthPart.fromPart(fourthType)
             )
         }
 
@@ -313,6 +476,165 @@ internal fun Pair<String, String>.fromPair(): Any? {
             )
         }
 
+        name == BilaterialBlurParams::class.simpleName -> {
+            val (radius, spatialSigma, rangeSigma, edgeMode) = value.split(
+                PROPERTIES_SEPARATOR
+            )
+            BilaterialBlurParams(
+                radius = radius.toInt(),
+                spatialSigma = spatialSigma.toFloat(),
+                rangeSigma = rangeSigma.toFloat(),
+                edgeMode = BlurEdgeMode.valueOf(edgeMode)
+            )
+        }
+
+        name == KaleidoscopeParams::class.simpleName -> {
+            val (angle, angle2, centreX, centreY, sides, radius) = value.split(
+                PROPERTIES_SEPARATOR
+            )
+            KaleidoscopeParams(
+                angle = angle.toFloat(),
+                angle2 = angle2.toFloat(),
+                centreX = centreX.toFloat(),
+                centreY = centreY.toFloat(),
+                sides = sides.toInt(),
+                radius = radius.toFloat()
+            )
+        }
+
+        name == ChannelMixParams::class.simpleName -> {
+            val (blueGreen, redBlue, greenRed, intoR, intoG, intoB) = value.split(
+                PROPERTIES_SEPARATOR
+            ).map { it.toInt() }
+
+            ChannelMixParams(
+                blueGreen = blueGreen,
+                redBlue = redBlue,
+                greenRed = greenRed,
+                intoR = intoR,
+                intoG = intoG,
+                intoB = intoB
+            )
+        }
+
+        name == VoronoiCrystallizeParams::class.simpleName -> {
+            val (borderThickness, scale, randomness, shape, turbulence, angle, stretch, amount, color) = value.split(
+                PROPERTIES_SEPARATOR
+            )
+
+            VoronoiCrystallizeParams(
+                borderThickness = borderThickness.toFloat(),
+                scale = scale.toFloat(),
+                randomness = randomness.toFloat(),
+                shape = shape.toInt(),
+                turbulence = turbulence.toFloat(),
+                angle = angle.toFloat(),
+                stretch = stretch.toFloat(),
+                amount = amount.toFloat(),
+                color = color.toInt().toColorModel()
+            )
+        }
+
+        name == PinchParams::class.simpleName -> {
+            val (angle, centreX, centreY, radius, amount) = value.split(
+                PROPERTIES_SEPARATOR
+            ).map { it.toFloat() }
+
+            PinchParams(
+                angle = angle,
+                centreX = centreX,
+                centreY = centreY,
+                radius = radius,
+                amount = amount
+            )
+        }
+
+        name == RubberStampParams::class.simpleName -> {
+            val (threshold, softness, radius, firstColor, secondColor) = value.split(
+                PROPERTIES_SEPARATOR
+            ).map { it.toFloat() }
+
+            RubberStampParams(
+                threshold = threshold,
+                softness = softness,
+                radius = radius,
+                firstColor = firstColor.toInt().toColorModel(),
+                secondColor = secondColor.toInt().toColorModel()
+            )
+        }
+
+        name == SmearParams::class.simpleName -> {
+            val (angle, density, mix, distance, shape) = value.split(
+                PROPERTIES_SEPARATOR
+            ).map { it.toFloat() }
+
+            SmearParams(
+                angle = angle,
+                density = density,
+                mix = mix,
+                distance = distance.toInt(),
+                shape = shape.toInt()
+            )
+        }
+
+        name == ArcParams::class.simpleName -> {
+            val (radius, height, angle, spreadAngle, centreX, centreY) = value.split(
+                PROPERTIES_SEPARATOR
+            ).map { it.toFloat() }
+
+            ArcParams(
+                radius = radius,
+                height = height,
+                angle = angle,
+                spreadAngle = spreadAngle,
+                centreX = centreX,
+                centreY = centreY
+            )
+        }
+
+        name == SparkleParams::class.simpleName -> {
+            val (amount, rays, radius, randomness, centreX, centreY, color) = value.split(
+                PROPERTIES_SEPARATOR
+            )
+
+            SparkleParams(
+                amount = amount.toInt(),
+                rays = rays.toInt(),
+                radius = radius.toFloat(),
+                randomness = randomness.toInt(),
+                centreX = centreX.toFloat(),
+                centreY = centreY.toFloat(),
+                color = color.toInt().toColorModel()
+            )
+        }
+
+        name == AsciiParams::class.simpleName -> {
+            val (gradient, fontSize, backgroundColor, isGrayscale) = value.split(
+                PROPERTIES_SEPARATOR
+            )
+
+            AsciiParams(
+                gradient = Base64.decode(gradient).toString(Charsets.UTF_8),
+                fontSize = fontSize.toFloat(),
+                backgroundColor = backgroundColor.toInt().toColorModel(),
+                isGrayscale = isGrayscale.toBoolean()
+            )
+        }
+
+        name == CropOrPerspectiveParams::class.simpleName -> {
+            val (topLeft, topRight, bottomLeft, bottomRight, isAbsolute) = value.split(
+                PROPERTIES_SEPARATOR
+            )
+
+            CropOrPerspectiveParams(
+                topLeft = topLeft.toFloatPair(),
+                topRight = topRight.toFloatPair(),
+                bottomLeft = bottomLeft.toFloatPair(),
+                bottomRight = bottomRight.toFloatPair(),
+                isAbsolute = isAbsolute.toBoolean()
+            )
+        }
+
         else -> null
     }
 }
@@ -330,6 +652,7 @@ internal fun Any.toPart(): String {
         is FadeSide -> name
         is PopArtBlendingMode -> name
         is MirrorSide -> name
+        is PolarCoordinatesType -> name
         else -> ""
     }
 }
@@ -345,9 +668,14 @@ internal fun String.fromPart(type: String): Any {
         FadeSide::class.simpleName() -> FadeSide.valueOf(this)
         PopArtBlendingMode::class.simpleName() -> PopArtBlendingMode.valueOf(this)
         MirrorSide::class.simpleName() -> MirrorSide.valueOf(this)
+        PolarCoordinatesType::class.simpleName() -> PolarCoordinatesType.valueOf(this)
         else -> ""
     }
 }
+
+private fun Pair<*, *>.join() = "$first$ADDITIONAL_PROPERTIES_SEPARATOR$second"
+private fun String.toFloatPair() =
+    split(ADDITIONAL_PROPERTIES_SEPARATOR).let { it[0].toFloat() to it[1].toFloat() }
 
 private const val PROPERTIES_SEPARATOR = "$"
 private const val ADDITIONAL_PROPERTIES_SEPARATOR = "*"

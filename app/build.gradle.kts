@@ -92,7 +92,17 @@ android {
 
     splits {
         abi {
-            isEnable = true
+            // Detect app bundle and conditionally disable split abis
+            // This is needed due to a "Sequence contains more than one matching element" error
+            // present since AGP 8.9.0, for more info see:
+            // https://issuetracker.google.com/issues/402800800
+
+            // AppBundle tasks usually contain "bundle" in their name
+            //noinspection WrongGradleMethod
+            val isBuildingBundle = gradle.startParameter.taskNames.any { it.lowercase().contains("bundle") }
+
+            // Disable split abis when building appBundle
+            isEnable = !isBuildingBundle
             reset()
             //noinspection ChromeOsAbiSupport
             include(*supportedAbi)
@@ -126,6 +136,9 @@ dependencies {
     implementation(projects.feature.root)
     implementation(projects.feature.mediaPicker)
     implementation(projects.feature.quickTiles)
+
+    implementation(libs.toolbox.opencvTools)
+
     implementation(libs.bouncycastle.pkix)
     implementation(libs.bouncycastle.provider)
 }

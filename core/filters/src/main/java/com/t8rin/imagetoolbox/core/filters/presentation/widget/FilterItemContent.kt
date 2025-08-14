@@ -18,35 +18,63 @@
 package com.t8rin.imagetoolbox.core.filters.presentation.widget
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.t8rin.imagetoolbox.core.domain.utils.Quad
 import com.t8rin.imagetoolbox.core.domain.utils.cast
-import com.t8rin.imagetoolbox.core.filters.domain.model.ClaheParams
-import com.t8rin.imagetoolbox.core.filters.domain.model.EnhancedZoomBlurParams
 import com.t8rin.imagetoolbox.core.filters.domain.model.FilterValueWrapper
-import com.t8rin.imagetoolbox.core.filters.domain.model.GlitchParams
-import com.t8rin.imagetoolbox.core.filters.domain.model.LinearGaussianParams
-import com.t8rin.imagetoolbox.core.filters.domain.model.LinearTiltShiftParams
-import com.t8rin.imagetoolbox.core.filters.domain.model.RadialTiltShiftParams
-import com.t8rin.imagetoolbox.core.filters.domain.model.SideFadeParams
-import com.t8rin.imagetoolbox.core.filters.domain.model.ToneCurvesParams
-import com.t8rin.imagetoolbox.core.filters.domain.model.WaterParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.enums.PolarCoordinatesType
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.ArcParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.AsciiParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.BilaterialBlurParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.ChannelMixParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.ClaheParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.CropOrPerspectiveParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.EnhancedZoomBlurParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.GlitchParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.KaleidoscopeParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.LinearGaussianParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.LinearTiltShiftParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.PinchParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.RadialTiltShiftParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.RubberStampParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.SideFadeParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.SmearParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.SparkleParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.ToneCurvesParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.VoronoiCrystallizeParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.WaterParams
 import com.t8rin.imagetoolbox.core.filters.presentation.model.UiFilter
+import com.t8rin.imagetoolbox.core.filters.presentation.utils.translatedName
+import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.ArcParamsItem
+import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.AsciiParamsItem
+import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.BilaterialBlurParamsItem
 import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.BooleanItem
+import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.ChannelMixParamsItem
 import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.ClaheParamsItem
+import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.CropOrPerspectiveParamsItem
 import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.EnhancedZoomBlurParamsItem
 import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.FilterValueWrapperItem
 import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.FloatArrayItem
 import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.FloatItem
 import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.GlitchParamsItem
+import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.KaleidoscopeParamsItem
 import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.LinearGaussianParamsItem
 import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.LinearTiltShiftParamsItem
 import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.PairItem
+import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.PinchParamsItem
+import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.QuadItem
 import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.RadialTiltShiftParamsItem
+import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.RubberStampParamsItem
 import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.SideFadeRelativeItem
+import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.SmearParamsItem
+import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.SparkleParamsItem
 import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.ToneCurvesParamsItem
 import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.TripleItem
+import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.VoronoiCrystallizeParamsItem
 import com.t8rin.imagetoolbox.core.filters.presentation.widget.filterItem.WaterParamsItem
+import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedButtonGroup
 
 @Composable
 internal fun <T> FilterItemContent(
@@ -95,6 +123,17 @@ internal fun <T> FilterItemContent(
                 )
             }
 
+            is PolarCoordinatesType -> {
+                EnhancedButtonGroup(
+                    inactiveButtonColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    items = PolarCoordinatesType.entries.map { it.translatedName },
+                    selectedIndex = PolarCoordinatesType.entries.indexOf(value),
+                    onIndexChange = {
+                        onFilterChange(PolarCoordinatesType.entries[it])
+                    }
+                )
+            }
+
             is Pair<*, *> -> {
                 PairItem(
                     value = value,
@@ -106,6 +145,15 @@ internal fun <T> FilterItemContent(
 
             is Triple<*, *, *> -> {
                 TripleItem(
+                    value = value,
+                    filter = filter.cast(),
+                    onFilterChange = onFilterChange,
+                    previewOnly = previewOnly
+                )
+            }
+
+            is Quad<*, *, *, *> -> {
+                QuadItem(
                     value = value,
                     filter = filter.cast(),
                     onFilterChange = onFilterChange,
@@ -187,6 +235,105 @@ internal fun <T> FilterItemContent(
 
             is ToneCurvesParams -> {
                 ToneCurvesParamsItem(
+                    value = value,
+                    filter = filter.cast(),
+                    onFilterChange = onFilterChange,
+                    previewOnly = previewOnly
+                )
+            }
+
+            is BilaterialBlurParams -> {
+                BilaterialBlurParamsItem(
+                    value = value,
+                    filter = filter.cast(),
+                    onFilterChange = onFilterChange,
+                    previewOnly = previewOnly
+                )
+            }
+
+            is KaleidoscopeParams -> {
+                KaleidoscopeParamsItem(
+                    value = value,
+                    filter = filter.cast(),
+                    onFilterChange = onFilterChange,
+                    previewOnly = previewOnly
+                )
+            }
+
+            is ChannelMixParams -> {
+                ChannelMixParamsItem(
+                    value = value,
+                    filter = filter.cast(),
+                    onFilterChange = onFilterChange,
+                    previewOnly = previewOnly
+                )
+            }
+
+            is VoronoiCrystallizeParams -> {
+                VoronoiCrystallizeParamsItem(
+                    value = value,
+                    filter = filter.cast(),
+                    onFilterChange = onFilterChange,
+                    previewOnly = previewOnly
+                )
+            }
+
+            is PinchParams -> {
+                PinchParamsItem(
+                    value = value,
+                    filter = filter.cast(),
+                    onFilterChange = onFilterChange,
+                    previewOnly = previewOnly
+                )
+            }
+
+            is RubberStampParams -> {
+                RubberStampParamsItem(
+                    value = value,
+                    filter = filter.cast(),
+                    onFilterChange = onFilterChange,
+                    previewOnly = previewOnly
+                )
+            }
+
+            is SmearParams -> {
+                SmearParamsItem(
+                    value = value,
+                    filter = filter.cast(),
+                    onFilterChange = onFilterChange,
+                    previewOnly = previewOnly
+                )
+            }
+
+            is ArcParams -> {
+                ArcParamsItem(
+                    value = value,
+                    filter = filter.cast(),
+                    onFilterChange = onFilterChange,
+                    previewOnly = previewOnly
+                )
+            }
+
+            is SparkleParams -> {
+                SparkleParamsItem(
+                    value = value,
+                    filter = filter.cast(),
+                    onFilterChange = onFilterChange,
+                    previewOnly = previewOnly
+                )
+            }
+
+            is AsciiParams -> {
+                AsciiParamsItem(
+                    value = value,
+                    filter = filter.cast(),
+                    onFilterChange = onFilterChange,
+                    previewOnly = previewOnly
+                )
+            }
+
+            is CropOrPerspectiveParams -> {
+                CropOrPerspectiveParamsItem(
                     value = value,
                     filter = filter.cast(),
                     onFilterChange = onFilterChange,

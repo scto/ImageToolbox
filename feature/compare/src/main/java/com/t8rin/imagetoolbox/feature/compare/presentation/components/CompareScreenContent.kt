@@ -17,8 +17,6 @@
 
 package com.t8rin.imagetoolbox.feature.compare.presentation.components
 
-import android.graphics.Bitmap
-import android.net.Uri
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
@@ -43,7 +41,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AddPhotoAlternate
 import androidx.compose.material.icons.rounded.Highlight
 import androidx.compose.material.icons.rounded.Pix
 import androidx.compose.material.icons.rounded.Tune
@@ -73,6 +70,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import coil3.transform.Transformation
 import com.t8rin.imagetoolbox.core.resources.R
+import com.t8rin.imagetoolbox.core.resources.icons.AddPhotoAlt
 import com.t8rin.imagetoolbox.core.settings.presentation.provider.LocalSettingsState
 import com.t8rin.imagetoolbox.core.ui.utils.content_pickers.ImagePicker
 import com.t8rin.imagetoolbox.core.ui.utils.content_pickers.Picker
@@ -86,19 +84,19 @@ import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedIconButton
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedModalBottomSheet
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedSlider
 import com.t8rin.imagetoolbox.core.ui.widget.image.ImageNotPickedWidget
-import com.t8rin.imagetoolbox.core.ui.widget.modifier.ContainerShapeDefaults
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.drawHorizontalStroke
 import com.t8rin.imagetoolbox.core.ui.widget.other.BoxAnimatedVisibility
 import com.t8rin.imagetoolbox.core.ui.widget.text.TitleItem
-import com.t8rin.opencv_tools.image_comparison.ComparisonType
+import com.t8rin.imagetoolbox.feature.compare.presentation.components.model.CompareData
 import net.engawapg.lib.zoomable.ZoomableDefaults.defaultZoomOnDoubleTap
 import net.engawapg.lib.zoomable.rememberZoomState
 import net.engawapg.lib.zoomable.zoomable
 
 @Composable
 internal fun CompareScreenContent(
-    bitmapData: Pair<Pair<Uri, Bitmap>?, Pair<Uri, Bitmap>?>?,
+    bitmapData: CompareData?,
     compareType: CompareType,
     onCompareTypeSelected: (CompareType) -> Unit,
     isPortrait: Boolean,
@@ -186,7 +184,7 @@ internal fun CompareScreenContent(
                                 },
                                 allowAlpha = false,
                                 modifier = Modifier.container(
-                                    shape = ContainerShapeDefaults.topShape
+                                    shape = ShapeDefaults.top
                                 ),
                                 title = stringResource(R.string.highlight_color),
                                 icon = Icons.Rounded.Highlight
@@ -205,7 +203,7 @@ internal fun CompareScreenContent(
                                 title = stringResource(R.string.pixel_comparison_type),
                                 titleIcon = Icons.Rounded.Pix,
                                 spanCount = 1,
-                                shape = ContainerShapeDefaults.bottomShape,
+                                shape = ShapeDefaults.bottom,
                                 itemContentText = {
                                     it.name
                                 },
@@ -288,7 +286,7 @@ internal fun CompareScreenContent(
                                 },
                             ) {
                                 Icon(
-                                    imageVector = Icons.Rounded.AddPhotoAlternate,
+                                    imageVector = Icons.Rounded.AddPhotoAlt,
                                     contentDescription = stringResource(R.string.pick_image_alt)
                                 )
                             }
@@ -462,7 +460,7 @@ internal fun CompareScreenContent(
                             },
                         ) {
                             Icon(
-                                imageVector = Icons.Rounded.AddPhotoAlternate,
+                                imageVector = Icons.Rounded.AddPhotoAlt,
                                 contentDescription = stringResource(R.string.pick_image_alt)
                             )
                         }

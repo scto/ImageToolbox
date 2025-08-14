@@ -24,11 +24,11 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.hapticfeedback.HapticFeedback
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.round
 import androidx.compose.ui.unit.toIntRect
 import com.t8rin.imagetoolbox.core.ui.utils.state.update
+import com.t8rin.imagetoolbox.core.ui.widget.enhanced.longPress
 
 
 /**
@@ -74,7 +74,7 @@ fun Modifier.dragHandler(
                                 selectedItems.update { newItems }
                                 onSelectionChange(newItems)
                             }
-                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                            haptics.longPress()
                             onTap(key - 1)
                         }
                 }
@@ -96,7 +96,7 @@ fun Modifier.dragHandler(
                                     selectedItems.update { newItems }
                                     onSelectionChange(newItems)
                                 }
-                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                haptics.longPress()
                                 onLongTap(key - 1)
                             }
                     },

@@ -23,7 +23,6 @@ import androidx.compose.material3.RadioButtonColors
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 
 @Composable
@@ -40,9 +39,7 @@ fun EnhancedRadioButton(
         selected = selected,
         onClick = if (onClick != null) {
             {
-                haptics.performHapticFeedback(
-                    HapticFeedbackType.LongPress
-                )
+                haptics.longPress()
                 onClick()
             }
         } else null,

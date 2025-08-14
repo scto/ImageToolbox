@@ -17,11 +17,9 @@
 
 package com.t8rin.imagetoolbox.core.ui.widget.value
 
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
@@ -35,17 +33,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import com.t8rin.imagetoolbox.core.domain.utils.trimTrailingZero
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.resources.icons.Counter
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedAlertDialog
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedButton
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.clearFocusOnTap
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
@@ -58,16 +55,10 @@ fun ValueDialog(
     onDismiss: () -> Unit,
     onValueUpdate: (Float) -> Unit
 ) {
-    val focus = LocalFocusManager.current
     var value by remember(valueState, expanded) { mutableStateOf(valueState.trimTrailingZero()) }
     EnhancedAlertDialog(
         visible = expanded,
-        modifier = Modifier
-            .pointerInput(Unit) {
-                detectTapGestures {
-                    focus.clearFocus()
-                }
-            },
+        modifier = Modifier.clearFocusOnTap(),
         onDismissRequest = onDismiss,
         icon = {
             Icon(
@@ -91,7 +82,7 @@ fun ValueDialog(
                 verticalArrangement = Arrangement.Center
             ) {
                 OutlinedTextField(
-                    shape = RoundedCornerShape(16.dp),
+                    shape = ShapeDefaults.default,
                     value = value,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.Center),

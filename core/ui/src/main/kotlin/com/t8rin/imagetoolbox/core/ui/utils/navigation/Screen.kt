@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.apache.org/licenses/LICENSE-2.0>.
  */
 
+@file:Suppress("PLUGIN_IS_NOT_ENABLED")
+
 package com.t8rin.imagetoolbox.core.ui.utils.navigation
 
 import androidx.annotation.StringRes
@@ -49,14 +51,23 @@ sealed class Screen(
     @StringRes val subtitle: Int
 ) {
 
-    val isBetaFeature: Boolean
-        get() = isBetaFeature()
+    val isBetaFeature: Boolean by lazy { isBetaFeature() }
 
-    val simpleName: String
-        get() = simpleName()
+    val simpleName: String by lazy { simpleName() }
 
-    val icon: ImageVector?
-        get() = icon()
+    val icon: ImageVector? by lazy { icon() }
+
+    val twoToneIcon: ImageVector? by lazy { twoToneIcon() }
+
+    @Serializable
+    data class LibraryDetails(
+        val name: String,
+        val htmlDescription: String
+    ) : Screen(
+        id = -5,
+        title = 0,
+        subtitle = 0
+    )
 
     @Serializable
     data object LibrariesInfo : Screen(

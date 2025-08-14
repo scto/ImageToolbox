@@ -17,14 +17,23 @@
 
 package com.t8rin.imagetoolbox.feature.load_net_image.presentation
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.t8rin.imagetoolbox.core.resources.R
+import com.t8rin.imagetoolbox.core.ui.theme.takeUnless
+import com.t8rin.imagetoolbox.core.ui.utils.helper.isPortraitOrientationAsState
+import com.t8rin.imagetoolbox.core.ui.utils.provider.rememberLocalEssentials
 import com.t8rin.imagetoolbox.core.ui.widget.AdaptiveLayoutScreen
 import com.t8rin.imagetoolbox.core.ui.widget.dialogs.LoadingDialog
+import com.t8rin.imagetoolbox.core.ui.widget.image.ImageNotPickedWidget
 import com.t8rin.imagetoolbox.core.ui.widget.text.TopAppBarTitle
 import com.t8rin.imagetoolbox.core.ui.widget.utils.AutoContentBasedColors
 import com.t8rin.imagetoolbox.feature.load_net_image.presentation.components.LoadNetImageActionButtons
@@ -39,6 +48,9 @@ import com.t8rin.imagetoolbox.feature.load_net_image.presentation.screenLogic.Lo
 fun LoadNetImageContent(
     component: LoadNetImageComponent
 ) {
+    val isPortrait by isPortraitOrientationAsState()
+    val essentials = rememberLocalEssentials()
+
     AutoContentBasedColors(component.bitmap)
 
     AdaptiveLayoutScreen(
@@ -59,7 +71,25 @@ fun LoadNetImageContent(
             LoadNetImageTopAppBarActions(component)
         },
         imagePreview = {
-            ParsedImagePreview(component)
+            AnimatedContent(component.targetUrl.isEmpty()) { isEmpty ->
+                if (isEmpty) {
+                    ImageNotPickedWidget(
+                        onPickImage = {
+                            essentials.getTextFromClipboard {
+                                component.updateTargetUrl(newUrl = it.toString())
+                            }
+                        },
+                        modifier = Modifier.padding(20.dp),
+                        text = stringResource(R.string.type_image_link),
+                        containerColor = MaterialTheme
+                            .colorScheme
+                            .surfaceContainerLowest
+                            .takeUnless(isPortrait)
+                    )
+                } else {
+                    ParsedImagePreview(component)
+                }
+            }
         },
         controls = {
             Column(
@@ -75,6 +105,7 @@ fun LoadNetImageContent(
                 actions = actions
             )
         },
+        showImagePreviewAsStickyHeader = component.targetUrl.isNotEmpty(),
         canShowScreenData = true
     )
 

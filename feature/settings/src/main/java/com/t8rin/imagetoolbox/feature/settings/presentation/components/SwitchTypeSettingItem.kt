@@ -31,6 +31,7 @@ import androidx.compose.material.icons.outlined.ToggleOn
 import androidx.compose.material.icons.rounded.Android
 import androidx.compose.material.icons.rounded.RadioButtonChecked
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
+import androidx.compose.material.icons.rounded.Water
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -57,14 +58,14 @@ import com.t8rin.imagetoolbox.core.ui.theme.takeColorFromScheme
 import com.t8rin.imagetoolbox.core.ui.utils.provider.SafeLocalContainerColor
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedButton
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedModalBottomSheet
-import com.t8rin.imagetoolbox.core.ui.widget.modifier.ContainerShapeDefaults
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.preferences.PreferenceItem
 import com.t8rin.imagetoolbox.core.ui.widget.text.TitleItem
 
 @Composable
 fun SwitchTypeSettingItem(
     onValueChange: (SwitchType) -> Unit,
-    shape: Shape = ContainerShapeDefaults.topShape,
+    shape: Shape = ShapeDefaults.top,
     modifier: Modifier = Modifier.padding(horizontal = 8.dp)
 ) {
     val settingsState = LocalSettingsState.current
@@ -125,7 +126,7 @@ fun SwitchTypeSettingItem(
                         if (selected) secondaryContainer
                         else SafeLocalContainerColor
                     },
-                    shape = ContainerShapeDefaults.shapeForIndex(index, entries.size),
+                    shape = ShapeDefaults.byIndex(index, entries.size),
                     startIcon = type.icon,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -137,7 +138,7 @@ fun SwitchTypeSettingItem(
                                     .copy(alpha = 0.5f)
                                 else Color.Transparent
                             ).value,
-                            shape = ContainerShapeDefaults.shapeForIndex(index, entries.size)
+                            shape = ShapeDefaults.byIndex(index, entries.size)
                         ),
                     endIcon = if (selected) {
                         Icons.Rounded.RadioButtonChecked
@@ -156,6 +157,7 @@ private val SwitchType.title: String
         SwitchType.Pixel -> stringResource(R.string.pixel_switch)
         SwitchType.Fluent -> stringResource(R.string.fluent_switch)
         SwitchType.Cupertino -> stringResource(R.string.cupertino_switch)
+        SwitchType.LiquidGlass -> stringResource(R.string.liquid_glass)
     }
 
 private val SwitchType.subtitle: String
@@ -166,6 +168,7 @@ private val SwitchType.subtitle: String
         SwitchType.Pixel -> stringResource(R.string.use_pixel_switch_sub)
         SwitchType.Fluent -> stringResource(R.string.fluent_switch_sub)
         SwitchType.Cupertino -> stringResource(R.string.cupertino_switch_sub)
+        SwitchType.LiquidGlass -> stringResource(R.string.liquid_glass_sub)
     }
 
 
@@ -176,4 +179,5 @@ private val SwitchType.icon: ImageVector
         SwitchType.Pixel -> Icons.Rounded.Android
         SwitchType.Fluent -> Icons.Rounded.Windows
         SwitchType.Cupertino -> Icons.Rounded.IOS
+        SwitchType.LiquidGlass -> Icons.Rounded.Water
     }

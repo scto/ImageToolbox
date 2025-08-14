@@ -67,6 +67,7 @@ sealed class UiFilter<T>(
     companion object {
         val groupedEntries by lazy {
             listOf(
+                //Simple
                 listOf(
                     UiSepiaFilter(),
                     UiNegativeFilter(),
@@ -123,11 +124,40 @@ sealed class UiFilter<T>(
                     UiHDRFilter(),
                     UiSimpleSketchFilter(),
                     UiSobelSimpleFilter(),
-                    UiLaplacianSimpleFilter()
+                    UiLaplacianSimpleFilter(),
+                    UiDespeckleFilter(),
+                    UiEqualizeFilter(),
+                    UiReduceNoiseFilter(),
+                    UiSimpleSolarizeFilter(),
+                    UiMoireFilter(),
+                    UiAutumnFilter(),
+                    UiBoneFilter(),
+                    UiJetFilter(),
+                    UiWinterFilter(),
+                    UiRainbowFilter(),
+                    UiOceanFilter(),
+                    UiSummerFilter(),
+                    UiSpringFilter(),
+                    UiCoolVariantFilter(),
+                    UiHsvFilter(),
+                    UiPinkFilter(),
+                    UiHotFilter(),
+                    UiParulaFilter(),
+                    UiMagmaFilter(),
+                    UiInfernoFilter(),
+                    UiPlasmaFilter(),
+                    UiViridisFilter(),
+                    UiCividisFilter(),
+                    UiTwilightFilter(),
+                    UiTwilightShiftedFilter(),
+                    UiAutoPerspectiveFilter(),
+                    UiTurboFilter(),
+                    UiDeepGreenFilter()
                 ),
+                //Color
                 listOf(
                     UiHueFilter(),
-                    UiColorFilter(),
+                    UiColorOverlayFilter(),
                     UiNeonFilter(),
                     UiSaturationFilter(),
                     UiRGBFilter(),
@@ -145,8 +175,11 @@ sealed class UiFilter<T>(
                     UiColorPosterFilter(),
                     UiTriToneFilter(),
                     UiPopArtFilter(),
-                    UiToneCurvesFilter()
+                    UiToneCurvesFilter(),
+                    UiChannelMixFilter(),
+                    UiRubberStampFilter()
                 ),
+                //LUT
                 listOf(
                     UiLUT512x512Filter(),
                     UiAmatorkaFilter(),
@@ -168,6 +201,7 @@ sealed class UiFilter<T>(
                     UiGreenishFilter(),
                     UiRetroYellowFilter()
                 ),
+                //Light
                 listOf(
                     UiBrightnessFilter(),
                     UiContrastFilter(),
@@ -202,8 +236,11 @@ sealed class UiFilter<T>(
                     UiClaheOklabFilter(),
                     UiClaheOklchFilter(),
                     UiClaheJzazbzFilter(),
-                    UiAutoRemoveRedEyesFilter()
+                    UiAutoRemoveRedEyesFilter(),
+                    UiGlowFilter(),
+                    UiSparkleFilter()
                 ),
+                //Effects
                 listOf(
                     UiNoiseFilter(),
                     UiAnisotropicDiffusionFilter(),
@@ -233,8 +270,10 @@ sealed class UiFilter<T>(
                     UiSketchFilter(),
                     UiLookupFilter(),
                     UiConvolution3x3Filter(),
-                    UiThresholdFilter()
+                    UiThresholdFilter(),
+                    UiDoGFilter()
                 ),
+                //Blur
                 listOf(
                     UiShuffleBlurFilter(),
                     UiRingBlurFilter(),
@@ -267,8 +306,10 @@ sealed class UiFilter<T>(
                     UiLinearFastGaussianBlurNextFilter(),
                     UiLinearFastGaussianBlurFilter(),
                     UiLinearGaussianBlurFilter(),
-                    UiMotionBlurFilter()
+                    UiMotionBlurFilter(),
+                    UiDiffuseFilter()
                 ),
+                //Pixelation
                 listOf(
                     UiCrystallizeFilter(),
                     UiEqualizeHistogramPixelationFilter(),
@@ -281,8 +322,15 @@ sealed class UiFilter<T>(
                     UiStrokePixelationFilter(),
                     UiLowPolyFilter(),
                     UiSandPaintingFilter(),
-                    UiPolkaDotFilter()
+                    UiPolkaDotFilter(),
+                    UiContourFilter(),
+                    UiVoronoiCrystallizeFilter(),
+                    UiPointillizeFilter(),
+                    UiWeaveFilter(),
+                    UiSmearFilter(),
+                    UiAsciiFilter()
                 ),
+                //Distortion
                 listOf(
                     UiEnhancedGlitchFilter(),
                     UiFractalGlassFilter(),
@@ -298,8 +346,19 @@ sealed class UiFilter<T>(
                     UiBulgeDistortionFilter(),
                     UiSphereRefractionFilter(),
                     UiGlassSphereRefractionFilter(),
-                    UiMirrorFilter()
+                    UiMirrorFilter(),
+                    UiKaleidoscopeFilter(),
+                    UiOffsetFilter(),
+                    UiPinchFilter(),
+                    UiPolarCoordinatesFilter(),
+                    UiTwirlFilter(),
+                    UiSphereLensDistortionFilter(),
+                    UiArcFilter(),
+                    UiDeskewFilter(),
+                    UiCropOrPerspectiveFilter(),
+                    UiLensCorrectionFilter()
                 ),
+                //Dithering
                 listOf(
                     UiHalftoneFilter(),
                     UiCrosshatchFilter(),
@@ -323,7 +382,8 @@ sealed class UiFilter<T>(
                     UiClustered2x2DitheringFilter(),
                     UiClustered4x4DitheringFilter(),
                     UiClustered8x8DitheringFilter(),
-                    UiYililomaDitheringFilter()
+                    UiYililomaDitheringFilter(),
+                    UiColorHalftoneFilter()
                 )
             )
         }

@@ -24,9 +24,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.toArgb
+import androidx.core.graphics.applyCanvas
 import androidx.core.net.toUri
 import coil3.transform.Transformation
 import com.arkivanov.decompose.ComponentContext
+import com.t8rin.imagetoolbox.core.data.image.utils.drawBitmap
 import com.t8rin.imagetoolbox.core.data.utils.asDomain
 import com.t8rin.imagetoolbox.core.data.utils.safeConfig
 import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
@@ -47,7 +49,11 @@ import com.t8rin.imagetoolbox.core.ui.utils.helper.toCoil
 import com.t8rin.imagetoolbox.core.ui.utils.state.update
 import com.t8rin.imagetoolbox.feature.compare.presentation.components.CompareType
 import com.t8rin.imagetoolbox.feature.compare.presentation.components.PixelByPixelCompareState
+import com.t8rin.imagetoolbox.feature.compare.presentation.components.model.CompareData
+import com.t8rin.imagetoolbox.feature.compare.presentation.components.model.CompareEntry
+import com.t8rin.imagetoolbox.feature.compare.presentation.components.model.ifNotEmpty
 import com.t8rin.opencv_tools.image_comparison.ImageDiffTool
+import com.t8rin.opencv_tools.image_comparison.model.ComparisonType
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -85,8 +91,7 @@ class CompareComponent @AssistedInject internal constructor(
         _compareProgress.update { progress }
     }
 
-    private val _bitmapData: MutableState<Pair<Pair<Uri, Bitmap>?, Pair<Uri, Bitmap>?>?> =
-        mutableStateOf(null)
+    private val _bitmapData: MutableState<CompareData?> = mutableStateOf(null)
     val bitmapData by _bitmapData
 
     private val _rotation: MutableState<Float> = mutableFloatStateOf(0f)
@@ -111,30 +116,31 @@ class CompareComponent @AssistedInject internal constructor(
             else 90f
         }
         componentScope.launch {
-            _bitmapData.value?.let { (f, s) ->
-                if (f != null && s != null) {
-                    _isImageLoading.value = true
-                    _bitmapData.value = with(imageTransformer) {
-                        bitmapData?.first?.copy(
-                            second = rotate(
+            bitmapData?.ifNotEmpty { first, second ->
+                _isImageLoading.value = true
+                _bitmapData.value = with(imageTransformer) {
+                    CompareData(
+                        first = first.copy(
+                            image = rotate(
                                 image = rotate(
-                                    image = f.second,
+                                    image = first.image,
                                     degrees = 180f - old
                                 ),
                                 degrees = rotation
                             )
-                        ) to bitmapData?.second?.copy(
-                            second = rotate(
+                        ),
+                        second = second.copy(
+                            image = rotate(
                                 image = rotate(
-                                    image = s.second,
+                                    image = second.image,
                                     degrees = 180f - old
                                 ),
                                 degrees = rotation
                             )
                         )
-                    }
-                    _isImageLoading.value = false
+                    )
                 }
+                _isImageLoading.value = false
             }
         }
     }
@@ -142,7 +148,7 @@ class CompareComponent @AssistedInject internal constructor(
     fun swap() {
         componentScope.launch {
             _isImageLoading.value = true
-            _bitmapData.value = _bitmapData.value?.run { second to first }
+            _bitmapData.value = bitmapData?.swap()
             _isImageLoading.value = false
         }
     }
@@ -155,7 +161,16 @@ class CompareComponent @AssistedInject internal constructor(
             val data = getBitmapByUri(uris.first) to getBitmapByUri(uris.second)
             if (data.first == null || data.second == null) onFailure()
             else {
-                _bitmapData.value = (uris.first to data.first!!) to (uris.second to data.second!!)
+                _bitmapData.value = CompareData(
+                    first = CompareEntry(
+                        uri = uris.first,
+                        image = data.first!!
+                    ),
+                    second = CompareEntry(
+                        uri = uris.second,
+                        image = data.second!!
+                    )
+                )
                 setCompareProgress(
                     if (compareType == CompareType.PixelByPixel) 4f
                     else 50f
@@ -235,34 +250,38 @@ class CompareComponent @AssistedInject internal constructor(
     private fun Bitmap.overlay(
         overlay: Bitmap,
         percent: Float
-    ): Bitmap {
-        val finalBitmap = overlay.copy(overlay.safeConfig, true).apply { setHasAlpha(true) }
-        val canvas = android.graphics.Canvas(finalBitmap)
-        val image = createScaledBitmap(canvas.width, canvas.height)
-        runCatching {
-            canvas.drawBitmap(
-                Bitmap.createBitmap(
-                    image,
-                    0,
-                    0,
-                    (image.width * percent / 100).roundToInt(),
-                    image.height
-                ), 0f, 0f, null
-            )
+    ): Bitmap = overlay.copy(overlay.safeConfig, true)
+        .apply { setHasAlpha(true) }
+        .applyCanvas {
+            runCatching {
+                val image = createScaledBitmap(
+                    width = width,
+                    height = height
+                )
+
+                drawBitmap(
+                    Bitmap.createBitmap(
+                        image, 0, 0,
+                        (image.width * percent / 100).roundToInt(),
+                        image.height
+                    )
+                )
+            }
         }
-        return finalBitmap
-    }
 
     private fun getOverlappedImage(): Bitmap? {
-        return _bitmapData.value?.let { (b, a) ->
-            a?.second?.let { b?.second?.overlay(it, compareProgress) }
+        return bitmapData?.ifNotEmpty { before, after ->
+            before.image.overlay(
+                overlay = after.image,
+                percent = compareProgress
+            )
         }
     }
 
     private suspend fun getResultImage(): Bitmap? = coroutineScope {
         when (compareType) {
             CompareType.PixelByPixel -> imageTransformer.transform(
-                image = bitmapData?.first?.second ?: return@coroutineScope null,
+                image = bitmapData?.first?.image ?: return@coroutineScope null,
                 transformations = listOf(createPixelByPixelTransformation().asDomain())
             )
 
@@ -272,7 +291,7 @@ class CompareComponent @AssistedInject internal constructor(
     }
 
     fun getImagePreview(): Bitmap? = when (compareType) {
-        CompareType.PixelByPixel -> bitmapData?.first?.second
+        CompareType.PixelByPixel -> bitmapData?.first?.image
         CompareType.Slide -> getOverlappedImage()
         else -> null
     }
@@ -316,9 +335,9 @@ class CompareComponent @AssistedInject internal constructor(
         GenericTransformation<Bitmap> { first ->
             ImageDiffTool.highlightDifferences(
                 input = first,
-                other = bitmapData?.second?.second
+                other = bitmapData?.second?.image
                     ?: return@GenericTransformation first,
-                comparisonType = pixelByPixelCompareState.comparisonType,
+                comparisonType = ComparisonType.valueOf(pixelByPixelCompareState.comparisonType.name),
                 highlightColor = pixelByPixelCompareState.highlightColor.toArgb(),
                 threshold = compareProgress
             )

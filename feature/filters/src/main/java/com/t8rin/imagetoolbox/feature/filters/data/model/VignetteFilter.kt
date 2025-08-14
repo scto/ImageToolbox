@@ -17,7 +17,6 @@
 
 package com.t8rin.imagetoolbox.feature.filters.data.model
 
-import android.content.Context
 import android.graphics.PointF
 import androidx.compose.ui.graphics.Color
 import com.t8rin.imagetoolbox.core.data.image.utils.ColorUtils.blue
@@ -26,21 +25,21 @@ import com.t8rin.imagetoolbox.core.data.image.utils.ColorUtils.red
 import com.t8rin.imagetoolbox.core.data.image.utils.ColorUtils.toModel
 import com.t8rin.imagetoolbox.core.domain.model.ColorModel
 import com.t8rin.imagetoolbox.core.filters.domain.model.Filter
+import com.t8rin.imagetoolbox.feature.filters.data.transformation.GPUFilterTransformation
 import jp.co.cyberagent.android.gpuimage.filter.GPUImageFilter
 import jp.co.cyberagent.android.gpuimage.filter.GPUImageVignetteFilter
 
 
 internal class VignetteFilter(
-    private val context: Context,
     override val value: Triple<Float, Float, ColorModel> = Triple(
         first = 0.3f,
         second = 0.75f,
         third = Color.Black.toModel()
     )
-) : GPUFilterTransformation(context), Filter.Vignette {
+) : GPUFilterTransformation(), Filter.Vignette {
 
     override val cacheKey: String
-        get() = (value to context).hashCode().toString()
+        get() = value.hashCode().toString()
 
     override fun createFilter(): GPUImageFilter = GPUImageVignetteFilter(
         PointF(0.5f, 0.5f),

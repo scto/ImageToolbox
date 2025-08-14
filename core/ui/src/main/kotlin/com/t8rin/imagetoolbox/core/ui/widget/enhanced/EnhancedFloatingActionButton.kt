@@ -41,7 +41,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.takeOrElse
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalViewConfiguration
@@ -52,6 +51,7 @@ import com.t8rin.imagetoolbox.core.settings.presentation.provider.LocalSettingsS
 import com.t8rin.imagetoolbox.core.ui.theme.mixedContainer
 import com.t8rin.imagetoolbox.core.ui.theme.onMixedContainer
 import com.t8rin.imagetoolbox.core.ui.utils.helper.ProvidesValue
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.containerFabBorder
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.shapeByInteraction
 import kotlinx.coroutines.delay
@@ -98,18 +98,14 @@ fun EnhancedFloatingActionButton(
                             isLongClick = true
                             onLongClick()
                             focus.clearFocus()
-                            haptics.performHapticFeedback(
-                                HapticFeedbackType.LongPress
-                            )
+                            haptics.longPress()
                         }
 
                         is PressInteraction.Release -> {
                             if (!isLongClick && onClick != null) {
                                 onClick()
                                 focus.clearFocus()
-                                haptics.performHapticFeedback(
-                                    HapticFeedbackType.TextHandleMove
-                                )
+                                haptics.press()
                             }
                         }
 
@@ -126,9 +122,7 @@ fun EnhancedFloatingActionButton(
                 if (onLongClick == null && onClick != null) {
                     onClick()
                     focus.clearFocus()
-                    haptics.performHapticFeedback(
-                        HapticFeedbackType.LongPress
-                    )
+                    haptics.longPress()
                 }
             },
             modifier = modifier
@@ -180,12 +174,12 @@ sealed class EnhancedFloatingActionButtonType(
 
     data object Small : EnhancedFloatingActionButtonType(
         size = 40.dp,
-        shape = RoundedCornerShape(12.dp)
+        shape = ShapeDefaults.small
     )
 
     data object Primary : EnhancedFloatingActionButtonType(
         size = 56.dp,
-        shape = RoundedCornerShape(16.dp)
+        shape = ShapeDefaults.default
     )
 
     data object SecondaryHorizontal : EnhancedFloatingActionButtonType(
@@ -202,7 +196,7 @@ sealed class EnhancedFloatingActionButtonType(
 
     data object Large : EnhancedFloatingActionButtonType(
         size = 96.dp,
-        shape = RoundedCornerShape(28.dp)
+        shape = ShapeDefaults.extremeLarge
     )
 
     class Custom(

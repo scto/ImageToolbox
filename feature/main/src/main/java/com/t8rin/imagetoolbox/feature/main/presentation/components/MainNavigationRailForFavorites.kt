@@ -52,15 +52,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.t8rin.imagetoolbox.core.resources.R
-import com.t8rin.imagetoolbox.core.resources.icons.Toolbox
+import com.t8rin.imagetoolbox.core.resources.icons.ServiceToolbox
 import com.t8rin.imagetoolbox.core.settings.presentation.provider.LocalSettingsState
 import com.t8rin.imagetoolbox.core.ui.theme.outlineVariant
+import com.t8rin.imagetoolbox.core.ui.widget.enhanced.longPress
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
 import com.t8rin.imagetoolbox.core.ui.widget.text.marquee
 
@@ -115,9 +115,7 @@ internal fun MainNavigationRailForFavorites(
                     selected = selectedIndex == 0,
                     onClick = {
                         onValueChange(0)
-                        haptics.performHapticFeedback(
-                            HapticFeedbackType.LongPress
-                        )
+                        haptics.longPress()
                     },
                     icon = {
                         AnimatedContent(
@@ -147,9 +145,7 @@ internal fun MainNavigationRailForFavorites(
                     selected = selectedIndex == 1,
                     onClick = {
                         onValueChange(1)
-                        haptics.performHapticFeedback(
-                            HapticFeedbackType.LongPress
-                        )
+                        haptics.longPress()
                     },
                     icon = {
                         AnimatedContent(
@@ -159,7 +155,7 @@ internal fun MainNavigationRailForFavorites(
                             }
                         ) { selected ->
                             Icon(
-                                imageVector = if (selected) Icons.Rounded.Toolbox else Icons.Outlined.Toolbox,
+                                imageVector = if (selected) Icons.Rounded.ServiceToolbox else Icons.Outlined.ServiceToolbox,
                                 contentDescription = null
                             )
                         }

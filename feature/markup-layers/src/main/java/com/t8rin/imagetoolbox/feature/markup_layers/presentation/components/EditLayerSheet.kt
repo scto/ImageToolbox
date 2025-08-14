@@ -30,11 +30,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AddPhotoAlternate
 import androidx.compose.material.icons.outlined.BorderColor
 import androidx.compose.material.icons.rounded.FormatColorFill
 import androidx.compose.material3.Icon
@@ -59,6 +57,7 @@ import com.t8rin.imagetoolbox.core.domain.model.Outline
 import com.t8rin.imagetoolbox.core.domain.utils.ListUtils.toggle
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.resources.emoji.Emoji
+import com.t8rin.imagetoolbox.core.resources.icons.AddPhotoAlt
 import com.t8rin.imagetoolbox.core.resources.icons.MiniEdit
 import com.t8rin.imagetoolbox.core.resources.icons.MiniEditLarge
 import com.t8rin.imagetoolbox.core.resources.shapes.MaterialStarShape
@@ -75,7 +74,7 @@ import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedIconButton
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedModalBottomSheet
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedSliderItem
 import com.t8rin.imagetoolbox.core.ui.widget.image.Picture
-import com.t8rin.imagetoolbox.core.ui.widget.modifier.ContainerShapeDefaults
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
 import com.t8rin.imagetoolbox.core.ui.widget.preferences.PreferenceItemOverload
 import com.t8rin.imagetoolbox.core.ui.widget.preferences.PreferenceRowSwitch
@@ -176,7 +175,7 @@ internal fun EditLayerSheet(
                             containerColor = SafeLocalContainerColor
                         ),
                         modifier = Modifier.container(
-                            shape = ContainerShapeDefaults.defaultShape,
+                            shape = ShapeDefaults.default,
                             color = MaterialTheme.colorScheme.surface,
                             resultPadding = 8.dp
                         ),
@@ -195,7 +194,7 @@ internal fun EditLayerSheet(
                                 )
                             )
                         },
-                        shape = ContainerShapeDefaults.topShape,
+                        shape = ShapeDefaults.top,
                         color = MaterialTheme.colorScheme.surface
                     )
                     Spacer(modifier = Modifier.height(4.dp))
@@ -213,7 +212,7 @@ internal fun EditLayerSheet(
                             )
                         },
                         valueRange = 0.01f..1f,
-                        shape = ContainerShapeDefaults.centerShape,
+                        shape = ShapeDefaults.center,
                         color = MaterialTheme.colorScheme.surface
                     )
                     Spacer(modifier = Modifier.height(4.dp))
@@ -232,7 +231,7 @@ internal fun EditLayerSheet(
                         icon = Icons.Rounded.FormatColorFill,
                         titleFontWeight = FontWeight.Medium,
                         modifier = Modifier.container(
-                            shape = ContainerShapeDefaults.centerShape,
+                            shape = ShapeDefaults.center,
                             color = MaterialTheme.colorScheme.surface
                         )
                     )
@@ -251,7 +250,7 @@ internal fun EditLayerSheet(
                         title = stringResource(R.string.text_color),
                         titleFontWeight = FontWeight.Medium,
                         modifier = Modifier.container(
-                            shape = ContainerShapeDefaults.centerShape,
+                            shape = ShapeDefaults.center,
                             color = MaterialTheme.colorScheme.surface
                         )
                     )
@@ -279,7 +278,7 @@ internal fun EditLayerSheet(
                     PreferenceRowSwitch(
                         title = stringResource(R.string.add_outline),
                         subtitle = stringResource(R.string.add_outline_sub),
-                        shape = ContainerShapeDefaults.bottomShape,
+                        shape = ShapeDefaults.bottom,
                         color = MaterialTheme.colorScheme.surface,
                         applyHorizontalPadding = false,
                         resultModifier = Modifier.padding(16.dp),
@@ -309,7 +308,7 @@ internal fun EditLayerSheet(
                                         title = stringResource(R.string.outline_color),
                                         titleFontWeight = FontWeight.Medium,
                                         modifier = Modifier.container(
-                                            shape = ContainerShapeDefaults.topShape,
+                                            shape = ShapeDefaults.top,
                                             color = MaterialTheme.colorScheme.surfaceContainerLow
                                         ),
                                         icon = Icons.Outlined.BorderColor
@@ -332,7 +331,7 @@ internal fun EditLayerSheet(
                                             )
                                         },
                                         valueRange = 0.01f..10f,
-                                        shape = ContainerShapeDefaults.bottomShape,
+                                        shape = ShapeDefaults.bottom,
                                         color = MaterialTheme.colorScheme.surfaceContainerLow
                                     )
                                 }
@@ -360,7 +359,7 @@ internal fun EditLayerSheet(
                                 modifier = Modifier.size(48.dp),
                                 error = {
                                     Icon(
-                                        imageVector = Icons.Outlined.AddPhotoAlternate,
+                                        imageVector = Icons.Outlined.AddPhotoAlt,
                                         contentDescription = null,
                                         modifier = Modifier
                                             .fillMaxSize()
@@ -382,7 +381,7 @@ internal fun EditLayerSheet(
                             )
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(20.dp),
+                        shape = ShapeDefaults.large,
                         color = Color.Unspecified,
                         drawStartIconContainer = false
                     )

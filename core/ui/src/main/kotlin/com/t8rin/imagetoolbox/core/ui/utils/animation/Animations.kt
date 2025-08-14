@@ -15,10 +15,13 @@
  * along with this program.  If not, see <http://www.apache.org/licenses/LICENSE-2.0>.
  */
 
+@file:Suppress("NOTHING_TO_INLINE")
+
 package com.t8rin.imagetoolbox.core.ui.utils.animation
 
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -68,27 +71,6 @@ fun fancySlideTransition(
     )
 }
 
-val PageOpenTransition = slideInHorizontally(
-    openCloseTransitionSpec()
-) { -it / 3 } + fadeIn(
-    openCloseTransitionSpec(500)
-)
-
-val PageCloseTransition = slideOutHorizontally(
-    openCloseTransitionSpec()
-) { -it / 3 } + fadeOut(
-    openCloseTransitionSpec(500)
-)
-
-private fun <T> openCloseTransitionSpec(
-    duration: Int = 500,
-    delay: Int = 0
-) = tween<T>(
-    durationMillis = duration,
-    delayMillis = delay,
-    easing = TransitionEasing
-)
-
 fun <NavigationChild : Any> toolboxPredictiveBackAnimation(
     backHandler: BackHandler,
     onBack: () -> Unit
@@ -114,6 +96,16 @@ fun <NavigationChild : Any> toolboxPredictiveBackAnimation(
         )
     ),
     selector = { backEvent, _, _ -> androidPredictiveBackAnimatable(backEvent) },
+)
+
+inline fun <T> springySpec() = spring<T>(
+    dampingRatio = 0.35f,
+    stiffness = Spring.StiffnessLow
+)
+
+inline fun <T> lessSpringySpec() = spring<T>(
+    dampingRatio = 0.4f,
+    stiffness = Spring.StiffnessLow
 )
 
 @Composable

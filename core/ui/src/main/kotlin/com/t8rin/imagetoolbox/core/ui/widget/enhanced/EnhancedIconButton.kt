@@ -36,7 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.takeOrElse
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.unit.Dp
@@ -86,17 +85,13 @@ fun EnhancedIconButton(
                             delay(viewConfiguration.longPressTimeoutMillis)
                             isLongClick = true
                             onLongClick()
-                            haptics.performHapticFeedback(
-                                HapticFeedbackType.LongPress
-                            )
+                            haptics.longPress()
                         }
 
                         is PressInteraction.Release -> {
                             if (!isLongClick) {
                                 onClick()
-                                haptics.performHapticFeedback(
-                                    HapticFeedbackType.TextHandleMove
-                                )
+                                haptics.press()
                             }
                         }
 
@@ -117,9 +112,7 @@ fun EnhancedIconButton(
             onClick = {
                 if (onLongClick == null) {
                     onClick()
-                    haptics.performHapticFeedback(
-                        HapticFeedbackType.LongPress
-                    )
+                    haptics.longPress()
                 }
             },
             modifier = modifier

@@ -17,7 +17,6 @@
 
 package com.t8rin.imagetoolbox.feature.pdf_tools.presentation.components
 
-import android.app.Activity
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.os.Build
@@ -80,6 +79,7 @@ import androidx.pdf.viewer.fragment.PdfViewerFragment
 import coil3.memory.MemoryCache
 import com.t8rin.imagetoolbox.core.domain.model.IntegerSize
 import com.t8rin.imagetoolbox.core.domain.model.flexibleResize
+import com.t8rin.imagetoolbox.core.domain.utils.FileMode
 import com.t8rin.imagetoolbox.core.domain.utils.safeCast
 import com.t8rin.imagetoolbox.core.ui.utils.ComposeActivity
 import com.t8rin.imagetoolbox.core.ui.utils.helper.isPortraitOrientationAsState
@@ -206,7 +206,10 @@ fun PdfViewer(
                         rendererScope.launch(Dispatchers.IO) {
                             runCatching {
                                 mutex.withLock {
-                                    val input = context.contentResolver.openFileDescriptor(uri, "r")
+                                    val input = context
+                                        .contentResolver
+                                        .openFileDescriptor(uri, FileMode.Read.mode)
+
                                     pagesSize.clear()
                                     val renderer = input?.createPdfRenderer(
                                         password = pdfPassword,
@@ -553,7 +556,7 @@ internal class PdfViewerDelegate : PdfViewerFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        requireActivity().safeCast<Activity, ComposeActivity>()?.let { activity ->
+        requireActivity().safeCast<ComposeActivity>()?.let { activity ->
             activity.applyDynamicColors()
             lifecycleScope.launch {
                 activity.applyGlobalNightMode()

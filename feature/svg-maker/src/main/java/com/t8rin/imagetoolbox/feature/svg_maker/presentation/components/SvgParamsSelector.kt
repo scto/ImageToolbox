@@ -30,7 +30,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Calculate
 import androidx.compose.material.icons.outlined.ChangeHistory
@@ -40,7 +39,6 @@ import androidx.compose.material.icons.outlined.LinearScale
 import androidx.compose.material.icons.outlined.RepeatOne
 import androidx.compose.material.icons.outlined.Upcoming
 import androidx.compose.material.icons.rounded.BlurCircular
-import androidx.compose.material.icons.rounded.Colorize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,11 +52,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.smarttoolfactory.colordetector.util.ColorUtil.roundToTwoDigits
 import com.t8rin.imagetoolbox.core.resources.R
+import com.t8rin.imagetoolbox.core.resources.icons.Eyedropper
 import com.t8rin.imagetoolbox.core.resources.icons.FreeDraw
 import com.t8rin.imagetoolbox.core.resources.icons.Line
 import com.t8rin.imagetoolbox.core.resources.icons.Resize
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedChip
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedSliderItem
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.fadingEdges
 import com.t8rin.imagetoolbox.core.ui.widget.preferences.PreferenceRowSwitch
@@ -77,7 +77,7 @@ fun SvgParamsSelector(
     ) {
         Column(
             modifier = Modifier
-                .container(shape = RoundedCornerShape(24.dp)),
+                .container(shape = ShapeDefaults.extraLarge),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(Modifier.height(8.dp))
@@ -135,7 +135,7 @@ fun SvgParamsSelector(
             },
             startIcon = Icons.Outlined.Resize,
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp)
+            shape = ShapeDefaults.extraLarge
         )
         AnimatedVisibility(
             visible = !value.isImageSampled
@@ -145,7 +145,7 @@ fun SvgParamsSelector(
                     .padding(top = 8.dp)
                     .fillMaxWidth()
                     .container(
-                        shape = RoundedCornerShape(20.dp),
+                        shape = ShapeDefaults.large,
                         borderColor = MaterialTheme.colorScheme.onErrorContainer.copy(
                             0.4f
                         ),
@@ -183,13 +183,13 @@ fun SvgParamsSelector(
                     )
                 )
             },
-            shape = RoundedCornerShape(24.dp)
+            shape = ShapeDefaults.extraLarge
         )
         Spacer(modifier = Modifier.height(8.dp))
         EnhancedSliderItem(
             value = value.minColorRatio,
             title = stringResource(R.string.min_color_ratio),
-            icon = Icons.Rounded.Colorize,
+            icon = Icons.Outlined.Eyedropper,
             valueRange = 0f..0.1f,
             internalStateTransformation = {
                 it.roundTo(3)
@@ -201,7 +201,7 @@ fun SvgParamsSelector(
                     )
                 )
             },
-            shape = RoundedCornerShape(24.dp)
+            shape = ShapeDefaults.extraLarge
         )
         Spacer(modifier = Modifier.height(8.dp))
         EnhancedSliderItem(
@@ -218,7 +218,7 @@ fun SvgParamsSelector(
                     )
                 )
             },
-            shape = RoundedCornerShape(24.dp)
+            shape = ShapeDefaults.extraLarge
         )
         Spacer(modifier = Modifier.height(8.dp))
         PreferenceRowSwitch(
@@ -232,7 +232,7 @@ fun SvgParamsSelector(
             },
             startIcon = Icons.Outlined.FormatColorFill,
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp)
+            shape = ShapeDefaults.extraLarge
         )
         Spacer(modifier = Modifier.height(8.dp))
         EnhancedSliderItem(
@@ -250,7 +250,7 @@ fun SvgParamsSelector(
                     )
                 )
             },
-            shape = RoundedCornerShape(24.dp)
+            shape = ShapeDefaults.extraLarge
         )
         Spacer(modifier = Modifier.height(8.dp))
         EnhancedSliderItem(
@@ -270,7 +270,7 @@ fun SvgParamsSelector(
             color = Color.Unspecified,
             valueRange = 0f..5f,
             steps = 4,
-            shape = RoundedCornerShape(24.dp)
+            shape = ShapeDefaults.extraLarge
         )
         Spacer(modifier = Modifier.height(8.dp))
         EnhancedSliderItem(
@@ -286,7 +286,7 @@ fun SvgParamsSelector(
                     )
                 )
             },
-            shape = RoundedCornerShape(24.dp)
+            shape = ShapeDefaults.extraLarge
         )
         Spacer(modifier = Modifier.height(8.dp))
         EnhancedSliderItem(
@@ -303,7 +303,7 @@ fun SvgParamsSelector(
                     )
                 )
             },
-            shape = RoundedCornerShape(24.dp)
+            shape = ShapeDefaults.extraLarge
         )
         Spacer(modifier = Modifier.height(8.dp))
         EnhancedSliderItem(
@@ -321,7 +321,7 @@ fun SvgParamsSelector(
                     )
                 )
             },
-            shape = RoundedCornerShape(24.dp)
+            shape = ShapeDefaults.extraLarge
         )
         Spacer(modifier = Modifier.height(8.dp))
         EnhancedSliderItem(
@@ -339,7 +339,7 @@ fun SvgParamsSelector(
                     )
                 )
             },
-            shape = RoundedCornerShape(24.dp)
+            shape = ShapeDefaults.extraLarge
         )
         Spacer(modifier = Modifier.height(8.dp))
         EnhancedSliderItem(
@@ -358,7 +358,7 @@ fun SvgParamsSelector(
                     )
                 )
             },
-            shape = RoundedCornerShape(24.dp)
+            shape = ShapeDefaults.extraLarge
         )
     }
 }

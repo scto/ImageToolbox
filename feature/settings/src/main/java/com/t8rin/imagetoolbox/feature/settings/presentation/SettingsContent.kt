@@ -27,7 +27,6 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,7 +50,6 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Close
@@ -72,7 +70,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -92,7 +89,8 @@ import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedLoadingIndicator
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedTopAppBar
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedTopAppBarDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedTopAppBarType
-import com.t8rin.imagetoolbox.core.ui.widget.modifier.ContainerShapeDefaults
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.clearFocusOnTap
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
 import com.t8rin.imagetoolbox.core.ui.widget.other.BoxAnimatedVisibility
 import com.t8rin.imagetoolbox.core.ui.widget.other.SearchBar
@@ -285,9 +283,7 @@ fun SettingsContent(
                 targetState = settings,
                 modifier = Modifier
                     .fillMaxSize()
-                    .pointerInput(Unit) {
-                        detectTapGestures { focus.clearFocus() }
-                    },
+                    .clearFocusOnTap(),
                 transitionSpec = {
                     fadeIn() + scaleIn(initialScale = 0.95f) togetherWith fadeOut() + scaleOut(
                         targetScale = 0.8f
@@ -320,7 +316,7 @@ fun SettingsContent(
                                         verticalArrangement = Arrangement.spacedBy(4.dp),
                                         modifier = if (!oneColumn) {
                                             Modifier.container(
-                                                shape = RoundedCornerShape(20.dp),
+                                                shape = ShapeDefaults.large,
                                                 resultPadding = 0.dp,
                                                 color = MaterialTheme.colorScheme.surfaceContainerLowest
                                             )
@@ -409,7 +405,7 @@ fun SettingsContent(
                             key = { _, v -> v.hashCode() }
                         ) { index, (group, setting) ->
                             SearchableSettingItem(
-                                shape = ContainerShapeDefaults.shapeForIndex(
+                                shape = ShapeDefaults.byIndex(
                                     index = if (oneColumn) index else -1,
                                     size = settingsAnimated.size
                                 ),

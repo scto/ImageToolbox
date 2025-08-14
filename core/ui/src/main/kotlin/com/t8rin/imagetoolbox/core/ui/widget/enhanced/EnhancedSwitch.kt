@@ -39,7 +39,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.Dp
@@ -51,6 +50,7 @@ import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
 import com.t8rin.imagetoolbox.core.ui.widget.switches.CupertinoSwitch
 import com.t8rin.imagetoolbox.core.ui.widget.switches.CupertinoSwitchDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.switches.FluentSwitch
+import com.t8rin.imagetoolbox.core.ui.widget.switches.LiquidGlassSwitch
 import com.t8rin.imagetoolbox.core.ui.widget.switches.M3Switch
 import com.t8rin.imagetoolbox.core.ui.widget.switches.PixelSwitch
 
@@ -91,9 +91,7 @@ fun EnhancedSwitch(
         val switchOnCheckedChange: ((Boolean) -> Unit)? = onCheckedChange?.let {
             { boolean ->
                 onCheckedChange(boolean)
-                haptics.performHapticFeedback(
-                    HapticFeedbackType.LongPress
-                )
+                haptics.longPress()
                 focus.clearFocus()
             }
         }
@@ -164,6 +162,17 @@ fun EnhancedSwitch(
 
                 is SwitchType.Cupertino -> {
                     CupertinoSwitch(
+                        checked = checked,
+                        onCheckedChange = switchOnCheckedChange,
+                        modifier = switchModifier,
+                        enabled = enabled,
+                        interactionSource = interactionSource,
+                        colors = CupertinoSwitchDefaults.colors()
+                    )
+                }
+
+                is SwitchType.LiquidGlass -> {
+                    LiquidGlassSwitch(
                         checked = checked,
                         onCheckedChange = switchOnCheckedChange,
                         modifier = switchModifier,

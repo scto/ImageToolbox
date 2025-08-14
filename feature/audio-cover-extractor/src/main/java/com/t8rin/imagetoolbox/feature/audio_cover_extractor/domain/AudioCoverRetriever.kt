@@ -17,14 +17,16 @@
 
 package com.t8rin.imagetoolbox.feature.audio_cover_extractor.domain
 
+import com.t8rin.imagetoolbox.feature.audio_cover_extractor.domain.model.AudioCoverResult
+
 interface AudioCoverRetriever {
 
     suspend fun loadCover(
         audioUri: String
-    ): Result<String>
+    ): AudioCoverResult
 
     suspend fun loadCover(
         audioData: ByteArray
-    ): Result<String>
+    ): AudioCoverResult
 
 }

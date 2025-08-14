@@ -46,7 +46,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -54,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import com.t8rin.imagetoolbox.core.domain.utils.safeCast
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.ui.utils.helper.toPx
+import com.t8rin.imagetoolbox.core.ui.widget.enhanced.longPress
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.dragHandler
 import com.t8rin.imagetoolbox.feature.media_picker.domain.model.Media
 import com.t8rin.imagetoolbox.feature.media_picker.domain.model.MediaItem
@@ -153,7 +153,7 @@ internal fun MediaPickerGrid(
                         }
                     }
                     selectedMedia.clear()
-                    selectedMedia.addAll(order.mapNotNull { it.safeCast() })
+                    selectedMedia.addAll(order.mapNotNull(Any::safeCast))
                 },
                 autoScrollSpeed = autoScrollSpeed,
                 autoScrollThreshold = 40.dp.toPx(),
@@ -220,9 +220,7 @@ internal fun MediaPickerGrid(
                         isChecked = isChecked,
                         onChecked = {
                             if (allowMultiple) {
-                                hapticFeedback.performHapticFeedback(
-                                    HapticFeedbackType.LongPress
-                                )
+                                hapticFeedback.longPress()
                                 scope.launch {
                                     isChecked.value = !isChecked.value
                                     if (isChecked.value) {
@@ -249,9 +247,7 @@ internal fun MediaPickerGrid(
                         media = item.media,
                         canClick = !isSelectionOfAll || !allowMultiple,
                         onItemClick = {
-                            hapticFeedback.performHapticFeedback(
-                                HapticFeedbackType.TextHandleMove
-                            )
+                            hapticFeedback.longPress()
                             onMediaClick(it)
                         },
                         onItemLongClick = {

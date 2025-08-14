@@ -17,19 +17,18 @@
 
 package com.t8rin.imagetoolbox.feature.filters.data.model
 
-import android.content.Context
 import com.t8rin.curves.GPUImageToneCurveFilter
 import com.t8rin.imagetoolbox.core.filters.domain.model.Filter
-import com.t8rin.imagetoolbox.core.filters.domain.model.ToneCurvesParams
+import com.t8rin.imagetoolbox.core.filters.domain.model.params.ToneCurvesParams
+import com.t8rin.imagetoolbox.feature.filters.data.transformation.GPUFilterTransformation
 import jp.co.cyberagent.android.gpuimage.filter.GPUImageFilter
 
 internal class ToneCurvesFilter(
-    private val context: Context,
     override val value: ToneCurvesParams = ToneCurvesParams.Default,
-) : GPUFilterTransformation(context), Filter.ToneCurves {
+) : GPUFilterTransformation(), Filter.ToneCurves {
 
     override val cacheKey: String
-        get() = (value to context).hashCode().toString()
+        get() = value.hashCode().toString()
 
     override fun createFilter(): GPUImageFilter = GPUImageToneCurveFilter(value.controlPoints)
 }

@@ -23,7 +23,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,7 +37,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Colorize
 import androidx.compose.material.icons.rounded.AutoFixHigh
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material3.Icon
@@ -59,7 +57,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -77,7 +74,9 @@ import com.t8rin.imagetoolbox.core.filters.presentation.widget.FilterTemplateCre
 import com.t8rin.imagetoolbox.core.filters.presentation.widget.addFilters.AddFiltersSheet
 import com.t8rin.imagetoolbox.core.filters.presentation.widget.addFilters.AddFiltersSheetComponent
 import com.t8rin.imagetoolbox.core.resources.R
+import com.t8rin.imagetoolbox.core.resources.icons.Eyedropper
 import com.t8rin.imagetoolbox.core.ui.theme.mixedContainer
+import com.t8rin.imagetoolbox.core.ui.utils.helper.ProvideFilterPreview
 import com.t8rin.imagetoolbox.core.ui.utils.provider.LocalScreenSize
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedButton
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedFloatingActionButton
@@ -86,6 +85,7 @@ import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedTopAppBar
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedTopAppBarType
 import com.t8rin.imagetoolbox.core.ui.widget.image.Picture
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.tappable
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.transparencyChecker
 import com.t8rin.imagetoolbox.core.ui.widget.other.LocalToastHostState
 import com.t8rin.imagetoolbox.core.ui.widget.other.showFailureToast
@@ -114,6 +114,10 @@ fun FilterEditOption(
     addFilter: (UiFilter<*>) -> Unit,
     updateOrder: (List<UiFilter<*>>) -> Unit
 ) {
+    var stateBitmap by remember(bitmap, visible) { mutableStateOf(if (!visible) null else bitmap) }
+
+    ProvideFilterPreview(stateBitmap)
+
     val scope = rememberCoroutineScope()
     val toastHostState = LocalToastHostState.current
     val context = LocalContext.current
@@ -122,8 +126,6 @@ fun FilterEditOption(
 
         var showFilterSheet by rememberSaveable { mutableStateOf(false) }
         var showReorderSheet by rememberSaveable { mutableStateOf(false) }
-
-        var stateBitmap by remember(bitmap, visible) { mutableStateOf(bitmap) }
 
         var showColorPicker by rememberSaveable { mutableStateOf(false) }
         var tempColor by rememberSaveable(
@@ -174,8 +176,8 @@ fun FilterEditOption(
                             filterList.forEachIndexed { index, filter ->
                                 FilterItem(
                                     filter = filter,
-                                    onFilterChange = {
-                                        updateFilter(it, index) {
+                                    onFilterChange = { filterChange ->
+                                        updateFilter(filterChange, index) {
                                             scope.launch {
                                                 toastHostState.showFailureToast(
                                                     context = context,
@@ -245,10 +247,8 @@ fun FilterEditOption(
                         text = stringResource(id = R.string.add_filter),
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
-                            .pointerInput(Unit) {
-                                detectTapGestures {
-                                    showFilterSheet = true
-                                }
+                            .tappable {
+                                showFilterSheet = true
                             }
                     )
                 } else {
@@ -258,7 +258,7 @@ fun FilterEditOption(
                         },
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.Colorize,
+                            imageVector = Icons.Outlined.Eyedropper,
                             contentDescription = stringResource(R.string.pipette)
                         )
                     }
@@ -270,14 +270,14 @@ fun FilterEditOption(
                     navigationIcon = closeButton,
                     actions = {
                         AnimatedVisibility(
-                            visible = stateBitmap != bitmap,
+                            visible = stateBitmap != bitmap && stateBitmap != null,
                             enter = fadeIn() + scaleIn(),
                             exit = fadeOut() + scaleOut()
                         ) {
                             EnhancedIconButton(
                                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                                 onClick = {
-                                    onGetBitmap(stateBitmap)
+                                    stateBitmap?.let(onGetBitmap)
                                     onDismiss()
                                 }
                             ) {

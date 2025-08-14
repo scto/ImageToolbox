@@ -56,7 +56,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -65,6 +64,8 @@ import androidx.compose.ui.unit.dp
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.resources.icons.FolderCompare
 import com.t8rin.imagetoolbox.core.ui.utils.provider.LocalScreenSize
+import com.t8rin.imagetoolbox.core.ui.widget.enhanced.longPress
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.drawHorizontalStroke
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.shapeByInteraction
 import kotlinx.coroutines.launch
@@ -137,7 +138,7 @@ internal fun ChecksumToolsTabs(
                 val interactionSource = remember { MutableInteractionSource() }
                 val shape = shapeByInteraction(
                     shape = RoundedCornerShape(42.dp),
-                    pressedShape = RoundedCornerShape(16.dp),
+                    pressedShape = ShapeDefaults.default,
                     interactionSource = interactionSource
                 )
 
@@ -149,9 +150,7 @@ internal fun ChecksumToolsTabs(
                         .clip(shape),
                     selected = selected,
                     onClick = {
-                        haptics.performHapticFeedback(
-                            HapticFeedbackType.LongPress
-                        )
+                        haptics.longPress()
                         scope.launch {
                             pagerState.animateScrollToPage(index)
                         }

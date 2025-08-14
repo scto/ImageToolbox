@@ -39,7 +39,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.takeOrElse
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalViewConfiguration
@@ -92,18 +91,14 @@ fun EnhancedButton(
                                 isLongClick = true
                                 onLongClick()
                                 focus.clearFocus()
-                                haptics.performHapticFeedback(
-                                    HapticFeedbackType.LongPress
-                                )
+                                haptics.longPress()
                             }
 
                             is PressInteraction.Release -> {
                                 if (!isLongClick) {
                                     onClick()
                                     focus.clearFocus()
-                                    haptics.performHapticFeedback(
-                                        HapticFeedbackType.TextHandleMove
-                                    )
+                                    haptics.press()
                                 }
                             }
 
@@ -126,9 +121,7 @@ fun EnhancedButton(
                     if (onLongClick == null) {
                         onClick()
                         focus.clearFocus()
-                        haptics.performHapticFeedback(
-                            HapticFeedbackType.LongPress
-                        )
+                        haptics.longPress()
                     }
                 },
                 modifier = modifier

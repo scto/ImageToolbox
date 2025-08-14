@@ -17,14 +17,12 @@
 
 package com.t8rin.imagetoolbox.feature.libraries_info.presentation.screenLogic
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import com.arkivanov.decompose.ComponentContext
 import com.mikepenz.aboutlibraries.entity.Library
+import com.mikepenz.aboutlibraries.ui.compose.util.htmlReadyLicenseContent
 import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
 import com.t8rin.imagetoolbox.core.ui.utils.BaseComponent
-import com.t8rin.imagetoolbox.core.ui.utils.state.update
+import com.t8rin.imagetoolbox.core.ui.utils.navigation.Screen
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -32,21 +30,29 @@ import dagger.assisted.AssistedInject
 class LibrariesInfoComponent @AssistedInject constructor(
     @Assisted componentContext: ComponentContext,
     @Assisted val onGoBack: () -> Unit,
+    @Assisted private val onNavigate: (Screen) -> Unit,
     dispatchersHolder: DispatchersHolder
 ) : BaseComponent(dispatchersHolder, componentContext) {
 
-    private var _selectedLibrary: MutableState<Library?> = mutableStateOf(null)
-    val selectedLibrary: Library? by _selectedLibrary
-
-    fun selectLibrary(library: Library?) {
-        _selectedLibrary.update { library }
+    fun selectLibrary(library: Library) {
+        onNavigate(
+            Screen.LibraryDetails(
+                name = library.name,
+                htmlDescription = library.licenses.joinToString("\n\n") {
+                    it.htmlReadyLicenseContent
+                        .orEmpty()
+                        .trimIndent()
+                }
+            )
+        )
     }
 
     @AssistedFactory
     fun interface Factory {
         operator fun invoke(
             componentContext: ComponentContext,
-            onGoBack: () -> Unit
+            onGoBack: () -> Unit,
+            onNavigate: (Screen) -> Unit
         ): LibrariesInfoComponent
     }
 

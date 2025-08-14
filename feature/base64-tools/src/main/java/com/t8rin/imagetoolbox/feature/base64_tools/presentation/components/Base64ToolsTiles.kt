@@ -31,7 +31,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.Share
@@ -42,6 +41,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
@@ -65,6 +65,7 @@ import com.t8rin.imagetoolbox.core.resources.icons.Base64
 import com.t8rin.imagetoolbox.core.ui.utils.content_pickers.rememberFileCreator
 import com.t8rin.imagetoolbox.core.ui.utils.provider.rememberLocalEssentials
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedIconButton
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
 import com.t8rin.imagetoolbox.core.ui.widget.preferences.PreferenceItemDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.preferences.PreferenceRow
@@ -134,29 +135,15 @@ internal fun Base64ToolsTiles(component: Base64ToolsComponent) {
                     .height(IntrinsicSize.Max),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                pasteTile(
-                    RoundedCornerShape(
-                        topStart = 16.dp,
-                        topEnd = 4.dp,
-                        bottomStart = 16.dp,
-                        bottomEnd = 4.dp
-                    )
-                )
-                importTile(
-                    RoundedCornerShape(
-                        topStart = 4.dp,
-                        topEnd = 16.dp,
-                        bottomStart = 4.dp,
-                        bottomEnd = 16.dp
-                    )
-                )
+                pasteTile(ShapeDefaults.start)
+                importTile(ShapeDefaults.end)
             }
         } else {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .container(
-                        shape = RoundedCornerShape(28.dp),
+                        shape = ShapeDefaults.extremeLarge,
                         resultPadding = 0.dp
                     )
                     .padding(
@@ -203,12 +190,6 @@ internal fun Base64ToolsTiles(component: Base64ToolsComponent) {
 
                     Tile(
                         onClick = shareText,
-                        shape = RoundedCornerShape(
-                            topStart = 4.dp,
-                            topEnd = 4.dp,
-                            bottomStart = 16.dp,
-                            bottomEnd = 4.dp
-                        ),
                         icon = Icons.Outlined.Share,
                         textRes = R.string.share_base_64
                     )
@@ -250,7 +231,9 @@ private fun RowScope.Tile(
             modifier = Modifier.weight(1f)
         ) {
             TooltipBox(
-                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
+                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                    TooltipAnchorPosition.Above
+                ),
                 tooltip = {
                     PlainTooltip {
                         Text(stringResource(id = textRes))

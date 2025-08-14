@@ -18,7 +18,6 @@
 package com.t8rin.imagetoolbox.feature.document_scanner.presentation
 
 import android.net.Uri
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -27,13 +26,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material.icons.rounded.AddPhotoAlternate
 import androidx.compose.material.icons.rounded.DocumentScanner
-import androidx.compose.material.icons.twotone.DocumentScanner
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -43,13 +39,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.t8rin.imagetoolbox.core.domain.model.MimeType
 import com.t8rin.imagetoolbox.core.resources.R
+import com.t8rin.imagetoolbox.core.resources.icons.AddPhotoAlt
 import com.t8rin.imagetoolbox.core.ui.utils.content_pickers.rememberFileCreator
 import com.t8rin.imagetoolbox.core.ui.utils.helper.isPortraitOrientationAsState
 import com.t8rin.imagetoolbox.core.ui.utils.helper.rememberDocumentScanner
@@ -64,10 +59,10 @@ import com.t8rin.imagetoolbox.core.ui.widget.dialogs.LoadingDialog
 import com.t8rin.imagetoolbox.core.ui.widget.dialogs.OneTimeSaveLocationSelectionDialog
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedButton
 import com.t8rin.imagetoolbox.core.ui.widget.image.AutoFilePicker
-import com.t8rin.imagetoolbox.core.ui.widget.image.ClickableActionIcon
+import com.t8rin.imagetoolbox.core.ui.widget.image.FileNotPickedWidget
 import com.t8rin.imagetoolbox.core.ui.widget.image.ImagePager
 import com.t8rin.imagetoolbox.core.ui.widget.image.UrisPreview
-import com.t8rin.imagetoolbox.core.ui.widget.modifier.ContainerShapeDefaults
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
 import com.t8rin.imagetoolbox.core.ui.widget.other.InfoContainer
 import com.t8rin.imagetoolbox.core.ui.widget.other.TopAppBarEmoji
@@ -138,24 +133,12 @@ fun DocumentScannerContent(
         imagePreview = {},
         showImagePreviewAsStickyHeader = false,
         placeImagePreview = false,
+        addHorizontalCutoutPaddingIfNoPreview = false,
         noDataControls = {
-            Column(
-                modifier = Modifier.container(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Spacer(Modifier.height(16.dp))
-                ClickableActionIcon(
-                    icon = Icons.TwoTone.DocumentScanner,
-                    onClick = documentScanner::scan
-                )
-                Text(
-                    text = stringResource(R.string.click_to_start_scanning),
-                    modifier = Modifier.padding(16.dp),
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            FileNotPickedWidget(
+                onPickFile = documentScanner::scan,
+                text = stringResource(R.string.click_to_start_scanning)
+            )
         },
         controls = {
             var selectedUriForPreview by remember {
@@ -181,7 +164,7 @@ fun DocumentScannerContent(
                 onAddUris = additionalDocumentScanner::scan,
                 addUrisContent = { width ->
                     Icon(
-                        imageVector = Icons.Rounded.AddPhotoAlternate,
+                        imageVector = Icons.Rounded.AddPhotoAlt,
                         contentDescription = stringResource(R.string.add),
                         modifier = Modifier.size(width / 3f)
                     )
@@ -196,7 +179,7 @@ fun DocumentScannerContent(
                     .fillMaxWidth()
                     .container(
                         resultPadding = 0.dp,
-                        shape = RoundedCornerShape(20.dp),
+                        shape = ShapeDefaults.large,
                         color = MaterialTheme.colorScheme.surfaceContainerLow
                     )
                     .padding(8.dp),
@@ -212,7 +195,7 @@ fun DocumentScannerContent(
                         start = 12.dp,
                         end = 20.dp
                     ),
-                    shape = ContainerShapeDefaults.topShape,
+                    shape = ShapeDefaults.top,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(
@@ -236,7 +219,7 @@ fun DocumentScannerContent(
                         start = 16.dp,
                         end = 20.dp
                     ),
-                    shape = ContainerShapeDefaults.bottomShape,
+                    shape = ShapeDefaults.bottom,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(

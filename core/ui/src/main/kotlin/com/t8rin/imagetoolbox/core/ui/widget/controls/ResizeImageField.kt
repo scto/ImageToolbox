@@ -30,7 +30,6 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Calculate
@@ -54,6 +53,7 @@ import com.t8rin.imagetoolbox.core.ui.utils.helper.ImageUtils
 import com.t8rin.imagetoolbox.core.ui.utils.helper.ImageUtils.restrict
 import com.t8rin.imagetoolbox.core.ui.widget.dialogs.CalculatorDialog
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedIconButton
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.animateContentSizeNoClip
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
 import com.t8rin.imagetoolbox.core.ui.widget.text.AutoSizeText
@@ -69,7 +69,7 @@ fun ResizeImageField(
 ) {
     Column(
         modifier = Modifier
-            .container(shape = RoundedCornerShape(24.dp))
+            .container(shape = ShapeDefaults.extraLarge)
             .padding(8.dp)
             .animateContentSizeNoClip()
     ) {
@@ -90,12 +90,7 @@ fun ResizeImageField(
                                 .toIntOrNull() ?: 0
                         )
                     },
-                    shape = RoundedCornerShape(
-                        topStart = 12.dp,
-                        topEnd = 6.dp,
-                        bottomStart = 12.dp,
-                        bottomEnd = 6.dp
-                    ),
+                    shape = ShapeDefaults.smallStart,
                     label = {
                         AutoSizeText(
                             stringResource(
@@ -123,12 +118,7 @@ fun ResizeImageField(
                                 .toIntOrNull() ?: 0
                         )
                     },
-                    shape = RoundedCornerShape(
-                        topEnd = 12.dp,
-                        topStart = 6.dp,
-                        bottomEnd = 12.dp,
-                        bottomStart = 6.dp
-                    ),
+                    shape = ShapeDefaults.smallEnd,
                     label = {
                         AutoSizeText(
                             stringResource(

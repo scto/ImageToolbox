@@ -18,13 +18,18 @@
 package com.t8rin.imagetoolbox.feature.root.presentation.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.WindowInsets
@@ -53,12 +58,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.t8rin.imagetoolbox.core.settings.domain.model.FastSettingsSide
 import com.t8rin.imagetoolbox.core.settings.presentation.provider.LocalSettingsState
 import com.t8rin.imagetoolbox.core.ui.theme.blend
 import com.t8rin.imagetoolbox.core.ui.theme.takeColorFromScheme
+import com.t8rin.imagetoolbox.core.ui.utils.animation.springySpec
+import com.t8rin.imagetoolbox.core.ui.utils.helper.rememberRipple
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.hapticsClickable
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
 import kotlinx.coroutines.launch
@@ -88,33 +96,44 @@ internal fun BoxScope.SettingsOpenButton(
         }
     }.value
 
-    val shape = if (fastSettingsSide == FastSettingsSide.CenterStart) {
-        if (startPadding == 0.dp) {
-            RoundedCornerShape(
-                topEnd = 8.dp,
-                bottomEnd = 8.dp
-            )
+    val expandedPart by animateDpAsState(
+        targetValue = if (isWantOpenSettings) 12.dp else 42.dp,
+        animationSpec = spring(
+            dampingRatio = 0.5f,
+            stiffness = Spring.StiffnessLow
+        )
+    )
+
+    val createShape: (Dp) -> RoundedCornerShape = {
+        if (fastSettingsSide == FastSettingsSide.CenterStart) {
+            if (startPadding == 0.dp) {
+                RoundedCornerShape(
+                    topEnd = it,
+                    bottomEnd = it
+                )
+            } else {
+                RoundedCornerShape(it)
+            }
         } else {
-            RoundedCornerShape(8.dp)
-        }
-    } else {
-        if (endPadding == 0.dp) {
-            RoundedCornerShape(
-                topStart = 8.dp,
-                bottomStart = 8.dp
-            )
-        } else {
-            RoundedCornerShape(8.dp)
+            if (endPadding == 0.dp) {
+                RoundedCornerShape(
+                    topStart = it,
+                    bottomStart = it
+                )
+            } else {
+                RoundedCornerShape(it)
+            }
         }
     }
 
+    val shape = createShape(expandedPart.coerceAtLeast(4.dp))
+
     val height by animateDpAsState(
-        if (isWantOpenSettings) 64.dp
-        else 104.dp
+        targetValue = if (isWantOpenSettings) 64.dp else 104.dp
     )
     val width by animateDpAsState(
-        if (isWantOpenSettings) 48.dp
-        else 24.dp
+        targetValue = if (isWantOpenSettings) 48.dp else 24.dp,
+        animationSpec = springySpec()
     )
     val xOffset by animateDpAsState(
         targetValue = if (!canExpandSettings) {
@@ -126,12 +145,17 @@ internal fun BoxScope.SettingsOpenButton(
         } else {
             0.dp
         },
-        animationSpec = tween(1000)
+        animationSpec = spring(
+            visibilityThreshold = Dp.VisibilityThreshold,
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        )
     )
     val alpha by animateFloatAsState(
         targetValue = if (canExpandSettings) 1f else 0f,
-        animationSpec = tween(1000)
+        animationSpec = tween(650)
     )
+    val interactionSource = remember { MutableInteractionSource() }
 
     Surface(
         color = Color.Transparent,
@@ -148,7 +172,7 @@ internal fun BoxScope.SettingsOpenButton(
             .hapticsClickable(
                 enabled = canExpandSettings,
                 indication = null,
-                interactionSource = null
+                interactionSource = interactionSource
             ) {
                 if (isWantOpenSettings) {
                     scope.launch {
@@ -169,9 +193,20 @@ internal fun BoxScope.SettingsOpenButton(
     ) {
         Box {
             val width by animateDpAsState(
-                if (isWantOpenSettings) 48.dp
-                else 4.dp
+                targetValue = if (isWantOpenSettings) 48.dp else 4.dp,
+                animationSpec = spring(
+                    dampingRatio = 0.35f,
+                    stiffness = Spring.StiffnessLow
+                )
             )
+
+            val containerColor = takeColorFromScheme {
+                tertiary.blend(primary, 0.65f)
+            }
+
+            val contentColor = takeColorFromScheme {
+                onTertiary.blend(onPrimary, 0.8f)
+            }
 
             Box(
                 modifier = Modifier
@@ -181,23 +216,28 @@ internal fun BoxScope.SettingsOpenButton(
                     .container(
                         shape = shape,
                         resultPadding = 0.dp,
-                        color = takeColorFromScheme {
-                            tertiary.blend(primary, 0.65f)
-                        }
+                        color = containerColor
+                    )
+                    .indication(
+                        interactionSource = interactionSource,
+                        indication = rememberRipple(contentColor = contentColor)
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 AnimatedVisibility(
                     visible = isWantOpenSettings,
-                    enter = fadeIn() + scaleIn(),
+                    enter = fadeIn() + scaleIn(
+                        animationSpec = spring(
+                            dampingRatio = 0.35f,
+                            stiffness = Spring.StiffnessLow
+                        )
+                    ),
                     exit = fadeOut() + scaleOut()
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.Settings,
                         contentDescription = null,
-                        tint = takeColorFromScheme {
-                            onTertiary.blend(onPrimary, 0.8f)
-                        }
+                        tint = contentColor
                     )
                 }
             }

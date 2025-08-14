@@ -13,14 +13,14 @@
 </br>
 
 <p align="center">
-  <img alt="API" src="https://img.shields.io/badge/Api%2021+-50f270?logo=android&logoColor=black&style=for-the-badge"/></a>
+  <img alt="API" src="https://img.shields.io/badge/Api%2023+-50f270?logo=android&logoColor=black&style=for-the-badge"/></a>
   <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-a503fc?logo=kotlin&logoColor=white&style=for-the-badge"/></a>
   <img alt="Jetpack Compose" src="https://img.shields.io/static/v1?style=for-the-badge&message=Jetpack+Compose&color=4285F4&logo=Jetpack+Compose&logoColor=FFFFFF&label="/></a> 
     <img alt="material" src="https://custom-icon-badges.demolab.com/badge/material%20you-lightblue?style=for-the-badge&logoColor=333&logo=material-you"/></a>
   </br>
   </br>
   
- <img src="https://img.shields.io/badge/193.7K-aeff4d?style=for-the-badge&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI%2BCiAgICA8cGF0aCBkPSJNMTIuODksM0wxNC44NSwzLjRMMTEuMTEsMjFMOS4xNSwyMC42TDEyLjg5LDNNMTkuNTksMTJMMTYsOC40MVY1LjU4TDIyLjQyLDEyTDE2LDE4LjQxVjE1LjU4TDE5LjU5LDEyTTEuNTgsMTJMOCw1LjU4VjguNDFMNC40MSwxMkw4LDE1LjU4VjE4LjQxTDEuNTgsMTJaIgogICAgICAgIGZpbGw9IndoaXRlIiAvPgo8L3N2Zz4%3D&label=Lines%20of%20code&labelColor=4b731a"/>
+ <img src="https://img.shields.io/badge/197.7K-aeff4d?style=for-the-badge&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI%2BCiAgICA8cGF0aCBkPSJNMTIuODksM0wxNC44NSwzLjRMMTEuMTEsMjFMOS4xNSwyMC42TDEyLjg5LDNNMTkuNTksMTJMMTYsOC40MVY1LjU4TDIyLjQyLDEyTDE2LDE4LjQxVjE1LjU4TDE5LjU5LDEyTTEuNTgsMTJMOCw1LjU4VjguNDFMNC40MSwxMkw4LDE1LjU4VjE4LjQxTDEuNTgsMTJaIgogICAgICAgIGZpbGw9IndoaXRlIiAvPgo8L3N2Zz4%3D&label=Lines%20of%20code&labelColor=4b731a"/>
 
 <img src="https://img.shields.io/github/commits-since/t8rin/ImageResizer/v1.0?color=palegreen&label=Commits&style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHRpdGxlPnNvdXJjZS1jb21taXQ8L3RpdGxlPjxwYXRoIGQ9Ik0xNywxMkMxNywxNC40MiAxNS4yOCwxNi40NCAxMywxNi45VjIxSDExVjE2LjlDOC43MiwxNi40NCA3LDE0LjQyIDcsMTJDNyw5LjU4IDguNzIsNy41NiAxMSw3LjFWM0gxM1Y3LjFDMTUuMjgsNy41NiAxNyw5LjU4IDE3LDEyTTEyLDlBMywzIDAgMCwwIDksMTJBMywzIDAgMCwwIDEyLDE1QTMsMyAwIDAsMCAxNSwxMkEzLDMgMCAwLDAgMTIsOVoiIGZpbGw9IndoaXRlIiAvPjwvc3ZnPg==&labelColor=07ab4e">
  
@@ -129,7 +129,7 @@ Check out Image Toolbox [Wiki](https://github.com/T8RIN/ImageToolbox/wiki) for F
 This application is completely free, but if you want to support the project development, you can
 send a donation to the crypto wallets below
 
-| </br> ![Bitcoin](https://img.shields.io/badge/Bitcoin-EAB300?style=for-the-badge&logo=Bitcoin%20SV&logoColor=white) <br/> <br/> -> `17Pk1RurnkJxLV9V7mc6Y7dLyHFb9rvQDq` <- <br/> <br/> | </br> ![Tether](https://img.shields.io/badge/USDT-168363?style=for-the-badge&logo=tether&logoColor=white) <br/> <br/> -> `TMPAu7a54NvQNEKnNWh3naXu3oYijqP3U7` <- <br/> <br/> |
+| </br> ![Bitcoin](https://img.shields.io/badge/Bitcoin-EAB300?style=for-the-badge&logo=Bitcoin%20SV&logoColor=white) <br/> <br/> -> `18QFWMREkjzQa4yetfYsN5Ua51UubKmJut` <- <br/> <br/> | </br> ![Tether](https://img.shields.io/badge/USDT-168363?style=for-the-badge&logo=tether&logoColor=white) <br/> <br/> -> `TMPAu7a54NvQNEKnNWh3naXu3oYijqP3U7` <- <br/> <br/> |
 |:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
 
 # 📲 Download
@@ -177,7 +177,7 @@ or click one of the badges below.
 # ✨ Features
 
 - Batch processing
-- Applying filter chains (More than 230 various filters)
+- Applying filter chains (More than 290 various filters)
 
   <details>
   <summary>Available filters</summary>
@@ -417,7 +417,59 @@ or click one of the badges below.
     - [x] Simple Laplacian
     - [x] Auto Red Eyes remover
     - [x] Tone Curves 
-  - [x] Mirror
+    - [x] Mirror
+    - [x] Kaleidoscope  
+    - [x] Channel Mix  
+    - [x] Color Halftone  
+    - [x] Contour  
+    - [x] Voronoi Crystallize  
+    - [x] Despeckle  
+    - [x] Diffuse  
+    - [x] DoG  
+    - [x] Equalize  
+    - [x] Glow  
+    - [x] Offset  
+    - [x] Pinch  
+    - [x] Pointillize  
+    - [x] Polar Coordinates  
+    - [x] Reduce Noise  
+    - [x] Simple Solarize  
+    - [x] Weave  
+    - [x] Twirl  
+    - [x] Rubber Stamp  
+    - [x] Smear  
+    - [x] Sphere Lens Distortion  
+    - [x] Arc  
+    - [x] Sparkle
+    - [x] ASCII
+    - [x] Moire
+    - [x] Autumn
+    - [x] Bone
+    - [x] Jet
+    - [x] Winter
+    - [x] Rainbow
+    - [x] Ocean
+    - [x] Summer
+    - [x] Spring
+    - [x] Cool Variant 
+    - [x] Hsv
+    - [x] Pink
+    - [x] Hot
+    - [x] Parula
+    - [x] Magma
+    - [x] Inferno
+    - [x] Plasma
+    - [x] Viridis
+    - [x] Cividis
+    - [x] Twilight
+    - [x] Twilight Shifted
+    - [x] Deskew
+    - [x] Auto Perspective
+    - [x] Crop Or Perspective
+    - [x] Turbo
+    - [x] Deep Green 
+    - [x] Lens Correction
+
 
   </details>
 
@@ -492,60 +544,60 @@ or click one of the badges below.
         - Background blur drawing
     - Different Scaling Algorithms
 
-        <details>
-          <summary>Available methods</summary>
-          <br>
+      <details>
+      <summary>Available methods</summary>
+      <br>
 
-          - Bilinear
-          - Nearest Neighbour
-          - Cubic
-          - Mitchell-Netravalli
-          - Catmull-Rom
-          - Hermite
-          - B-Spline
-          - Hann
-          - Bicubic
-          - Hamming
-          - Hanning
-          - Blackman
-          - Welch
-          - Quadric
-          - Gaussian
-          - Sphinx
-          - Bartlett
-          - Robidoux
-          - Robidoux Sharp
-          - Spline 16
-          - Spline 36
-          - Spline 64
-          - Kaiser
-          - Bartlett-Hann
-          - Box
-          - Bohman
-          - Lanczos 2
-          - Lanczos 3
-          - Lanczos 4
-          - Lanczos 2 Jinc
-          - Lanczos 3 Jinc
-          - Lanczos 4 Jinc
-          - Ewa Hanning
-          - Ewa Robidoux
-          - Ewa Blackman
-          - Ewa Quadric
-          - Ewa Robidoux Sharp
-          - Ewa Lanczos 3 Jinc
-          - Ginseng
-          - Ginseng EWA
-          - Lanczos Sharp EWA
-          - Lanczos 4 Sharpest EWA
-          - Lanczos Soft EWA
-          - Haasn Soft
-          - Lagrange 2
-          - Lagrange 3
-          - Lanczos 6
-          - Lanczos 6 Jinc
+      - Bilinear
+      - Nearest Neighbour
+      - Cubic
+      - Mitchell-Netravalli
+      - Catmull-Rom
+      - Hermite
+      - B-Spline
+      - Hann
+      - Bicubic
+      - Hamming
+      - Hanning
+      - Blackman
+      - Welch
+      - Quadric
+      - Gaussian
+      - Sphinx
+      - Bartlett
+      - Robidoux
+      - Robidoux Sharp
+      - Spline 16
+      - Spline 36
+      - Spline 64
+      - Kaiser
+      - Bartlett-Hann
+      - Box
+      - Bohman
+      - Lanczos 2
+      - Lanczos 3
+      - Lanczos 4
+      - Lanczos 2 Jinc
+      - Lanczos 3 Jinc
+      - Lanczos 4 Jinc
+      - Ewa Hanning
+      - Ewa Robidoux
+      - Ewa Blackman
+      - Ewa Quadric
+      - Ewa Robidoux Sharp
+      - Ewa Lanczos 3 Jinc
+      - Ginseng
+      - Ginseng EWA
+      - Lanczos Sharp EWA
+      - Lanczos 4 Sharpest EWA
+      - Lanczos Soft EWA
+      - Haasn Soft
+      - Lagrange 2
+      - Lagrange 3
+      - Lanczos 6
+      - Lanczos 6 Jinc
 
-        </details>
+      </details>
 
     - Different Scale Color Spaces
         - Linear
@@ -819,6 +871,7 @@ or click one of the badges below.
     - Pixel
     - Fluent
     - Cupertino
+  - Liquid Glass
 - Slider Type Selection:
     - Fancy
     - Material You
@@ -828,7 +881,7 @@ or click one of the badges below.
 
 # 📚 Tech stack & Open-source libraries
 
-- Minimum SDK level 21
+- Minimum SDK level 23
 
 - [Kotlin](https://kotlinlang.org/) based
 

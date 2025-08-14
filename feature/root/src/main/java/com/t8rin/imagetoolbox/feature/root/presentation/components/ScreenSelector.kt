@@ -20,10 +20,12 @@ package com.t8rin.imagetoolbox.feature.root.presentation.components
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.t8rin.imagetoolbox.core.ui.utils.animation.toolboxPredictiveBackAnimation
+import com.t8rin.imagetoolbox.core.ui.utils.provider.LocalCurrentScreen
 import com.t8rin.imagetoolbox.feature.root.presentation.components.utils.ResetThemeOnGoBack
 import com.t8rin.imagetoolbox.feature.root.presentation.components.utils.ScreenBasedMaxBrightnessEnforcement
 import com.t8rin.imagetoolbox.feature.root.presentation.screenLogic.RootComponent
@@ -35,7 +37,7 @@ internal fun ScreenSelector(
     ResetThemeOnGoBack(component)
 
     val childStack by component.childStack.subscribeAsState()
-    val currentScreen = childStack.items.lastOrNull()?.configuration
+    val currentScreen = LocalCurrentScreen.current
 
     SettingsBackdropWrapper(
         currentScreen = currentScreen,
@@ -45,10 +47,12 @@ internal fun ScreenSelector(
             Children(
                 stack = childStack,
                 modifier = Modifier.fillMaxSize(),
-                animation = toolboxPredictiveBackAnimation(
-                    backHandler = component.backHandler,
-                    onBack = component::navigateBack
-                ),
+                animation = remember(component) {
+                    toolboxPredictiveBackAnimation(
+                        backHandler = component.backHandler,
+                        onBack = component::navigateBack
+                    )
+                },
                 content = { child ->
                     child.instance.Content()
                 }

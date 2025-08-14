@@ -27,7 +27,6 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.shrinkOut
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -39,7 +38,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AddPhotoAlternate
 import androidx.compose.material.icons.rounded.FileOpen
 import androidx.compose.material.icons.rounded.Pages
 import androidx.compose.material.icons.rounded.Save
@@ -60,14 +58,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.t8rin.imagetoolbox.core.domain.image.model.Preset
 import com.t8rin.imagetoolbox.core.domain.model.MimeType
 import com.t8rin.imagetoolbox.core.resources.R
+import com.t8rin.imagetoolbox.core.resources.icons.AddPhotoAlt
 import com.t8rin.imagetoolbox.core.resources.icons.MiniEdit
 import com.t8rin.imagetoolbox.core.ui.utils.content_pickers.rememberFileCreator
 import com.t8rin.imagetoolbox.core.ui.utils.content_pickers.rememberFilePicker
@@ -90,6 +87,7 @@ import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedButton
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedFloatingActionButton
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedFloatingActionButtonType
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedModalBottomSheet
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.clearFocusOnTap
 import com.t8rin.imagetoolbox.core.ui.widget.preferences.PreferenceItem
 import com.t8rin.imagetoolbox.core.ui.widget.text.TitleItem
 import com.t8rin.imagetoolbox.feature.pdf_tools.presentation.components.PageInputField
@@ -209,8 +207,6 @@ fun PdfToolsContent(
 
     val addImagesToPdfPicker = rememberImagePicker(onSuccess = component::addImagesToPdf)
 
-    val focus = LocalFocusManager.current
-
     val topAppBarState = rememberTopAppBarState()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
         state = topAppBarState,
@@ -228,13 +224,7 @@ fun PdfToolsContent(
 
     Surface(
         modifier = Modifier
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = {
-                        focus.clearFocus()
-                    }
-                )
-            }
+            .clearFocusOnTap()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         color = MaterialTheme.colorScheme.background
     ) {
@@ -294,7 +284,7 @@ fun PdfToolsContent(
                 ) {
                     Icon(
                         imageVector = when (pdfType) {
-                            is Screen.PdfTools.Type.ImagesToPdf -> Icons.Rounded.AddPhotoAlternate
+                            is Screen.PdfTools.Type.ImagesToPdf -> Icons.Rounded.AddPhotoAlt
                             else -> Icons.Rounded.FileOpen
                         },
                         contentDescription = stringResource(R.string.pick)

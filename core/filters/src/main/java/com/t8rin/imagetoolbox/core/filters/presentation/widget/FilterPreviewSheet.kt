@@ -35,7 +35,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Done
@@ -68,6 +67,7 @@ import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedTopAppBarDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedTopAppBarType
 import com.t8rin.imagetoolbox.core.ui.widget.image.SimplePicture
 import com.t8rin.imagetoolbox.core.ui.widget.image.imageStickyHeader
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.shimmer
 import com.t8rin.imagetoolbox.core.ui.widget.text.marquee
@@ -79,9 +79,8 @@ internal fun FilterPreviewSheet(
     component: AddFiltersSheetComponent,
     onFilterPickedWithParams: (UiFilter<*>) -> Unit,
     onVisibleChange: (Boolean) -> Unit,
-    previewBitmap: Bitmap?,
-
-    ) {
+    previewBitmap: Bitmap?
+) {
     val previewSheetData = component.previewData
     var imageState by rememberImageState()
     LaunchedEffect(previewSheetData) {
@@ -174,7 +173,7 @@ internal fun FilterPreviewSheet(
                                         .aspectRatio(
                                             previewBitmap?.safeAspectRatio ?: (1 / 2f)
                                         )
-                                        .clip(RoundedCornerShape(8.dp))
+                                        .clip(ShapeDefaults.mini)
                                         .shimmer(true)
                                 } else Modifier
                             )

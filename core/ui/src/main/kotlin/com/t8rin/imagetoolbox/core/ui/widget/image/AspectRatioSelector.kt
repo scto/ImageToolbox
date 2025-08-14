@@ -19,7 +19,6 @@ package com.t8rin.imagetoolbox.core.ui.widget.image
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,7 +35,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CropFree
@@ -56,8 +54,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -75,6 +71,8 @@ import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.ui.theme.outlineVariant
 import com.t8rin.imagetoolbox.core.ui.theme.takeColorFromScheme
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.hapticsClickable
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.clearFocusOnTap
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.fadingEdges
 import com.t8rin.imagetoolbox.core.ui.widget.text.RoundedTextField
@@ -110,11 +108,9 @@ fun AspectRatioSelector(
     enableFadingEdges: Boolean = true,
     onAspectRatioChange: (DomainAspectRatio, AspectRatio) -> Unit,
     color: Color = Color.Unspecified,
-    shape: Shape = RoundedCornerShape(24.dp),
+    shape: Shape = ShapeDefaults.extraLarge,
     aspectRatios: List<DomainAspectRatio> = aspectRatios()
 ) {
-
-    val focus = LocalFocusManager.current
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
@@ -123,11 +119,7 @@ fun AspectRatioSelector(
                 shape = shape,
                 resultPadding = 0.dp
             )
-            .pointerInput(Unit) {
-                detectTapGestures {
-                    focus.clearFocus()
-                }
-            }
+            .clearFocusOnTap()
     ) {
         title()
         val listState = rememberLazyListState()
@@ -259,7 +251,7 @@ fun AspectRatioSelector(
                 Modifier
                     .padding(8.dp)
                     .container(
-                        shape = RoundedCornerShape(24.dp),
+                        shape = ShapeDefaults.extraLarge,
                         color = unselectedCardColor
                     )
             ) {
@@ -287,7 +279,7 @@ fun AspectRatioSelector(
                             )
                         }
                     },
-                    shape = RoundedCornerShape(12.dp),
+                    shape = ShapeDefaults.smallStart,
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Number
                     ),
@@ -300,7 +292,7 @@ fun AspectRatioSelector(
                             start = 8.dp,
                             top = 8.dp,
                             bottom = 8.dp,
-                            end = 4.dp
+                            end = 2.dp
                         )
                 )
                 RoundedTextField(
@@ -324,14 +316,14 @@ fun AspectRatioSelector(
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Number
                     ),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = ShapeDefaults.smallEnd,
                     label = {
                         Text(stringResource(R.string.height, " "))
                     },
                     modifier = Modifier
                         .weight(1f)
                         .padding(
-                            start = 4.dp,
+                            start = 2.dp,
                             top = 8.dp,
                             bottom = 8.dp,
                             end = 8.dp

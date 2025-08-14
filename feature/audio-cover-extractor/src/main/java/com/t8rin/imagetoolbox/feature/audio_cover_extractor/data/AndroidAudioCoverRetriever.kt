@@ -19,6 +19,7 @@ package com.t8rin.imagetoolbox.feature.audio_cover_extractor.data
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.media.MediaMetadataRetriever
 import androidx.core.net.toUri
 import com.t8rin.imagetoolbox.core.data.utils.getFilename
 import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
@@ -30,10 +31,10 @@ import com.t8rin.imagetoolbox.core.domain.image.model.Quality
 import com.t8rin.imagetoolbox.core.domain.resource.ResourceManager
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.feature.audio_cover_extractor.domain.AudioCoverRetriever
+import com.t8rin.imagetoolbox.feature.audio_cover_extractor.domain.model.AudioCoverResult
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
-import wseemann.media.FFmpegMediaMetadataRetriever
 import javax.inject.Inject
 
 internal class AndroidAudioCoverRetriever @Inject constructor(
@@ -49,13 +50,9 @@ internal class AndroidAudioCoverRetriever @Inject constructor(
 
     override suspend fun loadCover(
         audioUri: String
-    ): Result<String> = withContext(defaultDispatcher) {
-        val fail = {
-            Result.failure<String>(NullPointerException(getString(R.string.no_image)))
-        }
-
+    ): AudioCoverResult = withContext(defaultDispatcher) {
         val pictureData = runCatching {
-            FFmpegMediaMetadataRetriever().run {
+            MediaMetadataRetriever().run {
                 setDataSource(
                     context,
                     audioUri.toUri()
@@ -64,42 +61,50 @@ internal class AndroidAudioCoverRetriever @Inject constructor(
                 embeddedPicture ?: frameAtTime
             }
         }.onFailure {
-            return@withContext Result.failure(it)
-        }.getOrNull() ?: return@withContext fail()
+            return@withContext AudioCoverResult.Failure(it.message.orEmpty())
+        }.getOrNull()
 
         ensureActive()
 
-        imageGetter.getImage(
-            data = pictureData,
-            originalSize = true
-        )?.let { bitmap ->
-            val originalName = audioUri.toUri().getFilename(context)?.substringBeforeLast('.')
-                ?: "AUDIO_${System.currentTimeMillis()}"
+        val coverUri = pictureData?.let {
+            imageGetter.getImage(
+                data = pictureData,
+                originalSize = true
+            )?.let { bitmap ->
+                val originalName = audioUri.toUri().getFilename(context)?.substringBeforeLast('.')
+                    ?: "AUDIO_${System.currentTimeMillis()}"
 
-            shareProvider.cacheData(
-                writeData = {
-                    it.writeBytes(
-                        imageCompressor.compress(
-                            image = bitmap,
-                            imageFormat = ImageFormat.Png.Lossless,
-                            quality = Quality.Base()
+                shareProvider.cacheData(
+                    writeData = {
+                        it.writeBytes(
+                            imageCompressor.compress(
+                                image = bitmap,
+                                imageFormat = ImageFormat.Png.Lossless,
+                                quality = Quality.Base()
+                            )
                         )
-                    )
-                },
-                filename = "$originalName.png"
-            )?.let(Result.Companion::success)
-        } ?: fail()
+                    },
+                    filename = "$originalName.png"
+                )
+            }
+        }
+
+        if (coverUri.isNullOrEmpty()) {
+            AudioCoverResult.Failure(getString(R.string.no_image))
+        } else {
+            AudioCoverResult.Success(coverUri)
+        }
     }
 
     override suspend fun loadCover(
         audioData: ByteArray
-    ): Result<String> {
+    ): AudioCoverResult {
         val audioUri = shareProvider.cacheData(
             writeData = {
                 it.writeBytes(audioData)
             },
             filename = "Audio_data_${System.currentTimeMillis()}.mp3"
-        ) ?: return Result.failure(NullPointerException(getString(R.string.filename_is_not_set)))
+        ) ?: return AudioCoverResult.Failure((getString(R.string.filename_is_not_set)))
 
         return loadCover(
             audioUri = audioUri

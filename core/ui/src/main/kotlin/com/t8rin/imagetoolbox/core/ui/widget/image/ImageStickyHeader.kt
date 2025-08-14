@@ -24,7 +24,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
@@ -32,6 +31,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -74,6 +74,7 @@ import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedIconButton
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedSlider
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.animateContentSizeNoClip
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.fadingEdges
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.tappable
 import com.t8rin.imagetoolbox.core.ui.widget.other.BoxAnimatedVisibility
 import kotlinx.coroutines.delay
 import kotlin.math.abs
@@ -124,15 +125,9 @@ fun LazyListScope.imageStickyHeader(
                         result.place(0, 0)
                     }
                 }
-                .then(
-                    if (!isControlsVisibleIndefinitely) {
-                        Modifier.pointerInput(Unit) {
-                            detectTapGestures {
-                                controlsVisible = true
-                            }
-                        }
-                    } else Modifier
-                )
+                .tappable(!isControlsVisibleIndefinitely) {
+                    controlsVisible = true
+                }
                 .onGloballyPositioned(onGloballyPositioned)
                 .animateContentSizeNoClip()
         ) {
@@ -270,20 +265,31 @@ fun LazyListScope.imageStickyHeader(
             }
         }
     }
-    if (visible) {
-        if (!imageState.isBlocked) {
-            item(
-                key = "stickyHeader",
-                contentType = "stickyHeader"
+
+    if (!imageState.isBlocked) {
+        item(
+            key = "stickyHeader",
+            contentType = "stickyHeader"
+        ) {
+            AnimatedContent(
+                targetState = visible,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                content()
+                if (it) content()
+                else Spacer(Modifier)
             }
-        } else {
-            stickyHeader(
-                key = "stickyHeader",
-                contentType = "stickyHeader"
+        }
+    } else {
+        stickyHeader(
+            key = "stickyHeader",
+            contentType = "stickyHeader"
+        ) {
+            AnimatedContent(
+                targetState = visible,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                content()
+                if (it) content()
+                else Spacer(Modifier)
             }
         }
     }
