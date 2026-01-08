@@ -25,6 +25,7 @@ import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.StarOutline
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.t8rin.imagetoolbox.core.resources.R
+import com.t8rin.imagetoolbox.core.resources.icons.FloodFill
 import com.t8rin.imagetoolbox.core.resources.icons.FreeArrow
 import com.t8rin.imagetoolbox.core.resources.icons.FreeDoubleArrow
 import com.t8rin.imagetoolbox.core.resources.icons.FreeDraw
@@ -33,26 +34,29 @@ import com.t8rin.imagetoolbox.core.resources.icons.Line
 import com.t8rin.imagetoolbox.core.resources.icons.LineArrow
 import com.t8rin.imagetoolbox.core.resources.icons.LineDoubleArrow
 import com.t8rin.imagetoolbox.core.resources.icons.Polygon
+import com.t8rin.imagetoolbox.core.resources.icons.Spray
 import com.t8rin.imagetoolbox.core.resources.icons.Square
 import com.t8rin.imagetoolbox.core.resources.icons.Triangle
 import com.t8rin.imagetoolbox.feature.draw.domain.DrawPathMode
 
 internal fun DrawPathMode.saveState(
     value: DrawPathMode
-): DrawPathMode = when {
-    value is DrawPathMode.Rect && this is DrawPathMode.OutlinedRect -> {
+): DrawPathMode = when (value) {
+    is DrawPathMode.Rect if this is DrawPathMode.OutlinedRect -> {
         copy(
-            rotationDegrees = value.rotationDegrees
+            rotationDegrees = value.rotationDegrees,
+            cornerRadius = value.cornerRadius
         )
     }
 
-    value is DrawPathMode.OutlinedRect && this is DrawPathMode.Rect -> {
+    is DrawPathMode.OutlinedRect if this is DrawPathMode.Rect -> {
         copy(
-            rotationDegrees = value.rotationDegrees
+            rotationDegrees = value.rotationDegrees,
+            cornerRadius = value.cornerRadius
         )
     }
 
-    value is DrawPathMode.Polygon && this is DrawPathMode.OutlinedPolygon -> {
+    is DrawPathMode.Polygon if this is DrawPathMode.OutlinedPolygon -> {
         copy(
             vertices = value.vertices,
             rotationDegrees = value.rotationDegrees,
@@ -60,7 +64,7 @@ internal fun DrawPathMode.saveState(
         )
     }
 
-    value is DrawPathMode.OutlinedPolygon && this is DrawPathMode.Polygon -> {
+    is DrawPathMode.OutlinedPolygon if this is DrawPathMode.Polygon -> {
         copy(
             vertices = value.vertices,
             rotationDegrees = value.rotationDegrees,
@@ -68,16 +72,7 @@ internal fun DrawPathMode.saveState(
         )
     }
 
-    value is DrawPathMode.Star && this is DrawPathMode.OutlinedStar -> {
-        copy(
-            vertices = value.vertices,
-            innerRadiusRatio = innerRadiusRatio,
-            rotationDegrees = value.rotationDegrees,
-            isRegular = value.isRegular
-        )
-    }
-
-    value is DrawPathMode.OutlinedStar && this is DrawPathMode.Star -> {
+    is DrawPathMode.Star if this is DrawPathMode.OutlinedStar -> {
         copy(
             vertices = value.vertices,
             innerRadiusRatio = innerRadiusRatio,
@@ -86,91 +81,134 @@ internal fun DrawPathMode.saveState(
         )
     }
 
-    value is DrawPathMode.PointingArrow && this is DrawPathMode.LinePointingArrow -> {
+    is DrawPathMode.OutlinedStar if this is DrawPathMode.Star -> {
+        copy(
+            vertices = value.vertices,
+            innerRadiusRatio = innerRadiusRatio,
+            rotationDegrees = value.rotationDegrees,
+            isRegular = value.isRegular
+        )
+    }
+
+    is DrawPathMode.PointingArrow if this is DrawPathMode.LinePointingArrow -> {
         copy(
             sizeScale = value.sizeScale,
             angle = value.angle
         )
     }
 
-    value is DrawPathMode.LinePointingArrow && this is DrawPathMode.PointingArrow -> {
+    is DrawPathMode.LinePointingArrow if this is DrawPathMode.PointingArrow -> {
         copy(
             sizeScale = value.sizeScale,
             angle = value.angle
         )
     }
 
-    value is DrawPathMode.PointingArrow && this is DrawPathMode.DoublePointingArrow -> {
+    is DrawPathMode.PointingArrow if this is DrawPathMode.DoublePointingArrow -> {
         copy(
             sizeScale = value.sizeScale,
             angle = value.angle
         )
     }
 
-    value is DrawPathMode.DoublePointingArrow && this is DrawPathMode.PointingArrow -> {
+    is DrawPathMode.DoublePointingArrow if this is DrawPathMode.PointingArrow -> {
         copy(
             sizeScale = value.sizeScale,
             angle = value.angle
         )
     }
 
-    value is DrawPathMode.PointingArrow && this is DrawPathMode.DoubleLinePointingArrow -> {
+    is DrawPathMode.PointingArrow if this is DrawPathMode.DoubleLinePointingArrow -> {
         copy(
             sizeScale = value.sizeScale,
             angle = value.angle
         )
     }
 
-    value is DrawPathMode.DoubleLinePointingArrow && this is DrawPathMode.PointingArrow -> {
+    is DrawPathMode.DoubleLinePointingArrow if this is DrawPathMode.PointingArrow -> {
         copy(
             sizeScale = value.sizeScale,
             angle = value.angle
         )
     }
 
-    value is DrawPathMode.LinePointingArrow && this is DrawPathMode.DoublePointingArrow -> {
+    is DrawPathMode.LinePointingArrow if this is DrawPathMode.DoublePointingArrow -> {
         copy(
             sizeScale = value.sizeScale,
             angle = value.angle
         )
     }
 
-    value is DrawPathMode.DoublePointingArrow && this is DrawPathMode.LinePointingArrow -> {
+    is DrawPathMode.DoublePointingArrow if this is DrawPathMode.LinePointingArrow -> {
         copy(
             sizeScale = value.sizeScale,
             angle = value.angle
         )
     }
 
-    value is DrawPathMode.LinePointingArrow && this is DrawPathMode.DoubleLinePointingArrow -> {
+    is DrawPathMode.LinePointingArrow if this is DrawPathMode.DoubleLinePointingArrow -> {
         copy(
             sizeScale = value.sizeScale,
             angle = value.angle
         )
     }
 
-    value is DrawPathMode.DoubleLinePointingArrow && this is DrawPathMode.LinePointingArrow -> {
+    is DrawPathMode.DoubleLinePointingArrow if this is DrawPathMode.LinePointingArrow -> {
         copy(
             sizeScale = value.sizeScale,
             angle = value.angle
         )
     }
 
-    value is DrawPathMode.DoublePointingArrow && this is DrawPathMode.DoubleLinePointingArrow -> {
+    is DrawPathMode.DoublePointingArrow if this is DrawPathMode.DoubleLinePointingArrow -> {
         copy(
             sizeScale = value.sizeScale,
             angle = value.angle
         )
     }
 
-    value is DrawPathMode.DoubleLinePointingArrow && this is DrawPathMode.DoublePointingArrow -> {
+    is DrawPathMode.DoubleLinePointingArrow if this is DrawPathMode.DoublePointingArrow -> {
         copy(
             sizeScale = value.sizeScale,
             angle = value.angle
+        )
+    }
+
+    is DrawPathMode.FloodFill if this is DrawPathMode.FloodFill -> {
+        copy(
+            tolerance = value.tolerance
+        )
+    }
+
+    is DrawPathMode.Spray if this is DrawPathMode.Spray -> {
+        copy(
+            density = value.density,
+            pixelSize = value.pixelSize,
+            isSquareShaped = value.isSquareShaped
         )
     }
 
     else -> this
+}
+
+internal fun DrawPathMode.density(): Int = when (this) {
+    is DrawPathMode.Spray -> density
+    else -> 0
+}
+
+internal fun DrawPathMode.pixelSize(): Float = when (this) {
+    is DrawPathMode.Spray -> pixelSize
+    else -> 0f
+}
+
+internal fun DrawPathMode.isSquareShaped(): Boolean = when (this) {
+    is DrawPathMode.Spray -> isSquareShaped
+    else -> false
+}
+
+internal fun DrawPathMode.tolerance(): Float = when (this) {
+    is DrawPathMode.FloodFill -> tolerance
+    else -> 0f
 }
 
 internal fun DrawPathMode.sizeScale(): Float = when (this) {
@@ -205,6 +243,12 @@ internal fun DrawPathMode.rotationDegrees(): Int = when (this) {
     is DrawPathMode.Rect -> rotationDegrees
     is DrawPathMode.OutlinedRect -> rotationDegrees
     else -> 0
+}
+
+internal fun DrawPathMode.cornerRadius(): Float = when (this) {
+    is DrawPathMode.Rect -> cornerRadius
+    is DrawPathMode.OutlinedRect -> cornerRadius
+    else -> 0f
 }
 
 internal fun DrawPathMode.isRegular(): Boolean = when (this) {
@@ -273,17 +317,20 @@ internal fun DrawPathMode.updateStar(
 }
 
 internal fun DrawPathMode.updateRect(
-    rotationDegrees: Int? = null
+    rotationDegrees: Int? = null,
+    cornerRadius: Float? = null
 ) = when (this) {
     is DrawPathMode.Rect -> {
         copy(
-            rotationDegrees = rotationDegrees ?: this.rotationDegrees
+            rotationDegrees = rotationDegrees ?: this.rotationDegrees,
+            cornerRadius = cornerRadius ?: this.cornerRadius
         )
     }
 
     is DrawPathMode.OutlinedRect -> {
         copy(
-            rotationDegrees = rotationDegrees ?: this.rotationDegrees
+            rotationDegrees = rotationDegrees ?: this.rotationDegrees,
+            cornerRadius = cornerRadius ?: this.cornerRadius
         )
     }
 
@@ -325,6 +372,34 @@ internal fun DrawPathMode.updateArrow(
     else -> this
 }
 
+internal fun DrawPathMode.updateFloodFill(
+    tolerance: Float? = null,
+) = when (this) {
+    is DrawPathMode.FloodFill -> {
+        copy(
+            tolerance = tolerance ?: this.tolerance
+        )
+    }
+
+    else -> this
+}
+
+internal fun DrawPathMode.updateSpray(
+    density: Int? = null,
+    pixelSize: Float? = null,
+    isSquareShaped: Boolean? = null,
+) = when (this) {
+    is DrawPathMode.Spray -> {
+        copy(
+            density = density ?: this.density,
+            pixelSize = pixelSize ?: this.pixelSize,
+            isSquareShaped = isSquareShaped ?: this.isSquareShaped
+        )
+    }
+
+    else -> this
+}
+
 internal fun DrawPathMode.isArrow(): Boolean =
     this is DrawPathMode.PointingArrow || this is DrawPathMode.LinePointingArrow
             || this is DrawPathMode.DoublePointingArrow || this is DrawPathMode.DoubleLinePointingArrow
@@ -337,6 +412,12 @@ internal fun DrawPathMode.isPolygon(): Boolean =
 
 internal fun DrawPathMode.isStar(): Boolean =
     this is DrawPathMode.Star || this is DrawPathMode.OutlinedStar
+
+internal fun DrawPathMode.isFloodFill(): Boolean =
+    this is DrawPathMode.FloodFill
+
+internal fun DrawPathMode.isSpray(): Boolean =
+    this is DrawPathMode.Spray
 
 internal fun DrawPathMode.getSubtitle(): Int = when (this) {
     is DrawPathMode.DoubleLinePointingArrow -> R.string.double_line_arrow_sub
@@ -356,6 +437,8 @@ internal fun DrawPathMode.getSubtitle(): Int = when (this) {
     is DrawPathMode.OutlinedPolygon -> R.string.outlined_polygon_sub
     is DrawPathMode.OutlinedStar -> R.string.outlined_star_sub
     is DrawPathMode.Star -> R.string.star_sub
+    is DrawPathMode.FloodFill -> R.string.flood_fill_sub
+    is DrawPathMode.Spray -> R.string.spray_sub
 }
 
 internal fun DrawPathMode.getTitle(): Int = when (this) {
@@ -376,6 +459,8 @@ internal fun DrawPathMode.getTitle(): Int = when (this) {
     is DrawPathMode.OutlinedPolygon -> R.string.outlined_polygon
     is DrawPathMode.OutlinedStar -> R.string.outlined_star
     is DrawPathMode.Star -> R.string.star
+    is DrawPathMode.FloodFill -> R.string.flood_fill
+    is DrawPathMode.Spray -> R.string.spray
 }
 
 internal fun DrawPathMode.getIcon(): ImageVector = when (this) {
@@ -396,4 +481,6 @@ internal fun DrawPathMode.getIcon(): ImageVector = when (this) {
     is DrawPathMode.OutlinedPolygon -> Icons.Outlined.Polygon
     is DrawPathMode.OutlinedStar -> Icons.Rounded.StarOutline
     is DrawPathMode.Star -> Icons.Rounded.Star
+    is DrawPathMode.FloodFill -> Icons.Rounded.FloodFill
+    is DrawPathMode.Spray -> Icons.Outlined.Spray
 }

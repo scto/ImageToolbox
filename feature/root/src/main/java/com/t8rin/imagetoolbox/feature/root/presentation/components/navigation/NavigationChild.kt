@@ -22,8 +22,12 @@ import com.t8rin.imagetoolbox.collage_maker.presentation.CollageMakerContent
 import com.t8rin.imagetoolbox.collage_maker.presentation.screenLogic.CollageMakerComponent
 import com.t8rin.imagetoolbox.color_tools.presentation.ColorToolsContent
 import com.t8rin.imagetoolbox.color_tools.presentation.screenLogic.ColorToolsComponent
+import com.t8rin.imagetoolbox.feature.ai_tools.presentation.AiToolsContent
+import com.t8rin.imagetoolbox.feature.ai_tools.presentation.screenLogic.AiToolsComponent
 import com.t8rin.imagetoolbox.feature.apng_tools.presentation.ApngToolsContent
 import com.t8rin.imagetoolbox.feature.apng_tools.presentation.screenLogic.ApngToolsComponent
+import com.t8rin.imagetoolbox.feature.ascii_art.presentation.AsciiArtContent
+import com.t8rin.imagetoolbox.feature.ascii_art.presentation.screenLogic.AsciiArtComponent
 import com.t8rin.imagetoolbox.feature.audio_cover_extractor.ui.AudioCoverExtractorContent
 import com.t8rin.imagetoolbox.feature.audio_cover_extractor.ui.screenLogic.AudioCoverExtractorComponent
 import com.t8rin.imagetoolbox.feature.base64_tools.presentation.Base64ToolsContent
@@ -52,8 +56,6 @@ import com.t8rin.imagetoolbox.feature.filters.presentation.FiltersContent
 import com.t8rin.imagetoolbox.feature.filters.presentation.screenLogic.FiltersComponent
 import com.t8rin.imagetoolbox.feature.format_conversion.presentation.FormatConversionContent
 import com.t8rin.imagetoolbox.feature.format_conversion.presentation.screenLogic.FormatConversionComponent
-import com.t8rin.imagetoolbox.feature.generate_palette.presentation.GeneratePaletteContent
-import com.t8rin.imagetoolbox.feature.generate_palette.presentation.screenLogic.GeneratePaletteComponent
 import com.t8rin.imagetoolbox.feature.gif_tools.presentation.GifToolsContent
 import com.t8rin.imagetoolbox.feature.gif_tools.presentation.screenLogic.GifToolsComponent
 import com.t8rin.imagetoolbox.feature.gradient_maker.presentation.GradientMakerContent
@@ -78,6 +80,8 @@ import com.t8rin.imagetoolbox.feature.markup_layers.presentation.MarkupLayersCon
 import com.t8rin.imagetoolbox.feature.markup_layers.presentation.screenLogic.MarkupLayersComponent
 import com.t8rin.imagetoolbox.feature.mesh_gradients.presentation.MeshGradientsContent
 import com.t8rin.imagetoolbox.feature.mesh_gradients.presentation.screenLogic.MeshGradientsComponent
+import com.t8rin.imagetoolbox.feature.palette_tools.presentation.PaletteToolsContent
+import com.t8rin.imagetoolbox.feature.palette_tools.presentation.screenLogic.PaletteToolsComponent
 import com.t8rin.imagetoolbox.feature.pdf_tools.presentation.PdfToolsContent
 import com.t8rin.imagetoolbox.feature.pdf_tools.presentation.screenLogic.PdfToolsComponent
 import com.t8rin.imagetoolbox.feature.pick_color.presentation.PickColorFromImageContent
@@ -94,6 +98,8 @@ import com.t8rin.imagetoolbox.feature.single_edit.presentation.SingleEditContent
 import com.t8rin.imagetoolbox.feature.single_edit.presentation.screenLogic.SingleEditComponent
 import com.t8rin.imagetoolbox.feature.svg_maker.presentation.SvgMakerContent
 import com.t8rin.imagetoolbox.feature.svg_maker.presentation.screenLogic.SvgMakerComponent
+import com.t8rin.imagetoolbox.feature.wallpapers_export.presentation.WallpapersExportContent
+import com.t8rin.imagetoolbox.feature.wallpapers_export.presentation.screenLogic.WallpapersExportComponent
 import com.t8rin.imagetoolbox.feature.watermarking.presentation.WatermarkingContent
 import com.t8rin.imagetoolbox.feature.watermarking.presentation.screenLogic.WatermarkingComponent
 import com.t8rin.imagetoolbox.feature.webp_tools.presentation.WebpToolsContent
@@ -183,9 +189,9 @@ internal sealed interface NavigationChild {
         override fun Content() = FormatConversionContent(component)
     }
 
-    class GeneratePalette(private val component: GeneratePaletteComponent) : NavigationChild {
+    class PaletteTools(private val component: PaletteToolsComponent) : NavigationChild {
         @Composable
-        override fun Content() = GeneratePaletteContent(component)
+        override fun Content() = PaletteToolsContent(component)
     }
 
     class GifTools(private val component: GifToolsComponent) : NavigationChild {
@@ -348,5 +354,20 @@ internal sealed interface NavigationChild {
     class LibraryDetails(private val component: LibraryDetailsComponent) : NavigationChild {
         @Composable
         override fun Content() = LibraryDetailsContent(component)
+    }
+
+    class WallpapersExport(private val component: WallpapersExportComponent) : NavigationChild {
+        @Composable
+        override fun Content() = WallpapersExportContent(component)
+    }
+
+    class AsciiArt(private val component: AsciiArtComponent) : NavigationChild {
+        @Composable
+        override fun Content() = AsciiArtContent(component)
+    }
+
+    class AiTools(private val component: AiToolsComponent) : NavigationChild {
+        @Composable
+        override fun Content() = AiToolsContent(component)
     }
 }

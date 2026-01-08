@@ -19,7 +19,7 @@ package com.t8rin.imagetoolbox.core.data.image
 
 import android.graphics.Bitmap
 import android.os.Build
-import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
+import com.t8rin.imagetoolbox.core.domain.coroutines.DispatchersHolder
 import com.t8rin.imagetoolbox.core.domain.image.ImageCompressor
 import com.t8rin.imagetoolbox.core.domain.image.ImageGetter
 import com.t8rin.imagetoolbox.core.domain.image.ImagePreviewCreator
@@ -29,10 +29,6 @@ import com.t8rin.imagetoolbox.core.domain.image.model.ImageInfo
 import com.t8rin.imagetoolbox.core.domain.image.model.ResizeType
 import com.t8rin.imagetoolbox.core.domain.transformation.Transformation
 import com.t8rin.imagetoolbox.core.settings.domain.SettingsProvider
-import com.t8rin.imagetoolbox.core.settings.domain.model.SettingsState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
@@ -48,15 +44,8 @@ internal class AndroidImagePreviewCreator @Inject constructor(
     dispatchersHolder: DispatchersHolder
 ) : DispatchersHolder by dispatchersHolder, ImagePreviewCreator<Bitmap> {
 
-    private var generatePreviews = SettingsState.Default.generatePreviews
-
-    init {
-        settingsProvider
-            .getSettingsStateFlow()
-            .onEach {
-                generatePreviews = it.generatePreviews
-            }.launchIn(CoroutineScope(defaultDispatcher))
-    }
+    private val _settingsState = settingsProvider.settingsState
+    private val settingsState get() = _settingsState.value
 
     override suspend fun createPreview(
         image: Bitmap,
@@ -75,7 +64,7 @@ internal class AndroidImagePreviewCreator @Inject constructor(
             )
         }
 
-        if (!generatePreviews) return@withContext null
+        if (!settingsState.generatePreviews) return@withContext null
 
         if (imageInfo.height == 0 || imageInfo.width == 0) return@withContext image
         val targetImage: Bitmap

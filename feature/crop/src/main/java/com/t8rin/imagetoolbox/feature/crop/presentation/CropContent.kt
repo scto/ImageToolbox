@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import com.smarttoolfactory.cropper.model.OutlineType
 import com.t8rin.imagetoolbox.core.domain.image.model.ImageFormatGroup
 import com.t8rin.imagetoolbox.core.resources.R
+import com.t8rin.imagetoolbox.core.resources.icons.AddPhotoAlt
 import com.t8rin.imagetoolbox.core.resources.icons.CropSmall
 import com.t8rin.imagetoolbox.core.resources.icons.ImageReset
 import com.t8rin.imagetoolbox.core.ui.utils.content_pickers.Picker
@@ -59,6 +60,7 @@ import com.t8rin.imagetoolbox.core.ui.widget.AdaptiveBottomScaffoldLayoutScreen
 import com.t8rin.imagetoolbox.core.ui.widget.buttons.BottomButtonsBlock
 import com.t8rin.imagetoolbox.core.ui.widget.buttons.ShareButton
 import com.t8rin.imagetoolbox.core.ui.widget.controls.selection.ImageFormatSelector
+import com.t8rin.imagetoolbox.core.ui.widget.controls.selection.MagnifierEnabledSelector
 import com.t8rin.imagetoolbox.core.ui.widget.dialogs.ExitWithoutSavingDialog
 import com.t8rin.imagetoolbox.core.ui.widget.dialogs.LoadingDialog
 import com.t8rin.imagetoolbox.core.ui.widget.dialogs.OneTimeImagePickingDialog
@@ -69,6 +71,7 @@ import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedIconButton
 import com.t8rin.imagetoolbox.core.ui.widget.image.AspectRatioSelector
 import com.t8rin.imagetoolbox.core.ui.widget.image.AutoFilePicker
 import com.t8rin.imagetoolbox.core.ui.widget.image.ImageNotPickedWidget
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.other.BoxAnimatedVisibility
 import com.t8rin.imagetoolbox.core.ui.widget.other.TopAppBarEmoji
 import com.t8rin.imagetoolbox.core.ui.widget.sheets.ProcessImagesPreferenceSheet
@@ -261,11 +264,18 @@ fun CropContent(
                     enter = fadeIn() + expandVertically(),
                     exit = fadeOut() + shrinkVertically()
                 ) {
-                    CoercePointsToImageBoundsToggle(
-                        value = coercePointsToImageArea,
-                        onValueChange = { coercePointsToImageArea = it },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    Column {
+                        CoercePointsToImageBoundsToggle(
+                            value = coercePointsToImageArea,
+                            onValueChange = { coercePointsToImageArea = it },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        MagnifierEnabledSelector(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = ShapeDefaults.extraLarge,
+                        )
+                    }
                 }
                 BoxAnimatedVisibility(
                     visible = component.cropType != CropType.FreeCorners,
@@ -310,28 +320,33 @@ fun CropContent(
             var job by remember { mutableStateOf<Job?>(null) }
             BottomButtonsBlock(
                 isNoData = component.bitmap == null,
-                onSecondaryButtonClick = pickImage,
-                onSecondaryButtonLongClick = {
-                    showOneTimeImagePickingDialog = true
+                onSecondaryButtonClick = {
+                    if (component.bitmap == null) {
+                        pickImage()
+                    } else {
+                        job?.cancel()
+                        job = scope.launch {
+                            delay(500)
+                            crop = true
+                        }
+                    }
                 },
+                onSecondaryButtonLongClick = if (component.bitmap == null) {
+                    { showOneTimeImagePickingDialog = true }
+                } else null,
+                secondaryButtonIcon = if (component.bitmap == null) Icons.Rounded.AddPhotoAlt else Icons.Rounded.CropSmall,
                 onPrimaryButtonClick = {
                     saveBitmap(null)
                 },
                 isPrimaryButtonVisible = component.isBitmapChanged,
                 middleFab = {
                     EnhancedFloatingActionButton(
-                        onClick = {
-                            job?.cancel()
-                            job = scope.launch {
-                                delay(500)
-                                crop = true
-                            }
-                        },
+                        onClick = pickImage,
                         containerColor = MaterialTheme.colorScheme.secondaryContainer
                     ) {
                         Icon(
-                            imageVector = Icons.Rounded.CropSmall,
-                            contentDescription = stringResource(R.string.crop)
+                            imageVector = Icons.Rounded.AddPhotoAlt,
+                            contentDescription = stringResource(R.string.add_image)
                         )
                     }
                 },

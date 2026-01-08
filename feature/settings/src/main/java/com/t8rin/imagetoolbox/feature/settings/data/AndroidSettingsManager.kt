@@ -30,14 +30,19 @@ import com.t8rin.imagetoolbox.core.data.utils.isInstalledFromPlayStore
 import com.t8rin.imagetoolbox.core.data.utils.outputStream
 import com.t8rin.imagetoolbox.core.domain.BackupFileExtension
 import com.t8rin.imagetoolbox.core.domain.GlobalStorageName
-import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
+import com.t8rin.imagetoolbox.core.domain.coroutines.AppScope
+import com.t8rin.imagetoolbox.core.domain.coroutines.DispatchersHolder
 import com.t8rin.imagetoolbox.core.domain.image.ShareProvider
+import com.t8rin.imagetoolbox.core.domain.image.model.ImageFormat
 import com.t8rin.imagetoolbox.core.domain.image.model.ImageScaleMode
+import com.t8rin.imagetoolbox.core.domain.image.model.Quality
 import com.t8rin.imagetoolbox.core.domain.image.model.ResizeType
+import com.t8rin.imagetoolbox.core.domain.json.JsonParser
 import com.t8rin.imagetoolbox.core.domain.model.ColorModel
 import com.t8rin.imagetoolbox.core.domain.model.HashingType
 import com.t8rin.imagetoolbox.core.domain.model.PerformanceClass
 import com.t8rin.imagetoolbox.core.domain.model.SystemBarsVisibility
+import com.t8rin.imagetoolbox.core.domain.utils.ListUtils.toggle
 import com.t8rin.imagetoolbox.core.domain.utils.timestamp
 import com.t8rin.imagetoolbox.core.settings.domain.SettingsManager
 import com.t8rin.imagetoolbox.core.settings.domain.model.ColorHarmonizer
@@ -48,8 +53,11 @@ import com.t8rin.imagetoolbox.core.settings.domain.model.NightMode
 import com.t8rin.imagetoolbox.core.settings.domain.model.OneTimeSaveLocation
 import com.t8rin.imagetoolbox.core.settings.domain.model.SettingsState
 import com.t8rin.imagetoolbox.core.settings.domain.model.SliderType
+import com.t8rin.imagetoolbox.core.settings.domain.model.SnowfallMode
 import com.t8rin.imagetoolbox.core.settings.domain.model.SwitchType
 import com.t8rin.imagetoolbox.feature.settings.data.keys.ADD_ORIGINAL_NAME_TO_FILENAME
+import com.t8rin.imagetoolbox.feature.settings.data.keys.ADD_PRESET_TO_FILENAME
+import com.t8rin.imagetoolbox.feature.settings.data.keys.ADD_SCALE_MODE_TO_FILENAME
 import com.t8rin.imagetoolbox.feature.settings.data.keys.ADD_SEQ_NUM_TO_FILENAME
 import com.t8rin.imagetoolbox.feature.settings.data.keys.ADD_SIZE_TO_FILENAME
 import com.t8rin.imagetoolbox.feature.settings.data.keys.ADD_TIMESTAMP_TO_FILENAME
@@ -58,9 +66,11 @@ import com.t8rin.imagetoolbox.feature.settings.data.keys.ALLOW_AUTO_PASTE
 import com.t8rin.imagetoolbox.feature.settings.data.keys.ALLOW_BETAS
 import com.t8rin.imagetoolbox.feature.settings.data.keys.ALLOW_CRASHLYTICS
 import com.t8rin.imagetoolbox.feature.settings.data.keys.ALLOW_IMAGE_MONET
+import com.t8rin.imagetoolbox.feature.settings.data.keys.ALLOW_SKIP_IF_LARGER
 import com.t8rin.imagetoolbox.feature.settings.data.keys.AMOLED_MODE
 import com.t8rin.imagetoolbox.feature.settings.data.keys.APP_COLOR_TUPLE
 import com.t8rin.imagetoolbox.feature.settings.data.keys.APP_OPEN_COUNT
+import com.t8rin.imagetoolbox.feature.settings.data.keys.ASCII_CUSTOM_GRADIENTS
 import com.t8rin.imagetoolbox.feature.settings.data.keys.AUTO_CACHE_CLEAR
 import com.t8rin.imagetoolbox.feature.settings.data.keys.BACKGROUND_COLOR_FOR_NA_FORMATS
 import com.t8rin.imagetoolbox.feature.settings.data.keys.BORDER_WIDTH
@@ -78,6 +88,8 @@ import com.t8rin.imagetoolbox.feature.settings.data.keys.CUSTOM_FONTS
 import com.t8rin.imagetoolbox.feature.settings.data.keys.DEFAULT_DRAW_COLOR
 import com.t8rin.imagetoolbox.feature.settings.data.keys.DEFAULT_DRAW_LINE_WIDTH
 import com.t8rin.imagetoolbox.feature.settings.data.keys.DEFAULT_DRAW_PATH_MODE
+import com.t8rin.imagetoolbox.feature.settings.data.keys.DEFAULT_IMAGE_FORMAT
+import com.t8rin.imagetoolbox.feature.settings.data.keys.DEFAULT_QUALITY
 import com.t8rin.imagetoolbox.feature.settings.data.keys.DEFAULT_RESIZE_TYPE
 import com.t8rin.imagetoolbox.feature.settings.data.keys.DONATE_DIALOG_OPEN_COUNT
 import com.t8rin.imagetoolbox.feature.settings.data.keys.DRAG_HANDLE_WIDTH
@@ -107,6 +119,7 @@ import com.t8rin.imagetoolbox.feature.settings.data.keys.IMAGE_SCALE_MODE
 import com.t8rin.imagetoolbox.feature.settings.data.keys.INITIAL_OCR_CODES
 import com.t8rin.imagetoolbox.feature.settings.data.keys.INITIAL_OCR_MODE
 import com.t8rin.imagetoolbox.feature.settings.data.keys.INVERT_THEME
+import com.t8rin.imagetoolbox.feature.settings.data.keys.IS_LAUNCHER_MODE
 import com.t8rin.imagetoolbox.feature.settings.data.keys.IS_LINK_PREVIEW_ENABLED
 import com.t8rin.imagetoolbox.feature.settings.data.keys.IS_SYSTEM_BARS_VISIBLE_BY_SWIPE
 import com.t8rin.imagetoolbox.feature.settings.data.keys.IS_TELEGRAM_GROUP_OPENED
@@ -132,6 +145,8 @@ import com.t8rin.imagetoolbox.feature.settings.data.keys.SHOW_SETTINGS_IN_LANDSC
 import com.t8rin.imagetoolbox.feature.settings.data.keys.SHOW_UPDATE_DIALOG
 import com.t8rin.imagetoolbox.feature.settings.data.keys.SKIP_IMAGE_PICKING
 import com.t8rin.imagetoolbox.feature.settings.data.keys.SLIDER_TYPE
+import com.t8rin.imagetoolbox.feature.settings.data.keys.SNOWFALL_MODE
+import com.t8rin.imagetoolbox.feature.settings.data.keys.SPOT_HEAL_MODE
 import com.t8rin.imagetoolbox.feature.settings.data.keys.SWITCH_TYPE
 import com.t8rin.imagetoolbox.feature.settings.data.keys.SYSTEM_BARS_VISIBILITY
 import com.t8rin.imagetoolbox.feature.settings.data.keys.THEME_CONTRAST_LEVEL
@@ -147,11 +162,12 @@ import com.t8rin.logger.Logger
 import com.t8rin.logger.makeLog
 import dagger.Lazy
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayInputStream
@@ -166,27 +182,34 @@ internal class AndroidSettingsManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val dataStore: DataStore<Preferences>,
     private val shareProvider: Lazy<ShareProvider>,
+    private val jsonParser: JsonParser,
     dispatchersHolder: DispatchersHolder,
+    appScope: AppScope,
 ) : DispatchersHolder by dispatchersHolder, SettingsManager {
 
     init {
-        CoroutineScope(ioDispatcher).launch {
+        appScope.launch {
             registerAppOpen()
         }
     }
 
     private val default = SettingsState.Default
-    private var currentSettings: SettingsState = default
+    private val currentSettings: SettingsState get() = settingsState.value
 
-    override suspend fun getSettingsState(): SettingsState = getSettingsStateFlow().first()
+    override suspend fun getSettingsState(): SettingsState = rawFlow().first()
 
-    override fun getSettingsStateFlow(): Flow<SettingsState> = dataStore.data.map {
-        it.toSettingsState(default)
-    }.onEach { currentSettings = it }
-
-    override fun getNeedToShowTelegramGroupDialog(): Flow<Boolean> = getSettingsStateFlow().map {
-        it.appOpenCount % 6 == 0 && it.appOpenCount != 0 && (dataStore.data.first()[IS_TELEGRAM_GROUP_OPENED] != true)
+    private fun rawFlow(): Flow<SettingsState> = dataStore.data.map {
+        it.toSettingsState(
+            default = default,
+            jsonParser = jsonParser
+        )
     }
+
+    override val settingsState: StateFlow<SettingsState> = rawFlow().stateIn(
+        scope = appScope,
+        started = SharingStarted.Eagerly,
+        initialValue = default
+    )
 
     override suspend fun toggleAddSequenceNumber() = toggle(
         key = ADD_SEQ_NUM_TO_FILENAME,
@@ -428,6 +451,10 @@ internal class AndroidSettingsManager @Inject constructor(
         it[IMAGE_PICKER_MODE] = 2
     }
 
+    override suspend fun setSpotHealMode(mode: Int) = edit {
+        it[SPOT_HEAL_MODE] = mode
+    }
+
     override suspend fun setFilenameSuffix(name: String) = edit {
         it[FILENAME_SUFFIX] = name
     }
@@ -449,14 +476,6 @@ internal class AndroidSettingsManager @Inject constructor(
 
     override suspend fun setInitialOCRLanguageCodes(list: List<String>) = edit {
         it[INITIAL_OCR_CODES] = list.joinToString(separator = "+")
-    }
-
-    override suspend fun getInitialOCRLanguageCodes(): List<String> = dataStore.data.first().let {
-        it[INITIAL_OCR_CODES]?.split("+") ?: default.initialOcrCodes
-    }
-
-    override suspend fun getInitialOcrMode(): Int = dataStore.data.first().let {
-        it[INITIAL_OCR_MODE] ?: 1
     }
 
     override suspend fun createLogsExport(): String = withContext(ioDispatcher) {
@@ -487,6 +506,26 @@ internal class AndroidSettingsManager @Inject constructor(
             filename = "image_toolbox_logs_${timestamp()}.zip"
         ) ?: ""
     }
+
+    override suspend fun toggleAddPresetInfoToFilename() = toggle(
+        key = ADD_PRESET_TO_FILENAME,
+        defaultValue = default.addPresetInfoToFilename
+    )
+
+    override suspend fun toggleAddImageScaleModeInfoToFilename() = toggle(
+        key = ADD_SCALE_MODE_TO_FILENAME,
+        defaultValue = default.addImageScaleModeInfoToFilename
+    )
+
+    override suspend fun toggleAllowSkipIfLarger() = toggle(
+        key = ALLOW_SKIP_IF_LARGER,
+        defaultValue = default.allowSkipIfLarger
+    )
+
+    override suspend fun toggleIsScreenSelectionLauncherMode() = toggle(
+        key = IS_LAUNCHER_MODE,
+        defaultValue = default.isScreenSelectionLauncherMode
+    )
 
     override suspend fun setScreensWithBrightnessEnforcement(data: String) = edit {
         it[SCREENS_WITH_BRIGHTNESS_ENFORCEMENT] = data
@@ -861,6 +900,28 @@ internal class AndroidSettingsManager @Inject constructor(
         key = ENABLE_TOOL_EXIT_CONFIRMATION,
         defaultValue = default.enableToolExitConfirmation
     )
+
+    override suspend fun toggleCustomAsciiGradient(gradient: String) = edit {
+        it[ASCII_CUSTOM_GRADIENTS] = (it[ASCII_CUSTOM_GRADIENTS] ?: emptySet()).toggle(gradient)
+    }
+
+    override suspend fun setSnowfallMode(snowfallMode: SnowfallMode) = edit {
+        it[SNOWFALL_MODE] = snowfallMode.ordinal
+    }
+
+    override suspend fun setDefaultImageFormat(imageFormat: ImageFormat?) = edit {
+        if (imageFormat == null) {
+            it[DEFAULT_IMAGE_FORMAT] = ""
+        } else {
+            it[DEFAULT_IMAGE_FORMAT] = imageFormat.title
+        }
+    }
+
+    override suspend fun setDefaultQuality(quality: Quality) = edit {
+        jsonParser.toJson(quality, Quality::class.java)?.apply {
+            it[DEFAULT_QUALITY] = this
+        }
+    }
 
     private fun MutablePreferences.toggle(
         key: Preferences.Key<Boolean>,

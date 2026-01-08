@@ -22,13 +22,15 @@ import com.awxkee.aire.Aire
 import com.t8rin.imagetoolbox.core.domain.model.IntegerSize
 import com.t8rin.imagetoolbox.core.domain.transformation.Transformation
 import com.t8rin.imagetoolbox.core.filters.domain.model.Filter
+import com.t8rin.imagetoolbox.core.ksp.annotations.FilterInject
 
+@FilterInject
 internal class AcesFilmicToneMappingFilter(
     override val value: Float = 1f,
 ) : Transformation<Bitmap>, Filter.AcesFilmicToneMapping {
 
     override val cacheKey: String
-        get() = (value).hashCode().toString()
+        get() = value.hashCode().toString()
 
     override suspend fun transform(
         input: Bitmap,

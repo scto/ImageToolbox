@@ -26,7 +26,7 @@ import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import com.t8rin.imagetoolbox.core.data.saving.io.FileWriteable
 import com.t8rin.imagetoolbox.core.data.saving.io.UriReadable
-import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
+import com.t8rin.imagetoolbox.core.domain.coroutines.DispatchersHolder
 import com.t8rin.imagetoolbox.core.domain.image.ImageCompressor
 import com.t8rin.imagetoolbox.core.domain.image.ImageGetter
 import com.t8rin.imagetoolbox.core.domain.image.ImageShareProvider
@@ -47,6 +47,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
+import kotlin.random.Random
 
 internal class AndroidShareProvider @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -113,7 +114,7 @@ internal class AndroidShareProvider @Inject constructor(
             shareUri(
                 uri = it,
                 type = imageInfo.imageFormat.mimeType,
-                onComplete = onComplete
+                onComplete = {}
             )
         }
         onComplete()
@@ -216,7 +217,7 @@ internal class AndroidShareProvider @Inject constructor(
         shareData(
             writeData = { it.writeBytes(byteArray) },
             filename = filename,
-            onComplete = onComplete
+            onComplete = {}
         )
         onComplete()
     }
@@ -225,7 +226,11 @@ internal class AndroidShareProvider @Inject constructor(
         writeData: suspend (Writeable) -> Unit,
         filename: String
     ): String? = withContext(ioDispatcher) {
-        val imagesFolder = File(context.cacheDir, "files")
+        val imagesFolder = if (filename.startsWith("temp.")) {
+            File(context.cacheDir, "temp")
+        } else {
+            File(context.cacheDir, "cache/${Random.nextInt()}")
+        }
 
         runSuspendCatching {
             imagesFolder.mkdirs()
@@ -267,7 +272,7 @@ internal class AndroidShareProvider @Inject constructor(
             shareUri(
                 uri = it,
                 type = mimeType,
-                onComplete = onComplete
+                onComplete = {}
             )
         }
 

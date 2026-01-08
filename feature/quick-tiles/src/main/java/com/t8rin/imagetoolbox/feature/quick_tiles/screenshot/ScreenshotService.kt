@@ -34,6 +34,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.getSystemService
@@ -42,7 +43,7 @@ import androidx.core.graphics.createBitmap
 import androidx.core.net.toUri
 import com.t8rin.imagetoolbox.core.data.image.utils.drawBitmap
 import com.t8rin.imagetoolbox.core.data.utils.safeConfig
-import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
+import com.t8rin.imagetoolbox.core.domain.coroutines.DispatchersHolder
 import com.t8rin.imagetoolbox.core.domain.image.ImageCompressor
 import com.t8rin.imagetoolbox.core.domain.image.ImageShareProvider
 import com.t8rin.imagetoolbox.core.domain.image.model.ImageFormat
@@ -53,26 +54,24 @@ import com.t8rin.imagetoolbox.core.domain.saving.model.FileSaveTarget
 import com.t8rin.imagetoolbox.core.domain.utils.smartJob
 import com.t8rin.imagetoolbox.core.domain.utils.timestamp
 import com.t8rin.imagetoolbox.core.resources.R
-import com.t8rin.imagetoolbox.core.ui.utils.helper.AppActivityClass
+import com.t8rin.imagetoolbox.core.ui.utils.helper.ContextUtils.getScreenExtra
 import com.t8rin.imagetoolbox.core.ui.utils.helper.ContextUtils.postToast
-import com.t8rin.imagetoolbox.core.ui.utils.helper.ContextUtils.startActivity
-import com.t8rin.imagetoolbox.core.ui.utils.helper.DataExtra
+import com.t8rin.imagetoolbox.core.ui.utils.helper.ContextUtils.putScreenExtra
 import com.t8rin.imagetoolbox.core.ui.utils.helper.IntentUtils.parcelable
-import com.t8rin.imagetoolbox.core.ui.utils.helper.ResultCode
-import com.t8rin.imagetoolbox.core.ui.utils.helper.ScreenshotAction
-import com.t8rin.imagetoolbox.core.ui.utils.helper.getTileScreenAction
-import com.t8rin.imagetoolbox.core.ui.utils.helper.putTileScreenAction
 import com.t8rin.imagetoolbox.feature.erase_background.domain.AutoBackgroundRemover
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
+@RequiresApi(Build.VERSION_CODES.N)
 @AndroidEntryPoint
 class ScreenshotService : Service() {
 
@@ -91,11 +90,17 @@ class ScreenshotService : Service() {
     @Inject
     lateinit var dispatchersHolder: DispatchersHolder
 
+    private val coroutineScope by lazy {
+        CoroutineScope(dispatchersHolder.defaultDispatcher)
+    }
+
     private val clipboardManager get() = getSystemService<ClipboardManager>()
     private val mediaProjectionManager get() = getSystemService<MediaProjectionManager>()
 
     private val screenshotChannel = Channel<Screenshot>(Channel.BUFFERED)
     private var screenshotJob by smartJob()
+
+    private var timeoutJob by smartJob()
 
     override fun onStartCommand(
         intent: Intent?,
@@ -104,9 +109,9 @@ class ScreenshotService : Service() {
     ): Int = runCatching {
         startListening()
 
-        val resultCode = intent?.getIntExtra(ResultCode, RESULT_CANCELED) ?: RESULT_CANCELED
+        val resultCode = intent?.getIntExtra(RESULT_CODE_EXTRA, RESULT_CANCELED) ?: RESULT_CANCELED
 
-        val data = intent?.parcelable<Intent>(DataExtra)
+        val data = intent?.parcelable<Intent>(DATA_EXTRA)
         val channelId = 1
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -115,7 +120,7 @@ class ScreenshotService : Service() {
                     NotificationChannel(
                         channelId.toString(),
                         "screenshot",
-                        NotificationManager.IMPORTANCE_DEFAULT
+                        NotificationManager.IMPORTANCE_MIN
                     )
                 )
 
@@ -124,6 +129,7 @@ class ScreenshotService : Service() {
                     channelId,
                     Notification.Builder(applicationContext, channelId.toString())
                         .setSmallIcon(R.drawable.ic_launcher_foreground)
+                        .setContentTitle(getString(R.string.processing_screenshot))
                         .build(),
                     ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
                 )
@@ -132,6 +138,7 @@ class ScreenshotService : Service() {
                     channelId,
                     Notification.Builder(applicationContext, channelId.toString())
                         .setSmallIcon(R.drawable.ic_launcher_foreground)
+                        .setContentTitle(getString(R.string.processing_screenshot))
                         .build()
                 )
             }
@@ -156,13 +163,14 @@ class ScreenshotService : Service() {
 
     override fun onDestroy() {
         screenshotJob?.cancel()
+        timeoutJob?.cancel()
         super.onDestroy()
     }
 
     override fun onBind(intent: Intent): IBinder? = null
 
     private fun startListening() {
-        screenshotJob = CoroutineScope(dispatchersHolder.defaultDispatcher).launch {
+        screenshotJob = coroutineScope.launch {
             screenshotChannel
                 .receiveAsFlow()
                 .debounce(500.milliseconds)
@@ -187,14 +195,16 @@ class ScreenshotService : Service() {
                         )
                     )?.toUri()
 
-                    if (intent?.getTileScreenAction() != ScreenshotAction) {
-                        startActivity(AppActivityClass) {
-                            putTileScreenAction(intent?.getTileScreenAction())
-                            type = "image/png"
-                            putExtra(Intent.EXTRA_STREAM, uri)
-                            action = Intent.ACTION_SEND
-                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        }
+                    if (intent?.action != SCREENSHOT_ACTION) {
+                        startActivity(
+                            Intent(Intent.ACTION_SEND).apply {
+                                setPackage(applicationContext.packageName)
+                                type = "image/png"
+                                putScreenExtra(intent.getScreenExtra())
+                                putExtra(Intent.EXTRA_STREAM, uri)
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK + Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+                        )
                     } else {
                         fileController.save(
                             saveTarget = FileSaveTarget(
@@ -224,7 +234,22 @@ class ScreenshotService : Service() {
                             fileController.defaultSavingPath
                         )
                     }
+
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                    stopSelf()
                 }
+        }
+
+        timeoutJob = coroutineScope.launch {
+            delay(5.seconds)
+            if (screenshotChannel.isEmpty) {
+                postToast(
+                    textRes = R.string.screenshot_not_captured_try_again,
+                    isLong = true
+                )
+                stopForeground(STOP_FOREGROUND_REMOVE)
+                stopSelf()
+            }
         }
     }
 

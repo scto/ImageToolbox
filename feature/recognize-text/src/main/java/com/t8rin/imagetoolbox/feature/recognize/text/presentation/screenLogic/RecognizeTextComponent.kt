@@ -34,7 +34,7 @@ import com.smarttoolfactory.cropper.settings.CropDefaults
 import com.smarttoolfactory.cropper.settings.CropOutlineProperty
 import com.t8rin.imagetoolbox.core.data.utils.asDomain
 import com.t8rin.imagetoolbox.core.data.utils.toCoil
-import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
+import com.t8rin.imagetoolbox.core.domain.coroutines.DispatchersHolder
 import com.t8rin.imagetoolbox.core.domain.image.ImageGetter
 import com.t8rin.imagetoolbox.core.domain.image.ImageScaler
 import com.t8rin.imagetoolbox.core.domain.image.ImageTransformer
@@ -132,7 +132,10 @@ class RecognizeTextComponent @AssistedInject internal constructor(
 
     val onGoBack: () -> Unit = {
         if (type == null) onGoBack()
-        else _type.update { null }
+        else {
+            _recognitionData.update { null }
+            _type.update { null }
+        }
     }
 
     private val _recognitionData = mutableStateOf<RecognitionData?>(null)
@@ -237,7 +240,7 @@ class RecognizeTextComponent @AssistedInject internal constructor(
             delay(200L)
             if (!isRecognitionTypeSet) {
                 _recognitionType.update {
-                    RecognitionType.entries[settingsManager.getInitialOcrMode()]
+                    RecognitionType.entries[settingsManager.getSettingsState().initialOcrMode]
                 }
                 isRecognitionTypeSet = true
             }
@@ -261,9 +264,10 @@ class RecognizeTextComponent @AssistedInject internal constructor(
     init {
         loadLanguages()
         componentScope.launch {
-            val languageCodes = settingsManager.getInitialOCRLanguageCodes().map {
-                imageTextReader.getLanguageForCode(it)
-            }
+            val languageCodes = settingsManager
+                .getSettingsState()
+                .initialOcrCodes
+                .map(imageTextReader::getLanguageForCode)
             _selectedLanguages.update { languageCodes }
         }
     }
@@ -459,7 +463,7 @@ class RecognizeTextComponent @AssistedInject internal constructor(
             if (type !is Screen.RecognizeText.Type.Extraction) return@launch
             delay(400L)
             _textLoadingProgress.update { 0 }
-            type.uri?.readText()?.also { result ->
+            (previewBitmap ?: type.uri)?.readText()?.also { result ->
                 when (result) {
                     is TextRecognitionResult.Error -> {
                         onFailure(result.throwable)

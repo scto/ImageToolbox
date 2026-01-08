@@ -74,13 +74,11 @@ fun ImageNotPickedWidget(
     text: String = stringResource(R.string.pick_image),
     containerColor: Color = Color.Unspecified,
 ) {
-    val currentIcon = currentScreenTwoToneIcon() ?: Icons.TwoTone.Image
-
     SourceNotPickedWidget(
         onClick = onPickImage,
         modifier = modifier,
         text = text,
-        icon = currentIcon,
+        icon = currentScreenTwoToneIcon(Icons.TwoTone.Image),
         containerColor = containerColor
     )
 }
@@ -92,23 +90,22 @@ fun FileNotPickedWidget(
     text: String = stringResource(R.string.pick_file_to_start),
     containerColor: Color = Color.Unspecified,
 ) {
-    val currentIcon = currentScreenTwoToneIcon() ?: Icons.TwoTone.FileOpen
-
     SourceNotPickedWidget(
         onClick = onPickFile,
         modifier = modifier,
         text = text,
-        icon = currentIcon,
+        icon = currentScreenTwoToneIcon(Icons.TwoTone.FileOpen),
         containerColor = containerColor
     )
 }
 
 @Composable
 fun SourceNotPickedWidget(
-    modifier: Modifier,
-    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)?,
     text: String,
     icon: ImageVector,
+    maxLines: Int = 3,
     containerColor: Color = Color.Unspecified,
 ) {
     BoxWithConstraints(
@@ -119,6 +116,7 @@ fun SourceNotPickedWidget(
         Column(
             modifier = modifier
                 .animateContentSizeNoClip()
+                .padding(0.5.dp)
                 .container(color = containerColor),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
@@ -135,7 +133,7 @@ fun SourceNotPickedWidget(
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 key = { it.length },
-                maxLines = 2
+                maxLines = maxLines
             )
         }
     }
@@ -144,7 +142,7 @@ fun SourceNotPickedWidget(
 @Composable
 fun ClickableActionIcon(
     icon: ImageVector,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)?,
     modifier: Modifier = Modifier
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -187,11 +185,15 @@ fun ClickableActionIcon(
                 resultPadding = 0.dp,
                 color = MaterialTheme.colorScheme.mixedContainer.copy(0.8f)
             )
-            .hapticsClickable(
-                onClick = onClick,
-                interactionSource = interactionSource,
-                indication = LocalIndication.current,
-                enableHaptics = false
+            .then(
+                if (onClick != null) {
+                    Modifier.hapticsClickable(
+                        onClick = onClick,
+                        interactionSource = interactionSource,
+                        indication = LocalIndication.current,
+                        enableHaptics = false
+                    )
+                } else Modifier
             )
             .scale(1f / scale)
     ) {

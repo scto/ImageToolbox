@@ -21,8 +21,10 @@ import android.graphics.Bitmap
 import com.t8rin.imagetoolbox.core.domain.model.IntegerSize
 import com.t8rin.imagetoolbox.core.domain.transformation.Transformation
 import com.t8rin.imagetoolbox.core.filters.domain.model.Filter
-import com.t8rin.imagetoolbox.feature.filters.data.utils.glitch.Glitcher
+import com.t8rin.imagetoolbox.core.ksp.annotations.FilterInject
+import com.t8rin.imagetoolbox.feature.filters.data.utils.glitch.GlitchTool
 
+@FilterInject
 internal class AnaglyphFilter(
     override val value: Float = 20f
 ) : Transformation<Bitmap>, Filter.Anaglyph {
@@ -33,6 +35,6 @@ internal class AnaglyphFilter(
     override suspend fun transform(
         input: Bitmap,
         size: IntegerSize
-    ): Bitmap = Glitcher.anaglyph(input, value.toInt())
+    ): Bitmap = GlitchTool.anaglyph(input, value.toInt())
 
 }

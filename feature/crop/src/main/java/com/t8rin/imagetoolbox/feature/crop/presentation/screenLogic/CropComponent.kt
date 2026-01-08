@@ -29,7 +29,7 @@ import com.smarttoolfactory.cropper.model.OutlineType
 import com.smarttoolfactory.cropper.model.RectCropShape
 import com.smarttoolfactory.cropper.settings.CropDefaults
 import com.smarttoolfactory.cropper.settings.CropOutlineProperty
-import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
+import com.t8rin.imagetoolbox.core.domain.coroutines.DispatchersHolder
 import com.t8rin.imagetoolbox.core.domain.image.ImageCompressor
 import com.t8rin.imagetoolbox.core.domain.image.ImageGetter
 import com.t8rin.imagetoolbox.core.domain.image.ImageScaler
@@ -146,6 +146,7 @@ class CropComponent @AssistedInject internal constructor(
                 val byteArray = imageCompressor.compressAndTransform(
                     image = localBitmap,
                     imageInfo = ImageInfo(
+                        originalUri = _uri.value.toString(),
                         imageFormat = imageFormat,
                         width = localBitmap.width,
                         height = localBitmap.height
@@ -160,6 +161,7 @@ class CropComponent @AssistedInject internal constructor(
                     fileController.save(
                         saveTarget = ImageSaveTarget(
                             imageInfo = ImageInfo(
+                                originalUri = _uri.value.toString(),
                                 imageFormat = imageFormat,
                                 width = localBitmap.width,
                                 height = localBitmap.height
@@ -250,6 +252,7 @@ class CropComponent @AssistedInject internal constructor(
             bitmap?.let { localBitmap ->
                 shareProvider.shareImage(
                     imageInfo = ImageInfo(
+                        originalUri = _uri.value.toString(),
                         imageFormat = imageFormat,
                         width = localBitmap.width,
                         height = localBitmap.height
@@ -279,6 +282,7 @@ class CropComponent @AssistedInject internal constructor(
                 shareProvider.cacheImage(
                     image = image,
                     imageInfo = ImageInfo(
+                        originalUri = _uri.value.toString(),
                         imageFormat = imageFormat,
                         width = image.width,
                         height = image.height

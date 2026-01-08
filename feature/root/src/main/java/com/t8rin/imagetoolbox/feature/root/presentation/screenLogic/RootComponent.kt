@@ -36,22 +36,21 @@ import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.t8rin.imagetoolbox.core.domain.APP_RELEASES
-import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
+import com.t8rin.imagetoolbox.core.domain.coroutines.DispatchersHolder
 import com.t8rin.imagetoolbox.core.domain.model.ExtraDataType
 import com.t8rin.imagetoolbox.core.domain.model.ImageModel
 import com.t8rin.imagetoolbox.core.domain.model.PerformanceClass
 import com.t8rin.imagetoolbox.core.domain.remote.AnalyticsManager
 import com.t8rin.imagetoolbox.core.domain.resource.ResourceManager
 import com.t8rin.imagetoolbox.core.domain.saving.FileController
-import com.t8rin.imagetoolbox.core.filters.domain.FavoriteFiltersInteractor
+import com.t8rin.imagetoolbox.core.domain.utils.smartJob
+import com.t8rin.imagetoolbox.core.filters.domain.FilterParamsInteractor
 import com.t8rin.imagetoolbox.core.resources.BuildConfig
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.settings.domain.SettingsManager
-import com.t8rin.imagetoolbox.core.settings.domain.SimpleSettingsInteractor
 import com.t8rin.imagetoolbox.core.settings.domain.model.SettingsState
-import com.t8rin.imagetoolbox.core.settings.domain.toSimpleSettingsInteractor
 import com.t8rin.imagetoolbox.core.ui.utils.BaseComponent
-import com.t8rin.imagetoolbox.core.ui.utils.helper.parseImageFromIntent
+import com.t8rin.imagetoolbox.core.ui.utils.helper.handleDeeplinks
 import com.t8rin.imagetoolbox.core.ui.utils.helper.toImageModel
 import com.t8rin.imagetoolbox.core.ui.utils.navigation.Screen
 import com.t8rin.imagetoolbox.core.ui.utils.state.update
@@ -65,6 +64,7 @@ import com.t8rin.logger.makeLog
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -73,21 +73,25 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.w3c.dom.Element
 import java.net.URL
 import javax.xml.parsers.DocumentBuilderFactory
+import kotlin.time.Duration.Companion.seconds
 
 class RootComponent @AssistedInject internal constructor(
     @Assisted componentContext: ComponentContext,
     private val settingsManager: SettingsManager,
     private val childProvider: ChildProvider,
     private val analyticsManager: AnalyticsManager,
-    favoriteFiltersInteractor: FavoriteFiltersInteractor,
+    filterParamsInteractor: FilterParamsInteractor,
     fileController: FileController,
     dispatchersHolder: DispatchersHolder,
     settingsComponentFactory: SettingsComponent.Factory,
     resourceManager: ResourceManager,
 ) : BaseComponent(dispatchersHolder, componentContext), ResourceManager by resourceManager {
+
+    private var updatesJob: Job? by smartJob()
 
     private val _backupRestoredEvents: Channel<Boolean> = Channel(Channel.BUFFERED)
     val backupRestoredEvents: Flow<Boolean> = _backupRestoredEvents.receiveAsFlow()
@@ -108,9 +112,6 @@ class RootComponent @AssistedInject internal constructor(
         },
         initialSearchQuery = ""
     )
-
-    val simpleSettingsInteractor: SimpleSettingsInteractor =
-        settingsManager.toSimpleSettingsInteractor()
 
     private val _settingsState = mutableStateOf(SettingsState.Default)
     val settingsState: SettingsState by _settingsState
@@ -179,16 +180,12 @@ class RootComponent @AssistedInject internal constructor(
             if (settingsState.clearCacheOnLaunch) fileController.clearCache()
         }
         settingsManager
-            .getSettingsStateFlow()
-            .onEach {
-                _settingsState.value = it
-            }
-            .launchIn(componentScope)
-
-        settingsManager
-            .getNeedToShowTelegramGroupDialog()
-            .onEach { value ->
-                _showTelegramGroupDialog.update { value }
+            .settingsState
+            .onEach { state ->
+                _showTelegramGroupDialog.update {
+                    state.appOpenCount % 6 == 0 && state.appOpenCount != 0 && !state.isTelegramGroupOpened
+                }
+                _settingsState.value = state
             }
             .launchIn(componentScope)
 
@@ -202,12 +199,12 @@ class RootComponent @AssistedInject internal constructor(
             }
         }
 
-        favoriteFiltersInteractor
+        filterParamsInteractor
             .getFilterPreviewModel().onEach { data ->
                 _filterPreviewModel.update { data }
             }.launchIn(componentScope)
 
-        favoriteFiltersInteractor
+        filterParamsInteractor
             .getCanSetDynamicFilterPreview().onEach { value ->
                 _canSetDynamicFilterPreview.update { value }
             }.launchIn(componentScope)
@@ -244,8 +241,11 @@ class RootComponent @AssistedInject internal constructor(
             }
         } else {
             if (!_isUpdateCancelled.value || isNewRequest) {
-                componentScope.launch {
-                    checkForUpdates(showDialog, onNoUpdates)
+                updatesJob = componentScope.launch {
+                    checkForUpdates(
+                        showDialog = showDialog,
+                        onNoUpdates = onNoUpdates
+                    )
                 }
             }
         }
@@ -255,30 +255,35 @@ class RootComponent @AssistedInject internal constructor(
         showDialog: Boolean,
         onNoUpdates: () -> Unit
     ) = withContext(defaultDispatcher) {
+        "start updates check".makeLog("checkForUpdates")
         runCatching {
-            val nodes =
-                DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
-                    URL("$APP_RELEASES.atom").openConnection().getInputStream()
-                )?.getElementsByTagName("feed")
+            withTimeoutOrNull(30.seconds) {
+                val nodes =
+                    DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+                        URL("$APP_RELEASES.atom").openConnection().getInputStream()
+                    )?.getElementsByTagName("feed")
 
-            if (nodes != null) {
-                for (i in 0 until nodes.length) {
-                    val element = nodes.item(i) as Element
-                    val title = element.getElementsByTagName("entry")
-                    val line = (title.item(0) as Element)
-                    _tag.value = (line.getElementsByTagName("title")
-                        .item(0) as Element).textContent
-                    _changelog.value = (line.getElementsByTagName("content")
-                        .item(0) as Element).textContent
+                if (nodes != null) {
+                    for (i in 0 until nodes.length) {
+                        val element = nodes.item(i) as Element
+                        val title = element.getElementsByTagName("entry")
+                        val line = (title.item(0) as Element)
+                        _tag.value = (line.getElementsByTagName("title")
+                            .item(0) as Element).textContent
+                        _changelog.value = (line.getElementsByTagName("content")
+                            .item(0) as Element).textContent
+                    }
                 }
             }
 
-            if (
-                isNeedUpdate(
-                    currentName = BuildConfig.VERSION_NAME,
-                    updateName = tag
-                )
-            ) {
+            val isNeedUpdate = isNeedUpdate(
+                currentName = BuildConfig.VERSION_NAME,
+                updateName = tag
+            )
+
+            "isNeedUpdate = $isNeedUpdate".makeLog("checkForUpdates")
+
+            if (isNeedUpdate) {
                 _isUpdateAvailable.value = true
                 if (showDialog) {
                     _showUpdateDialog.value = true
@@ -286,6 +291,9 @@ class RootComponent @AssistedInject internal constructor(
             } else {
                 onNoUpdates()
             }
+        }.onFailure {
+            it.makeLog("checkForUpdates")
+            onNoUpdates()
         }
     }
 
@@ -479,9 +487,8 @@ class RootComponent @AssistedInject internal constructor(
         backEventsObservers.remove(observer)
     }
 
-    fun parseImage(intent: Intent?) {
-        parseImageFromIntent(
-            intent = intent,
+    fun handleDeeplinks(intent: Intent?) {
+        intent.handleDeeplinks(
             onStart = ::hideSelectDialog,
             onHasExtraDataType = ::updateExtraDataType,
             onColdStart = ::cancelShowingExitDialog,

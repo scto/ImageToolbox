@@ -34,7 +34,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BorderColor
-import androidx.compose.material.icons.rounded.FormatColorFill
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -50,7 +49,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.smarttoolfactory.colordetector.util.ColorUtil.roundToTwoDigits
 import com.t8rin.imagetoolbox.core.domain.model.Outline
@@ -58,6 +56,7 @@ import com.t8rin.imagetoolbox.core.domain.utils.ListUtils.toggle
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.resources.emoji.Emoji
 import com.t8rin.imagetoolbox.core.resources.icons.AddPhotoAlt
+import com.t8rin.imagetoolbox.core.resources.icons.BackgroundColor
 import com.t8rin.imagetoolbox.core.resources.icons.MiniEdit
 import com.t8rin.imagetoolbox.core.resources.icons.MiniEditLarge
 import com.t8rin.imagetoolbox.core.resources.shapes.MaterialStarShape
@@ -113,7 +112,7 @@ internal fun EditLayerSheet(
                                 onClick = {
                                     onUpdateLayer(
                                         layer.copy(
-                                            type.copy(
+                                            type = type.copy(
                                                 decorations = type.decorations.toggle(decoration)
                                             )
                                         )
@@ -156,7 +155,13 @@ internal fun EditLayerSheet(
                     ImageSelector(
                         value = type.imageData,
                         onValueChange = {
-                            onUpdateLayer(layer.copy(type.copy(it)))
+                            onUpdateLayer(
+                                layer.copy(
+                                    type = type.copy(
+                                        imageData = it
+                                    )
+                                )
+                            )
                         },
                         subtitle = null,
                         color = Color.Unspecified
@@ -167,7 +172,13 @@ internal fun EditLayerSheet(
                     RoundedTextField(
                         value = type.text,
                         onValueChange = {
-                            onUpdateLayer(layer.copy(type.copy(text = it)))
+                            onUpdateLayer(
+                                layer.copy(
+                                    type = type.copy(
+                                        text = it
+                                    )
+                                )
+                            )
                         },
                         hint = stringResource(R.string.text),
                         colors = RoundedTextFieldColors(
@@ -188,14 +199,14 @@ internal fun EditLayerSheet(
                         onValueChange = {
                             onUpdateLayer(
                                 layer.copy(
-                                    type.copy(
+                                    type = type.copy(
                                         font = it.type
                                     )
                                 )
                             )
                         },
                         shape = ShapeDefaults.top,
-                        color = MaterialTheme.colorScheme.surface
+                        containerColor = MaterialTheme.colorScheme.surface
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     EnhancedSliderItem(
@@ -207,13 +218,13 @@ internal fun EditLayerSheet(
                         onValueChange = {
                             onUpdateLayer(
                                 layer.copy(
-                                    type.copy(size = it)
+                                    type = type.copy(size = it)
                                 )
                             )
                         },
                         valueRange = 0.01f..1f,
                         shape = ShapeDefaults.center,
-                        color = MaterialTheme.colorScheme.surface
+                        containerColor = MaterialTheme.colorScheme.surface
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     ColorRowSelector(
@@ -221,15 +232,14 @@ internal fun EditLayerSheet(
                         onValueChange = {
                             onUpdateLayer(
                                 layer.copy(
-                                    type.copy(
+                                    type = type.copy(
                                         backgroundColor = it.toArgb()
                                     )
                                 )
                             )
                         },
                         title = stringResource(R.string.background_color),
-                        icon = Icons.Rounded.FormatColorFill,
-                        titleFontWeight = FontWeight.Medium,
+                        icon = Icons.Outlined.BackgroundColor,
                         modifier = Modifier.container(
                             shape = ShapeDefaults.center,
                             color = MaterialTheme.colorScheme.surface
@@ -241,14 +251,13 @@ internal fun EditLayerSheet(
                         onValueChange = {
                             onUpdateLayer(
                                 layer.copy(
-                                    type.copy(
+                                    type = type.copy(
                                         color = it.toArgb()
                                     )
                                 )
                             )
                         },
                         title = stringResource(R.string.text_color),
-                        titleFontWeight = FontWeight.Medium,
                         modifier = Modifier.container(
                             shape = ShapeDefaults.center,
                             color = MaterialTheme.colorScheme.surface
@@ -261,7 +270,7 @@ internal fun EditLayerSheet(
                     LaunchedEffect(haveOutline) {
                         onUpdateLayer(
                             layer.copy(
-                                type.copy(
+                                type = type.copy(
                                     outline = if (haveOutline) {
                                         type.outline ?: Outline(
                                             color = type.color.toColor()
@@ -279,7 +288,7 @@ internal fun EditLayerSheet(
                         title = stringResource(R.string.add_outline),
                         subtitle = stringResource(R.string.add_outline_sub),
                         shape = ShapeDefaults.bottom,
-                        color = MaterialTheme.colorScheme.surface,
+                        containerColor = MaterialTheme.colorScheme.surface,
                         applyHorizontalPadding = false,
                         resultModifier = Modifier.padding(16.dp),
                         checked = haveOutline,
@@ -297,7 +306,7 @@ internal fun EditLayerSheet(
                                         onValueChange = {
                                             onUpdateLayer(
                                                 layer.copy(
-                                                    type.copy(
+                                                    type = type.copy(
                                                         outline = type.outline?.copy(
                                                             color = it.toArgb()
                                                         )
@@ -306,7 +315,6 @@ internal fun EditLayerSheet(
                                             )
                                         },
                                         title = stringResource(R.string.outline_color),
-                                        titleFontWeight = FontWeight.Medium,
                                         modifier = Modifier.container(
                                             shape = ShapeDefaults.top,
                                             color = MaterialTheme.colorScheme.surfaceContainerLow
@@ -322,7 +330,7 @@ internal fun EditLayerSheet(
                                         onValueChange = {
                                             onUpdateLayer(
                                                 layer.copy(
-                                                    type.copy(
+                                                    type = type.copy(
                                                         outline = type.outline?.copy(
                                                             width = it
                                                         )
@@ -332,7 +340,7 @@ internal fun EditLayerSheet(
                                         },
                                         valueRange = 0.01f..10f,
                                         shape = ShapeDefaults.bottom,
-                                        color = MaterialTheme.colorScheme.surfaceContainerLow
+                                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                                     )
                                 }
                             }
@@ -392,7 +400,13 @@ internal fun EditLayerSheet(
                         selectedEmojiIndex = null,
                         allEmojis = allEmojis,
                         onEmojiPicked = {
-                            onUpdateLayer(layer.copy(type.copy(allEmojis[it])))
+                            onUpdateLayer(
+                                layer.copy(
+                                    type = type.copy(
+                                        imageData = allEmojis[it]
+                                    )
+                                )
+                            )
                             showEmojiPicker = false
                         },
                         visible = showEmojiPicker,

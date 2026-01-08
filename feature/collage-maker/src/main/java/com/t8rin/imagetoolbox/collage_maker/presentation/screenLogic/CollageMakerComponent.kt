@@ -27,7 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.core.net.toUri
 import com.arkivanov.decompose.ComponentContext
 import com.t8rin.collages.CollageType
-import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
+import com.t8rin.imagetoolbox.core.domain.coroutines.DispatchersHolder
 import com.t8rin.imagetoolbox.core.domain.image.ImageCompressor
 import com.t8rin.imagetoolbox.core.domain.image.ImageShareProvider
 import com.t8rin.imagetoolbox.core.domain.image.model.ImageFormat
@@ -91,6 +91,12 @@ class CollageMakerComponent @AssistedInject internal constructor(
     private val _uris = mutableStateOf<List<Uri>?>(null)
     val uris by _uris
 
+    private val _disableRotation = mutableStateOf(true)
+    val disableRotation: Boolean by _disableRotation
+
+    private val _enableSnapToBorders = mutableStateOf(true)
+    val enableSnapToBorders: Boolean by _enableSnapToBorders
+
     private val _imageFormat: MutableState<ImageFormat> = mutableStateOf(ImageFormat.Png.Lossless)
     val imageFormat: ImageFormat by _imageFormat
 
@@ -121,6 +127,36 @@ class CollageMakerComponent @AssistedInject internal constructor(
         }
     }
 
+    fun replaceImageAt(index: Int, uri: Uri) {
+        _uris.update { current ->
+            val list = current?.toMutableList() ?: return@update current
+            if (index in list.indices) {
+                list[index] = uri
+                list
+            } else current
+        }
+        registerChanges()
+    }
+
+    fun addImage(uri: Uri) {
+        _uris.update { current ->
+            val list = current ?: emptyList()
+            if (list.size >= 10) list else list + uri
+        }
+        registerChanges()
+    }
+
+    fun removeImageAt(index: Int) {
+        _uris.update { current ->
+            val list = current?.toMutableList() ?: return@update current
+            if (index in list.indices) {
+                list.removeAt(index)
+                list
+            } else current
+        }
+        registerChanges()
+    }
+
     fun setQuality(quality: Quality) {
         _quality.update { quality }
         registerChanges()
@@ -133,6 +169,16 @@ class CollageMakerComponent @AssistedInject internal constructor(
 
     fun setOutputScaleRatio(ratio: Float) {
         _outputScaleRatio.update { ratio }
+        registerChanges()
+    }
+
+    fun setDisableRotation(value: Boolean) {
+        _disableRotation.update { value }
+        registerChanges()
+    }
+
+    fun setEnableSnapToBorders(value: Boolean) {
+        _enableSnapToBorders.update { value }
         registerChanges()
     }
 

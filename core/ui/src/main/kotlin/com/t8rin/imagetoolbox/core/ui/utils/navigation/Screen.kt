@@ -35,7 +35,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.resources.icons.Apng
 import com.t8rin.imagetoolbox.core.resources.icons.Exif
-import com.t8rin.imagetoolbox.core.resources.icons.ImageText
+import com.t8rin.imagetoolbox.core.resources.icons.ImageToText
 import com.t8rin.imagetoolbox.core.resources.icons.Jpg
 import com.t8rin.imagetoolbox.core.resources.icons.Jxl
 import com.t8rin.imagetoolbox.core.resources.icons.Webp
@@ -62,7 +62,8 @@ sealed class Screen(
     @Serializable
     data class LibraryDetails(
         val name: String,
-        val htmlDescription: String
+        val htmlDescription: String,
+        val link: String?
     ) : Screen(
         id = -5,
         title = 0,
@@ -246,12 +247,12 @@ sealed class Screen(
     )
 
     @Serializable
-    data class GeneratePalette(
+    data class PaletteTools(
         val uri: Uri? = null
     ) : Screen(
         id = 12,
-        title = R.string.generate_palette,
-        subtitle = R.string.palette_sub
+        title = R.string.palette_tools,
+        subtitle = R.string.palette_tools_sub
     )
 
     @Serializable
@@ -354,7 +355,7 @@ sealed class Screen(
 
             val icon: ImageVector
                 get() = when (this) {
-                    is Extraction -> Icons.Outlined.ImageText
+                    is Extraction -> Icons.Outlined.ImageToText
                     is WriteToFile -> Icons.Outlined.FilePresent
                     is WriteToMetadata -> Icons.Outlined.Exif
                 }
@@ -797,7 +798,32 @@ sealed class Screen(
         subtitle = R.string.audio_cover_extractor_sub
     )
 
-    companion object : ScreenConstants by ScreenConstantsImpl
+    @Serializable
+    data object WallpapersExport : Screen(
+        id = 40,
+        title = R.string.wallpapers_export,
+        subtitle = R.string.wallpapers_export_sub
+    )
+
+    @Serializable
+    data class AsciiArt(
+        val uri: Uri? = null,
+    ) : Screen(
+        id = 41,
+        title = R.string.ascii_art,
+        subtitle = R.string.ascii_art_sub
+    )
+
+    @Serializable
+    data class AiTools(
+        val uris: List<Uri>? = null
+    ) : Screen(
+        id = 41,
+        title = R.string.ai_tools,
+        subtitle = R.string.ai_tools_sub
+    )
+
+    companion object : ScreenConstants by ScreenConstants
 }
 
 data class ScreenGroup(

@@ -26,8 +26,10 @@ import com.t8rin.imagetoolbox.core.domain.utils.NEAREST_ODD_ROUNDING
 import com.t8rin.imagetoolbox.core.domain.utils.roundTo
 import com.t8rin.imagetoolbox.core.filters.domain.model.Filter
 import com.t8rin.imagetoolbox.core.filters.domain.model.enums.BlurEdgeMode
+import com.t8rin.imagetoolbox.core.ksp.annotations.FilterInject
 import com.t8rin.imagetoolbox.feature.filters.data.utils.toEdgeMode
 
+@FilterInject
 internal class MotionBlurFilter(
     override val value: Triple<Int, Float, BlurEdgeMode> = Triple(25, 45f, BlurEdgeMode.Reflect101),
 ) : Transformation<Bitmap>, Filter.MotionBlur {

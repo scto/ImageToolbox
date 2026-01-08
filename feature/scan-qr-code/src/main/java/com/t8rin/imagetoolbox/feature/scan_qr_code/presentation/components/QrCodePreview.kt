@@ -34,17 +34,24 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
+import coil3.request.ImageRequest
+import coil3.size.Precision
 import com.t8rin.imagetoolbox.core.resources.R
-import com.t8rin.imagetoolbox.core.ui.theme.Typography
+import com.t8rin.imagetoolbox.core.ui.theme.ProvideTypography
 import com.t8rin.imagetoolbox.core.ui.theme.takeColorFromScheme
 import com.t8rin.imagetoolbox.core.ui.theme.takeIf
+import com.t8rin.imagetoolbox.core.ui.utils.capturable.CaptureController
+import com.t8rin.imagetoolbox.core.ui.utils.capturable.capturable
 import com.t8rin.imagetoolbox.core.ui.utils.helper.rememberPrevious
 import com.t8rin.imagetoolbox.core.ui.utils.provider.rememberLocalEssentials
 import com.t8rin.imagetoolbox.core.ui.widget.image.ImageNotPickedWidget
@@ -52,8 +59,6 @@ import com.t8rin.imagetoolbox.core.ui.widget.image.Picture
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.other.BoxAnimatedVisibility
 import com.t8rin.imagetoolbox.core.ui.widget.other.QrCode
-import dev.shreyaspatil.capturable.capturable
-import dev.shreyaspatil.capturable.controller.CaptureController
 
 @Composable
 internal fun QrCodePreview(
@@ -73,7 +78,7 @@ internal fun QrCodePreview(
             BoxWithConstraints(
                 modifier = Modifier
                     .then(
-                        if ((params.imageUri != null || params.description.isNotEmpty()) && params.content.isNotEmpty()) {
+                        if ((params.imageUri != null || params.description.isNotEmpty()) && params.content.raw.isNotEmpty()) {
                             Modifier
                                 .background(
                                     color = takeColorFromScheme {
@@ -87,7 +92,7 @@ internal fun QrCodePreview(
                         } else Modifier
                     )
             ) {
-                val targetSize = min(min(this.maxWidth, this.maxHeight), 300.dp)
+                val targetSize = min(min(this.maxWidth, this.maxHeight), 400.dp)
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -95,7 +100,7 @@ internal fun QrCodePreview(
                     val previous = rememberPrevious(params)
 
                     AnimatedContent(
-                        targetState = params.content.isEmpty(),
+                        targetState = params.content.raw.isEmpty(),
                         modifier = Modifier
                             .padding(
                                 top = if (params.imageUri != null) 36.dp else 0.dp,
@@ -120,11 +125,11 @@ internal fun QrCodePreview(
                             )
                         } else {
                             QrCode(
-                                content = params.content,
+                                content = params.content.raw,
                                 modifier = Modifier.width(targetSize),
                                 heightRatio = params.heightRatio,
                                 type = params.type,
-                                enforceBlackAndWhite = params.enforceBlackAndWhite,
+                                qrParams = params.qrParams,
                                 cornerRadius = animateIntAsState(params.cornersSize).value.dp,
                                 onSuccess = {
                                     essentials.dismissToasts()
@@ -137,10 +142,8 @@ internal fun QrCodePreview(
                         }
                     }
 
-                    BoxAnimatedVisibility(visible = params.description.isNotEmpty() && params.content.isNotEmpty()) {
-                        MaterialTheme(
-                            typography = Typography(params.descriptionFont)
-                        ) {
+                    BoxAnimatedVisibility(visible = params.description.isNotEmpty() && params.content.raw.isNotEmpty()) {
+                        ProvideTypography(params.descriptionFont) {
                             Text(
                                 text = params.description,
                                 style = MaterialTheme.typography.headlineSmall,
@@ -151,14 +154,23 @@ internal fun QrCodePreview(
                     }
                 }
 
-                if (params.imageUri != null && params.content.isNotEmpty()) {
+                if (params.imageUri != null && params.content.raw.isNotEmpty()) {
+                    val context = LocalContext.current
+
                     Picture(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
                             .offset(y = (-48).dp)
                             .size(64.dp),
-                        model = params.imageUri,
+                        model = remember(params.imageUri) {
+                            ImageRequest.Builder(context)
+                                .data(params.imageUri)
+                                .size(1000, 1000)
+                                .precision(Precision.INEXACT)
+                                .build()
+                        },
                         contentScale = ContentScale.Crop,
+                        filterQuality = FilterQuality.High,
                         contentDescription = null,
                         shape = MaterialTheme.shapes.medium
                     )

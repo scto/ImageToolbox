@@ -28,10 +28,10 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -50,21 +50,19 @@ import com.t8rin.imagetoolbox.core.ui.theme.BitcoinColor
 import com.t8rin.imagetoolbox.core.ui.theme.TONColor
 import com.t8rin.imagetoolbox.core.ui.theme.TONSpaceColor
 import com.t8rin.imagetoolbox.core.ui.theme.USDTColor
+import com.t8rin.imagetoolbox.core.ui.theme.blend
 import com.t8rin.imagetoolbox.core.ui.theme.inverse
-import com.t8rin.imagetoolbox.core.ui.utils.helper.ContextUtils.copyToClipboard
+import com.t8rin.imagetoolbox.core.ui.utils.provider.rememberLocalEssentials
+import com.t8rin.imagetoolbox.core.ui.widget.icon_shape.LocalIconShapeContainerColor
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
-import com.t8rin.imagetoolbox.core.ui.widget.other.LocalToastHostState
 import com.t8rin.imagetoolbox.core.ui.widget.preferences.PreferenceItem
-import kotlinx.coroutines.launch
 
 @Composable
 fun DonateContainerContent(
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-    val toastHostState = LocalToastHostState.current
-    val scope = rememberCoroutineScope()
+    val essentials = rememberLocalEssentials()
 
     val darkMode = !LocalSettingsState.current.isNightMode
 
@@ -87,105 +85,101 @@ fun DonateContainerContent(
                 color = LocalContentColor.current.copy(alpha = 0.5f)
             )
         }
-        PreferenceItem(
-            color = TONSpaceColor,
-            overrideIconShapeContentColor = true,
-            contentColor = TONSpaceColor.inverse(
-                fraction = { 1f },
-                darkMode = true
-            ),
-            shape = ShapeDefaults.top,
-            onClick = {
-                context.apply {
-                    copyToClipboard(TONSpaceWallet)
-                    scope.launch {
-                        toastHostState.showToast(
-                            icon = Icons.Rounded.ContentCopy,
-                            message = getString(R.string.copied),
-                        )
-                    }
-                }
-            },
-            endIcon = Icons.Rounded.ContentCopy,
-            startIcon = Icons.Rounded.Ton,
-            title = stringResource(R.string.ton_space),
-            subtitle = TONSpaceWallet
-        )
+        CompositionLocalProvider(
+            LocalIconShapeContainerColor provides TONSpaceColor.blend(
+                color = Color.White,
+                fraction = 0.1f
+            )
+        ) {
+            PreferenceItem(
+                containerColor = TONSpaceColor,
+                overrideIconShapeContentColor = true,
+                contentColor = TONSpaceColor.inverse(
+                    fraction = { 1f },
+                    darkMode = true
+                ),
+                shape = ShapeDefaults.top,
+                onClick = {
+                    essentials.copyToClipboard(TONSpaceWallet)
+                },
+                endIcon = Icons.Rounded.ContentCopy,
+                startIcon = Icons.Rounded.Ton,
+                title = stringResource(R.string.ton_space),
+                subtitle = TONSpaceWallet
+            )
+        }
         Spacer(Modifier.height(4.dp))
-        PreferenceItem(
-            color = TONColor,
-            overrideIconShapeContentColor = true,
-            contentColor = TONColor.inverse(
-                fraction = { 1f },
-                darkMode = darkMode
-            ),
-            shape = ShapeDefaults.center,
-            onClick = {
-                context.apply {
-                    copyToClipboard(TONWallet)
-                    scope.launch {
-                        toastHostState.showToast(
-                            icon = Icons.Rounded.ContentCopy,
-                            message = getString(R.string.copied),
-                        )
-                    }
-                }
-            },
-            endIcon = Icons.Rounded.ContentCopy,
-            startIcon = Icons.Rounded.Ton,
-            title = stringResource(R.string.ton),
-            subtitle = TONWallet
-        )
+        CompositionLocalProvider(
+            LocalIconShapeContainerColor provides TONColor.blend(
+                color = Color.White,
+                fraction = 0.2f
+            )
+        ) {
+            PreferenceItem(
+                containerColor = TONColor,
+                overrideIconShapeContentColor = true,
+                contentColor = TONColor.inverse(
+                    fraction = { 1f },
+                    darkMode = darkMode
+                ),
+                shape = ShapeDefaults.center,
+                onClick = {
+                    essentials.copyToClipboard(TONWallet)
+                },
+                endIcon = Icons.Rounded.ContentCopy,
+                startIcon = Icons.Rounded.Ton,
+                title = stringResource(R.string.ton),
+                subtitle = TONWallet
+            )
+        }
         Spacer(Modifier.height(4.dp))
-        PreferenceItem(
-            color = BitcoinColor,
-            overrideIconShapeContentColor = true,
-            contentColor = BitcoinColor.inverse(
-                fraction = { 1f },
-                darkMode = darkMode
-            ),
-            shape = ShapeDefaults.center,
-            onClick = {
-                context.apply {
-                    copyToClipboard(BitcoinWallet)
-                    scope.launch {
-                        toastHostState.showToast(
-                            icon = Icons.Rounded.ContentCopy,
-                            message = getString(R.string.copied),
-                        )
-                    }
-                }
-            },
-            endIcon = Icons.Rounded.ContentCopy,
-            title = stringResource(R.string.bitcoin),
-            startIcon = Icons.Filled.Bitcoin,
-            subtitle = BitcoinWallet
-        )
+        CompositionLocalProvider(
+            LocalIconShapeContainerColor provides BitcoinColor.blend(
+                color = Color.White,
+                fraction = 0.2f
+            )
+        ) {
+            PreferenceItem(
+                containerColor = BitcoinColor,
+                overrideIconShapeContentColor = true,
+                contentColor = BitcoinColor.inverse(
+                    fraction = { 1f },
+                    darkMode = darkMode
+                ),
+                shape = ShapeDefaults.center,
+                onClick = {
+                    essentials.copyToClipboard(BitcoinWallet)
+                },
+                endIcon = Icons.Rounded.ContentCopy,
+                title = stringResource(R.string.bitcoin),
+                startIcon = Icons.Filled.Bitcoin,
+                subtitle = BitcoinWallet
+            )
+        }
         Spacer(Modifier.height(4.dp))
-        PreferenceItem(
-            color = USDTColor,
-            overrideIconShapeContentColor = true,
-            contentColor = USDTColor.inverse(
-                fraction = { 1f },
-                darkMode = darkMode
-            ),
-            shape = ShapeDefaults.bottom,
-            onClick = {
-                context.apply {
-                    copyToClipboard(USDTWallet)
-                    scope.launch {
-                        toastHostState.showToast(
-                            icon = Icons.Rounded.ContentCopy,
-                            message = getString(R.string.copied),
-                        )
-                    }
-                }
-            },
-            endIcon = Icons.Rounded.ContentCopy,
-            title = stringResource(R.string.usdt),
-            startIcon = Icons.Filled.USDT,
-            subtitle = USDTWallet
-        )
+        CompositionLocalProvider(
+            LocalIconShapeContainerColor provides USDTColor.blend(
+                color = Color.White,
+                fraction = 0.2f
+            )
+        ) {
+            PreferenceItem(
+                containerColor = USDTColor,
+                overrideIconShapeContentColor = true,
+                contentColor = USDTColor.inverse(
+                    fraction = { 1f },
+                    darkMode = darkMode
+                ),
+                shape = ShapeDefaults.bottom,
+                onClick = {
+                    essentials.copyToClipboard(BitcoinWallet)
+                },
+                endIcon = Icons.Rounded.ContentCopy,
+                title = stringResource(R.string.usdt),
+                startIcon = Icons.Filled.USDT,
+                subtitle = USDTWallet
+            )
+        }
         Spacer(Modifier.height(16.dp))
     }
 }

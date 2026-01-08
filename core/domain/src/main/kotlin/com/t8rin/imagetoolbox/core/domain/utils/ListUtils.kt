@@ -54,6 +54,16 @@ object ListUtils {
         else this + item
     }
 
+    inline fun <T> Iterable<T>.replaceAt(index: Int, transform: (T) -> T): List<T> =
+        toMutableList().apply {
+            this[index] = transform(this[index])
+        }
+
+    fun <T> Set<T>.toggle(item: T): Set<T> = run {
+        if (item in this) this - item
+        else this + item
+    }
+
     inline fun <reified R : Any> Iterable<Any?>.firstOfType(): R? = firstOrNull { it is R } as? R
 
     operator fun <E> List<E>.component6(): E = get(5)

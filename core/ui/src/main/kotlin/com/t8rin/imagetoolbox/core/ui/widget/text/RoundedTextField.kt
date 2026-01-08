@@ -19,6 +19,7 @@ package com.t8rin.imagetoolbox.core.ui.widget.text
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.Animatable
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -27,7 +28,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
@@ -233,7 +233,8 @@ fun RoundedTextField(
     Column(
         modifier = modifier.animateContentSizeNoClip()
     ) {
-        val showError = isError && !loading && supportingText != null && supportingTextVisible
+        val showSupportingText =
+            !loading && (isError || (supportingText != null && supportingTextVisible))
         TextField(
             modifier = mergedModifier.clip(shape),
             value = value,
@@ -255,18 +256,24 @@ fun RoundedTextField(
             interactionSource = interactionSource,
             minLines = minLines,
         )
-        if (showError || maxSymbols != Int.MAX_VALUE) {
-            Spacer(Modifier.height(6.dp))
+        val showMaxSymbols = maxSymbols != Int.MAX_VALUE && value.isNotEmpty()
+
+        AnimatedVisibility(
+            visible = showSupportingText || showMaxSymbols,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(top = 6.dp)
                     .padding(horizontal = 8.dp)
             ) {
-                if (showError) {
+                if (showSupportingText) {
                     ProvideTextStyle(
                         LocalTextStyle.current.copy(
                             color = MaterialTheme.colorScheme.error,
-                            fontSize = 12.sp
+                            fontSize = 12.sp,
+                            lineHeight = 12.sp,
                         )
                     ) {
                         Row {
@@ -275,7 +282,7 @@ fun RoundedTextField(
                         }
                     }
                 }
-                if (maxSymbols != Int.MAX_VALUE) {
+                if (showMaxSymbols) {
                     Text(
                         text = "${value.length} / $maxSymbols",
                         modifier = Modifier.weight(1f),

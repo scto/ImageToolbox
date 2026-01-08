@@ -22,6 +22,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,7 +33,6 @@ import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.smarttoolfactory.colordetector.parser.rememberColorParser
 import com.t8rin.dynamic.theme.LocalDynamicThemeState
 import com.t8rin.imagetoolbox.color_tools.presentation.components.ColorHarmonies
 import com.t8rin.imagetoolbox.color_tools.presentation.components.ColorHistogram
@@ -89,8 +90,6 @@ fun ColorToolsContent(
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                val parser = rememberColorParser()
-
                 if (isPortrait) {
                     Spacer(modifier = Modifier.height(12.dp))
                 }
@@ -102,18 +101,17 @@ fun ColorToolsContent(
                         .container(
                             shape = ShapeDefaults.large
                         ),
+                    icon = Icons.Rounded.Palette,
                     title = stringResource(R.string.selected_color)
                 )
                 Spacer(modifier = Modifier.fillMaxWidth())
                 ColorInfo(
                     selectedColor = selectedColor,
-                    onColorChange = component::updateSelectedColor,
-                    parser = parser
+                    onColorChange = component::updateSelectedColor
                 )
                 ColorMixing(
                     selectedColor = selectedColor,
-                    appColorTuple = appColorTuple,
-                    parser = parser
+                    appColorTuple = appColorTuple
                 )
                 ColorHarmonies(
                     selectedColor = selectedColor

@@ -32,11 +32,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.FileOpen
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.rounded.ContentPaste
 import androidx.compose.material.icons.rounded.CopyAll
-import androidx.compose.material.icons.rounded.FileOpen
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
@@ -50,7 +50,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -63,6 +62,7 @@ import com.t8rin.imagetoolbox.core.domain.utils.trimToBase64
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.resources.icons.Base64
 import com.t8rin.imagetoolbox.core.ui.utils.content_pickers.rememberFileCreator
+import com.t8rin.imagetoolbox.core.ui.utils.provider.LocalComponentActivity
 import com.t8rin.imagetoolbox.core.ui.utils.provider.rememberLocalEssentials
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedIconButton
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
@@ -74,7 +74,7 @@ import com.t8rin.imagetoolbox.feature.base64_tools.presentation.screenLogic.Base
 @Composable
 internal fun Base64ToolsTiles(component: Base64ToolsComponent) {
     val essentials = rememberLocalEssentials()
-    val context = LocalContext.current
+    val context = LocalComponentActivity.current
 
     val pasteTile: @Composable RowScope.(shape: Shape) -> Unit = { shape ->
         Tile(
@@ -121,7 +121,7 @@ internal fun Base64ToolsTiles(component: Base64ToolsComponent) {
                 pickLauncher.launch(arrayOf("text/plain"))
             },
             shape = shape,
-            icon = Icons.Rounded.FileOpen,
+            icon = Icons.Outlined.FileOpen,
             textRes = R.string.import_base_64,
             isButton = component.uri != null
         )

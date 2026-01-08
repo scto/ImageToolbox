@@ -17,16 +17,20 @@
 
 package com.t8rin.imagetoolbox.feature.draw.presentation.components.utils
 
+import android.graphics.Matrix
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.isSpecified
 import androidx.compose.ui.geometry.takeOrElse
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathMeasure
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.asComposePath
 import com.t8rin.imagetoolbox.core.domain.model.IntegerSize
 import com.t8rin.imagetoolbox.core.domain.model.Pt
 import com.t8rin.imagetoolbox.core.ui.utils.helper.rotate
@@ -36,6 +40,8 @@ import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
+import kotlin.math.sqrt
+import kotlin.random.Random
 
 data class PathHelper(
     val drawDownPosition: Offset,
@@ -46,6 +52,7 @@ data class PathHelper(
     val drawPathMode: DrawPathMode,
     val isEraserOn: Boolean,
 ) {
+    private val strokeWidthSized = strokeWidth.toPx(canvasSize)
 
     private val drawArrowsScope by lazy {
         object : DrawArrowsScope {
@@ -58,16 +65,12 @@ data class PathHelper(
                 ) {
                     drawEndArrow(
                         drawPath = drawPath,
-                        strokeWidth = strokeWidth,
-                        canvasSize = canvasSize,
                         arrowSize = sizeScale,
                         arrowAngle = angle.toDouble()
                     )
 
                     drawStartArrow(
                         drawPath = drawPath,
-                        strokeWidth = strokeWidth,
-                        canvasSize = canvasSize,
                         arrowSize = sizeScale,
                         arrowAngle = angle.toDouble()
                     )
@@ -92,8 +95,6 @@ data class PathHelper(
                     is DrawPathMode.PointingArrow -> {
                         drawEndArrow(
                             drawPath = drawPath,
-                            strokeWidth = strokeWidth,
-                            canvasSize = canvasSize,
                             arrowSize = drawPathMode.sizeScale,
                             arrowAngle = drawPathMode.angle.toDouble()
                         )
@@ -102,8 +103,6 @@ data class PathHelper(
                     is DrawPathMode.LinePointingArrow -> {
                         drawEndArrow(
                             drawPath = drawPath,
-                            strokeWidth = strokeWidth,
-                            canvasSize = canvasSize,
                             arrowSize = drawPathMode.sizeScale,
                             arrowAngle = drawPathMode.angle.toDouble()
                         )
@@ -115,8 +114,6 @@ data class PathHelper(
 
             private fun drawEndArrow(
                 drawPath: Path,
-                strokeWidth: Pt,
-                canvasSize: IntegerSize,
                 arrowSize: Float = 3f,
                 arrowAngle: Double = 150.0
             ) {
@@ -124,7 +121,7 @@ data class PathHelper(
                     setPath(drawPath, false)
                 }.let {
                     Pair(
-                        it.getPosition(it.length - strokeWidth.toPx(canvasSize) * arrowSize)
+                        it.getPosition(it.length - strokeWidthSized * arrowSize)
                             .takeOrElse { Offset.Zero },
                         it.getPosition(it.length).takeOrElse { Offset.Zero }
                     )
@@ -143,8 +140,8 @@ data class PathHelper(
                     }
                 }
 
-                if (abs(arrowVector.x) < arrowSize * strokeWidth.toPx(canvasSize) &&
-                    abs(arrowVector.y) < arrowSize * strokeWidth.toPx(canvasSize) &&
+                if (abs(arrowVector.x) < arrowSize * strokeWidthSized &&
+                    abs(arrowVector.y) < arrowSize * strokeWidthSized &&
                     preLastPoint != Offset.Zero
                 ) {
                     drawArrow()
@@ -153,8 +150,6 @@ data class PathHelper(
 
             private fun drawStartArrow(
                 drawPath: Path,
-                strokeWidth: Pt,
-                canvasSize: IntegerSize,
                 arrowSize: Float = 3f,
                 arrowAngle: Double = 150.0
             ) {
@@ -163,7 +158,7 @@ data class PathHelper(
                 }.let {
                     Pair(
                         it.getPosition(0f).takeOrElse { Offset.Zero },
-                        it.getPosition(strokeWidth.toPx(canvasSize) * arrowSize)
+                        it.getPosition(strokeWidthSized * arrowSize)
                             .takeOrElse { Offset.Zero }
                     )
                 }
@@ -182,8 +177,8 @@ data class PathHelper(
                     }
                 }
 
-                if (abs(arrowVector.x) < arrowSize * strokeWidth.toPx(canvasSize) &&
-                    abs(arrowVector.y) < arrowSize * strokeWidth.toPx(canvasSize) &&
+                if (abs(arrowVector.x) < arrowSize * strokeWidthSized &&
+                    abs(arrowVector.y) < arrowSize * strokeWidthSized &&
                     secondPoint != Offset.Zero
                 ) {
                     drawArrow()
@@ -228,9 +223,9 @@ data class PathHelper(
                     for (i in 0 until vertices) {
                         val angle = i * (360f / vertices) + rotationDegrees - 270.0
                         val x =
-                            centerX + width / 2f * cos(Math.toRadians(angle.toDouble())).toFloat()
+                            centerX + width / 2f * cos(Math.toRadians(angle)).toFloat()
                         val y =
-                            centerY + height / 2f * sin(Math.toRadians(angle.toDouble())).toFloat()
+                            centerY + height / 2f * sin(Math.toRadians(angle)).toFloat()
                         if (i == 0) {
                             moveTo(x, y)
                         } else {
@@ -322,43 +317,41 @@ data class PathHelper(
     }
 
     fun drawRect(
-        rotationDegrees: Int
+        rotationDegrees: Int,
+        cornerRadius: Float
     ) {
-        if (drawDownPosition.isSpecified && currentDrawPosition.isSpecified) {
-            val top = max(drawDownPosition.y, currentDrawPosition.y)
-            val left = min(drawDownPosition.x, currentDrawPosition.x)
-            val bottom = min(drawDownPosition.y, currentDrawPosition.y)
-            val right = max(drawDownPosition.x, currentDrawPosition.x)
+        if (!drawDownPosition.isSpecified || !currentDrawPosition.isSpecified) return
 
-            val centerX = (left + right) / 2
-            val centerY = (top + bottom) / 2
+        val left = min(drawDownPosition.x, currentDrawPosition.x)
+        val right = max(drawDownPosition.x, currentDrawPosition.x)
+        val top = min(drawDownPosition.y, currentDrawPosition.y)
+        val bottom = max(drawDownPosition.y, currentDrawPosition.y)
 
-            val radians = Math.toRadians(rotationDegrees.toDouble())
+        val width = right - left
+        val height = bottom - top
+        if (width <= 0f || height <= 0f) return
 
-            val corners = listOf(
-                Offset(left, top),
-                Offset(right, top),
-                Offset(right, bottom),
-                Offset(left, bottom)
+        val radius = min(width, height) * cornerRadius.coerceIn(0f, 0.5f)
+        val centerX = (left + right) / 2f
+        val centerY = (top + bottom) / 2f
+
+        val path = Path().apply {
+            addRoundRect(
+                RoundRect(
+                    rect = Rect(left, top, right, bottom),
+                    radius, radius
+                )
             )
-
-            val rotatedCorners = corners.map { corner ->
-                val translatedX = corner.x - centerX
-                val translatedY = corner.y - centerY
-                val rotatedX = translatedX * cos(radians) - translatedY * sin(radians)
-                val rotatedY = translatedX * sin(radians) + translatedY * cos(radians)
-                Offset(rotatedX.toFloat() + centerX, rotatedY.toFloat() + centerY)
-            }
-
-            val newPath = Path().apply {
-                moveTo(rotatedCorners[0].x, rotatedCorners[0].y)
-                lineTo(rotatedCorners[1].x, rotatedCorners[1].y)
-                lineTo(rotatedCorners[2].x, rotatedCorners[2].y)
-                lineTo(rotatedCorners[3].x, rotatedCorners[3].y)
-                close()
-            }
-            onPathChange(newPath)
         }
+
+        val matrix = Matrix().apply {
+            setRotate(rotationDegrees.toFloat(), centerX, centerY)
+        }
+
+
+        onPathChange(
+            path.asAndroidPath().apply { transform(matrix) }.asComposePath()
+        )
     }
 
     fun drawOval() {
@@ -402,66 +395,104 @@ data class PathHelper(
     }
 
     fun drawPath(
-        onDrawFreeArrow: DrawArrowsScope.() -> Unit,
-        onBaseDraw: () -> Unit,
-    ) = if (!isEraserOn) {
-        when (drawPathMode) {
-            is DrawPathMode.PointingArrow,
-            is DrawPathMode.DoublePointingArrow -> onDrawFreeArrow(drawArrowsScope)
+        currentDrawPath: Path? = null,
+        onDrawFreeArrow: DrawArrowsScope.() -> Unit = {},
+        onBaseDraw: () -> Unit = {},
+        onFloodFill: (tolerance: Float) -> Unit = {}
+    ) {
+        if (!isEraserOn) {
+            when (drawPathMode) {
+                is DrawPathMode.PointingArrow,
+                is DrawPathMode.DoublePointingArrow -> onDrawFreeArrow(drawArrowsScope)
 
-            is DrawPathMode.DoubleLinePointingArrow,
-            DrawPathMode.Line,
-            is DrawPathMode.LinePointingArrow -> drawLine()
+                is DrawPathMode.DoubleLinePointingArrow,
+                DrawPathMode.Line,
+                is DrawPathMode.LinePointingArrow -> drawLine()
 
-            is DrawPathMode.Rect -> drawRect(drawPathMode.rotationDegrees)
-
-            is DrawPathMode.OutlinedRect -> drawRect(drawPathMode.rotationDegrees)
-
-            DrawPathMode.Triangle,
-            DrawPathMode.OutlinedTriangle -> drawTriangle()
-
-            is DrawPathMode.Polygon -> {
-                drawPolygon(
-                    vertices = drawPathMode.vertices,
+                is DrawPathMode.Rect -> drawRect(
                     rotationDegrees = drawPathMode.rotationDegrees,
-                    isRegular = drawPathMode.isRegular
+                    cornerRadius = drawPathMode.cornerRadius
                 )
-            }
 
-            is DrawPathMode.OutlinedPolygon -> {
-                drawPolygon(
-                    vertices = drawPathMode.vertices,
+                is DrawPathMode.OutlinedRect -> drawRect(
                     rotationDegrees = drawPathMode.rotationDegrees,
-                    isRegular = drawPathMode.isRegular
+                    cornerRadius = drawPathMode.cornerRadius
                 )
+
+                DrawPathMode.Triangle,
+                DrawPathMode.OutlinedTriangle -> drawTriangle()
+
+                is DrawPathMode.Polygon -> {
+                    drawPolygon(
+                        vertices = drawPathMode.vertices,
+                        rotationDegrees = drawPathMode.rotationDegrees,
+                        isRegular = drawPathMode.isRegular
+                    )
+                }
+
+                is DrawPathMode.OutlinedPolygon -> {
+                    drawPolygon(
+                        vertices = drawPathMode.vertices,
+                        rotationDegrees = drawPathMode.rotationDegrees,
+                        isRegular = drawPathMode.isRegular
+                    )
+                }
+
+                is DrawPathMode.Star -> {
+                    drawStar(
+                        vertices = drawPathMode.vertices,
+                        innerRadiusRatio = drawPathMode.innerRadiusRatio,
+                        rotationDegrees = drawPathMode.rotationDegrees,
+                        isRegular = drawPathMode.isRegular
+                    )
+                }
+
+                is DrawPathMode.OutlinedStar -> {
+                    drawStar(
+                        vertices = drawPathMode.vertices,
+                        innerRadiusRatio = drawPathMode.innerRadiusRatio,
+                        rotationDegrees = drawPathMode.rotationDegrees,
+                        isRegular = drawPathMode.isRegular
+                    )
+                }
+
+                DrawPathMode.Oval,
+                DrawPathMode.OutlinedOval -> drawOval()
+
+                DrawPathMode.Free,
+                DrawPathMode.Lasso -> onBaseDraw()
+
+                is DrawPathMode.FloodFill -> onFloodFill(drawPathMode.tolerance)
+
+                is DrawPathMode.Spray -> {
+                    currentDrawPath?.let {
+                        val path = currentDrawPath.copy().apply {
+                            repeat(drawPathMode.density) {
+                                val angle = Random.nextFloat() * PI_2
+                                val radius = sqrt(Random.nextFloat()) * strokeWidthSized
+                                val x = currentDrawPosition.x + radius * cos(angle)
+                                val y = currentDrawPosition.y + radius * sin(angle)
+
+                                val rect = Rect(
+                                    left = x,
+                                    top = y,
+                                    right = x + drawPathMode.pixelSize,
+                                    bottom = y + drawPathMode.pixelSize
+                                )
+
+                                if (drawPathMode.isSquareShaped) addRect(rect) else addOval(rect)
+                            }
+                        }
+
+                        onPathChange(path)
+                    }
+                }
             }
-
-            is DrawPathMode.Star -> {
-                drawStar(
-                    vertices = drawPathMode.vertices,
-                    innerRadiusRatio = drawPathMode.innerRadiusRatio,
-                    rotationDegrees = drawPathMode.rotationDegrees,
-                    isRegular = drawPathMode.isRegular
-                )
-            }
-
-            is DrawPathMode.OutlinedStar -> {
-                drawStar(
-                    vertices = drawPathMode.vertices,
-                    innerRadiusRatio = drawPathMode.innerRadiusRatio,
-                    rotationDegrees = drawPathMode.rotationDegrees,
-                    isRegular = drawPathMode.isRegular
-                )
-            }
-
-            DrawPathMode.Oval,
-            DrawPathMode.OutlinedOval -> drawOval()
-
-            DrawPathMode.Free,
-            DrawPathMode.Lasso -> onBaseDraw()
-        }
-    } else onBaseDraw()
+        } else onBaseDraw()
+    }
 }
+
+private const val PI_2 = (Math.PI * 2).toFloat()
 
 interface DrawArrowsScope {
     fun drawArrowsIfNeeded(

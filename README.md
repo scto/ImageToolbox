@@ -20,7 +20,7 @@
   </br>
   </br>
   
- <img src="https://img.shields.io/badge/197.7K-aeff4d?style=for-the-badge&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI%2BCiAgICA8cGF0aCBkPSJNMTIuODksM0wxNC44NSwzLjRMMTEuMTEsMjFMOS4xNSwyMC42TDEyLjg5LDNNMTkuNTksMTJMMTYsOC40MVY1LjU4TDIyLjQyLDEyTDE2LDE4LjQxVjE1LjU4TDE5LjU5LDEyTTEuNTgsMTJMOCw1LjU4VjguNDFMNC40MSwxMkw4LDE1LjU4VjE4LjQxTDEuNTgsMTJaIgogICAgICAgIGZpbGw9IndoaXRlIiAvPgo8L3N2Zz4%3D&label=Lines%20of%20code&labelColor=4b731a"/>
+ <img src="https://img.shields.io/badge/228.5K-aeff4d?style=for-the-badge&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI%2BCiAgICA8cGF0aCBkPSJNMTIuODksM0wxNC44NSwzLjRMMTEuMTEsMjFMOS4xNSwyMC42TDEyLjg5LDNNMTkuNTksMTJMMTYsOC40MVY1LjU4TDIyLjQyLDEyTDE2LDE4LjQxVjE1LjU4TDE5LjU5LDEyTTEuNTgsMTJMOCw1LjU4VjguNDFMNC40MSwxMkw4LDE1LjU4VjE4LjQxTDEuNTgsMTJaIgogICAgICAgIGZpbGw9IndoaXRlIiAvPgo8L3N2Zz4%3D&label=Lines%20of%20code&labelColor=4b731a"/>
 
 <img src="https://img.shields.io/github/commits-since/t8rin/ImageResizer/v1.0?color=palegreen&label=Commits&style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHRpdGxlPnNvdXJjZS1jb21taXQ8L3RpdGxlPjxwYXRoIGQ9Ik0xNywxMkMxNywxNC40MiAxNS4yOCwxNi40NCAxMywxNi45VjIxSDExVjE2LjlDOC43MiwxNi40NCA3LDE0LjQyIDcsMTJDNyw5LjU4IDguNzIsNy41NiAxMSw3LjFWM0gxM1Y3LjFDMTUuMjgsNy41NiAxNyw5LjU4IDE3LDEyTTEyLDlBMywzIDAgMCwwIDksMTJBMywzIDAgMCwwIDEyLDE1QTMsMyAwIDAsMCAxNSwxMkEzLDMgMCAwLDAgMTIsOVoiIGZpbGw9IndoaXRlIiAvPjwvc3ZnPg==&labelColor=07ab4e">
  
@@ -84,6 +84,7 @@
 
 <div align="center">
 
+
 # 🗺️ Project Overview
 
 ImageToolbox is a versatile image editing tool designed for efficient photo manipulation. It allows
@@ -129,7 +130,7 @@ Check out Image Toolbox [Wiki](https://github.com/T8RIN/ImageToolbox/wiki) for F
 This application is completely free, but if you want to support the project development, you can
 send a donation to the crypto wallets below
 
-| </br> ![Bitcoin](https://img.shields.io/badge/Bitcoin-EAB300?style=for-the-badge&logo=Bitcoin%20SV&logoColor=white) <br/> <br/> -> `18QFWMREkjzQa4yetfYsN5Ua51UubKmJut` <- <br/> <br/> | </br> ![Tether](https://img.shields.io/badge/USDT-168363?style=for-the-badge&logo=tether&logoColor=white) <br/> <br/> -> `TMPAu7a54NvQNEKnNWh3naXu3oYijqP3U7` <- <br/> <br/> |
+| </br> ![Bitcoin](https://img.shields.io/badge/Bitcoin-EAB300?style=for-the-badge&logo=Bitcoin%20SV&logoColor=white) <br/> <br/> -> `18QFWMREkjzQa4yetfYsN5Ua51UubKmJut` <- <br/> <br/> | </br> ![Tether](https://img.shields.io/badge/USDT%20(TRC20)-168363?style=for-the-badge&logo=tether&logoColor=white) <br/> <br/> -> `TVdw6fP8dYsYA6HgQiSYNijBqPJ3k5BbYo` <- <br/> <br/> |
 |:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
 
 # 📲 Download
@@ -167,7 +168,7 @@ or click one of the badges below.
 |    **Feature**     |      **FOSS**      |     **Market**     |
 |:------------------:|:------------------:|:------------------:|
 |     QR Scanner     |       Zxing        |       MlKit        |
-|   Auto erase BG    |        :x:         |       MlKit        |
+|   Auto erase BG    |       U2Net        |       MlKit        |
 |  Document Scanner  |       OpenCV       |       MlKit        |
 |     Analytics      |        :x:         | :white_check_mark: |
 |    Crashlytics     |        :x:         | :white_check_mark: |
@@ -177,7 +178,7 @@ or click one of the badges below.
 # ✨ Features
 
 - Batch processing
-- Applying filter chains (More than 290 various filters)
+- Applying filter chains (More than 310 various filters)
 
   <details>
   <summary>Available filters</summary>
@@ -469,6 +470,26 @@ or click one of the badges below.
     - [x] Turbo
     - [x] Deep Green 
     - [x] Lens Correction
+    - [x] Seam Carving
+    - [x] Error Level Analysis
+    - [x] Luminance Gradient
+    - [x] Average Distance
+    - [x] Copy Move Detection
+    - [x] Simple Weave Pixelization
+    - [x] Staggered Pixelization
+    - [x] Cross Pixelization
+    - [x] Micro Macro Pixelization
+    - [x] Orbital Pixelization
+    - [x] Vortex Pixelization
+    - [x] Pulse Grid Pixelization
+    - [x] Nucleus Pixelization
+    - [x] Radial Weave Pixelization
+    - [x] Border Frame
+    - [x] Glitch Variant
+    - [x] VHS
+    - [x] Block Glitch
+    - [x] Crt Curvature
+    - [x] Pixel Melt
 
 
   </details>
@@ -504,6 +525,8 @@ or click one of the badges below.
     - Digital (Steganography)
 - Drawing on Image/Background
     - Pen
+    - Flood Fil
+    - Spray
     - Neon
     - Highlighter
     - Privacy Blur
@@ -511,7 +534,7 @@ or click one of the badges below.
     - Text
     - Image Brush
     - Filter Brush
-    - Spot Healing
+    - Spot Healing (with ability to download AI model for generative inpainting)
     - Pointing Arrow
     - Line
     - Double Pointing Arrow
@@ -644,7 +667,16 @@ or click one of the badges below.
 - Document Scanning
 - Barcodes
     - Scanning
-    - Creating
+    - Creating & Parsing common types
+      - Plain
+      - Url
+      - WiFi
+      - Email
+      - Geolocation
+      - Phone
+      - SMS
+      - Contact (vCard)
+      - Calendar event
     - Sharing as images
     - 13 formats available
       - QR CODE
@@ -752,6 +784,48 @@ or click one of the badges below.
     - Palette generation
         - Material You Scheme
         - Simple Colors
+    - Import/Export palette across 41 format
+      - ACB
+      - ACO
+      - ACT  
+      - Android Xml  
+      - ASE
+      - Basic Xml  
+      - Corel Painter  
+      - Corel Draw  
+      - Scribus Xml  
+      - Corel Palette  
+      - CSV
+      - DCP
+      - Gimp
+      - Hex Rgba  
+      - Image  
+      - Json  
+      - Open Office  
+      - Paint Net  
+      - Paint Shop Pro  
+      - Rgba  
+      - Rgb  
+      - Riff  
+      - Sketch  
+      - SKP
+      - SVG  
+      - Swift  
+      - Kotlin  
+      - Corel Draw V3  
+      - CLF
+      - Swatches  
+      - Autodesk Color Book  
+      - Simple Palette  
+      - Swatchbooker  
+      - Afpalette  
+      - Xara  
+      - Koffice
+      - KPL
+      - HPL
+      - Skencil  
+      - Vga 24Bit  
+      - Vga 18Bit  
     - Picking color from image
     - Gradient creation (Mesh gradients too)
     - Overlaying image with gradient
@@ -779,6 +853,8 @@ or click one of the badges below.
     - 64 different hashing algorithms
     - Audio files Album Cover export
     - Embedded media picker
+    - Wallpapers Export
+    - Ascii Art
 
 **And More!**
 
@@ -871,11 +947,14 @@ or click one of the badges below.
     - Pixel
     - Fluent
     - Cupertino
-  - Liquid Glass
+    - Liquid Glas
+    - HyperOS
 - Slider Type Selection:
     - Fancy
     - Material You
     - Material
+    - HyperOS
+- Main screen layout customization
 
 (Yes, the app supports dynamic coloring based on wallpapers for every android version)
 

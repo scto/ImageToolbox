@@ -174,7 +174,7 @@ fun DrawLineStyleSelector(
                         )
                     },
                     valueSuffix = " Pt",
-                    color = MaterialTheme.colorScheme.surface,
+                    containerColor = MaterialTheme.colorScheme.surface,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp),
@@ -196,7 +196,7 @@ fun DrawLineStyleSelector(
                         )
                     },
                     valueSuffix = " Pt",
-                    color = MaterialTheme.colorScheme.surface,
+                    containerColor = MaterialTheme.colorScheme.surface,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp),
@@ -240,7 +240,7 @@ fun DrawLineStyleSelector(
                             )
                         )
                     },
-                    color = MaterialTheme.colorScheme.surface,
+                    containerColor = MaterialTheme.colorScheme.surface,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp),
@@ -269,9 +269,8 @@ fun DrawLineStyleSelector(
             else MaterialStarShape
 
             Column {
-                val shapes = remember {
-                    IconShape.entries.dropLast(1)
-                }
+                val shapes = IconShape.entriesNoRandom
+
                 Column(
                     modifier = Modifier
                         .padding(horizontal = 8.dp)
@@ -369,7 +368,7 @@ fun DrawLineStyleSelector(
                         )
                     },
                     valueSuffix = " Pt",
-                    color = MaterialTheme.colorScheme.surface,
+                    containerColor = MaterialTheme.colorScheme.surface,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp),

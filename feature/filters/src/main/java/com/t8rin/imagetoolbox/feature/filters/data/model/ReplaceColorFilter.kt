@@ -24,9 +24,10 @@ import com.t8rin.imagetoolbox.core.domain.model.ColorModel
 import com.t8rin.imagetoolbox.core.domain.model.IntegerSize
 import com.t8rin.imagetoolbox.core.domain.transformation.Transformation
 import com.t8rin.imagetoolbox.core.filters.domain.model.Filter
+import com.t8rin.imagetoolbox.core.ksp.annotations.FilterInject
 import com.t8rin.trickle.Trickle
 
-
+@FilterInject
 internal class ReplaceColorFilter(
     override val value: Triple<Float, ColorModel, ColorModel> = Triple(
         first = 0f,
@@ -35,7 +36,7 @@ internal class ReplaceColorFilter(
     ),
 ) : Transformation<Bitmap>, Filter.ReplaceColor {
     override val cacheKey: String
-        get() = (value).hashCode().toString()
+        get() = value.hashCode().toString()
 
     override suspend fun transform(
         input: Bitmap,

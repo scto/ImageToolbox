@@ -18,13 +18,16 @@
 package com.t8rin.imagetoolbox.feature.draw.presentation.components
 
 import android.graphics.Bitmap
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Canvas
@@ -41,14 +44,20 @@ import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.core.graphics.applyCanvas
 import androidx.core.graphics.createBitmap
 import com.t8rin.imagetoolbox.core.domain.model.ImageModel
 import com.t8rin.imagetoolbox.core.domain.model.IntegerSize
 import com.t8rin.imagetoolbox.core.filters.domain.model.Filter
 import com.t8rin.imagetoolbox.core.filters.domain.model.createFilter
+import com.t8rin.imagetoolbox.core.filters.domain.model.enums.SpotHealMode
 import com.t8rin.imagetoolbox.core.ui.utils.helper.scaleToFitCanvas
 import com.t8rin.imagetoolbox.core.ui.utils.helper.toImageModel
+import com.t8rin.imagetoolbox.core.ui.widget.dialogs.LoadingDialog
+import com.t8rin.imagetoolbox.core.ui.widget.text.AutoSizeText
 import com.t8rin.imagetoolbox.feature.draw.domain.DrawMode
 import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.clipBitmap
 import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.drawRepeatedImageOnPath
@@ -57,6 +66,8 @@ import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.overlay
 import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.pathEffectPaint
 import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.rememberPaint
 import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.transformationsForMode
+import kotlinx.coroutines.delay
+import kotlin.math.roundToInt
 
 @Composable
 internal fun Canvas.UiPathPaintCanvasAction(
@@ -143,17 +154,22 @@ internal fun Canvas.UiPathPaintCanvasAction(
             }
         }
 
+        var isLoading by remember {
+            mutableStateOf(false)
+        }
+
         var shaderSource by remember(backgroundColor) {
             mutableStateOf<ImageBitmap?>(null)
         }
         LaunchedEffect(shaderSource, invalidations) {
             if (shaderSource == null || invalidations <= pathsCount) {
+                isLoading = true
                 shaderSource = onRequestFiltering(
                     drawImageBitmap.overlay(drawBitmap).asAndroidBitmap(),
                     listOf(
-                        createFilter<Triple<ImageModel, Float, Int>, Filter.SpotHeal>(
-                            Triple(
-                                first = createBitmap(
+                        createFilter<Pair<ImageModel, SpotHealMode>, Filter.SpotHeal>(
+                            Pair(
+                                createBitmap(
                                     width = canvasSize.width,
                                     height = canvasSize.height
                                 ).applyCanvas {
@@ -163,8 +179,7 @@ internal fun Canvas.UiPathPaintCanvasAction(
                                         paint.asFrameworkPaint()
                                     )
                                 }.toImageModel(),
-                                second = 3f,
-                                third = 1
+                                drawMode.mode
                             )
                         )
                     )
@@ -177,6 +192,7 @@ internal fun Canvas.UiPathPaintCanvasAction(
                     it.prepareToDraw()
                     onInvalidate()
                 }
+                isLoading = false
             }
         }
         if (shaderSource != null) {
@@ -191,6 +207,43 @@ internal fun Canvas.UiPathPaintCanvasAction(
                 paint = imagePaint
             )
         }
+
+        var progress by remember {
+            mutableFloatStateOf(0f)
+        }
+        LaunchedEffect(isLoading) {
+            if (isLoading) {
+                while (progress < 0.5f) {
+                    progress += 0.01f
+                    delay(100)
+                }
+                while (progress < 0.75f) {
+                    progress += 0.0025f
+                    delay(100)
+                }
+                while (progress < 1f) {
+                    progress += 0.0025f
+                    delay(500)
+                }
+            } else {
+                progress = 1f
+            }
+        }
+        LoadingDialog(
+            visible = isLoading,
+            canCancel = false,
+            progress = { progress },
+            loaderSize = 72.dp,
+            additionalContent = {
+                AutoSizeText(
+                    text = "${(progress * 100).roundToInt()}%",
+                    maxLines = 1,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.width(it * 0.8f),
+                    textAlign = TextAlign.Center
+                )
+            }
+        )
     } else {
         val pathPaint by rememberPaint(
             strokeWidth = strokeWidth,

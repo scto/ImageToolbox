@@ -66,6 +66,8 @@ import com.t8rin.imagetoolbox.feature.draw.domain.DrawPathMode
 import com.t8rin.imagetoolbox.feature.draw.presentation.components.UiPathPaint
 import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.BitmapDrawerPreview
 import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.MotionEvent
+import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.copy
+import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.floodFill
 import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.handle
 import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.pointerDrawObserver
 import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.rememberPathHelper
@@ -121,7 +123,7 @@ fun BitmapEraser(
                 invalidations++
             }
 
-            var motionEvent by remember { mutableStateOf(MotionEvent.Idle) }
+            val motionEvent = remember { mutableStateOf(MotionEvent.Idle) }
             var previousDrawPosition by remember { mutableStateOf(Offset.Unspecified) }
             var drawDownPosition by remember { mutableStateOf(Offset.Unspecified) }
 
@@ -194,10 +196,17 @@ fun BitmapEraser(
                         } else PaintingStyle.Stroke
 
                         blendMode = if (isRecoveryOn) blendMode else BlendMode.Clear
-                        strokeCap = StrokeCap.Round
                         shader = if (isRecoveryOn) shaderBitmap?.let { ImageShader(it) } else shader
-                        this.strokeWidth = strokeWidth.toPx(canvasSize)
-                        strokeJoin = StrokeJoin.Round
+                        this.strokeWidth = drawPathMode.convertStrokeWidth(
+                            strokeWidth = strokeWidth,
+                            canvasSize = canvasSize
+                        )
+                        if (drawPathMode.isSharpEdge) {
+                            strokeCap = StrokeCap.Square
+                        } else {
+                            strokeCap = StrokeCap.Round
+                            strokeJoin = StrokeJoin.Round
+                        }
                         isAntiAlias = true
                     }.asFrameworkPaint().apply {
                         if (brushSoftness.value > 0f) maskFilter =
@@ -215,88 +224,6 @@ fun BitmapEraser(
             ) { mutableStateOf(Path()) }
 
             with(canvas) {
-                val drawHelper by rememberPathHelper(
-                    drawDownPosition = drawDownPosition,
-                    currentDrawPosition = currentDrawPosition,
-                    onPathChange = { drawPath = it },
-                    strokeWidth = strokeWidth,
-                    canvasSize = canvasSize,
-                    drawPathMode = drawPathMode,
-                    isEraserOn = false
-                )
-
-                motionEvent.handle(
-                    onDown = {
-                        if (currentDrawPosition.isSpecified) {
-                            drawPath.moveTo(currentDrawPosition.x, currentDrawPosition.y)
-                            previousDrawPosition = currentDrawPosition
-                        } else {
-                            drawPath = Path()
-                        }
-                        motionEvent = MotionEvent.Idle
-                    },
-                    onMove = {
-                        drawHelper.drawPath(
-                            onDrawFreeArrow = {},
-                            onBaseDraw = {
-                                if (previousDrawPosition.isUnspecified && currentDrawPosition.isSpecified) {
-                                    drawPath.moveTo(currentDrawPosition.x, currentDrawPosition.y)
-                                    previousDrawPosition = currentDrawPosition
-                                }
-
-                                if (currentDrawPosition.isSpecified && previousDrawPosition.isSpecified) {
-                                    drawPath.quadraticTo(
-                                        previousDrawPosition.x,
-                                        previousDrawPosition.y,
-                                        (previousDrawPosition.x + currentDrawPosition.x) / 2,
-                                        (previousDrawPosition.y + currentDrawPosition.y) / 2
-                                    )
-                                }
-                                previousDrawPosition = currentDrawPosition
-                            }
-                        )
-
-                        motionEvent = MotionEvent.Idle
-                    },
-                    onUp = {
-                        drawHelper.drawPath(
-                            onDrawFreeArrow = {},
-                            onBaseDraw = {
-                                PathMeasure().apply {
-                                    setPath(drawPath, false)
-                                }.let {
-                                    it.getPosition(it.length)
-                                }.takeOrElse { currentDrawPosition }.let { lastPoint ->
-                                    drawPath.moveTo(lastPoint.x, lastPoint.y)
-                                    drawPath.lineTo(
-                                        currentDrawPosition.x,
-                                        currentDrawPosition.y
-                                    )
-                                }
-                            }
-                        )
-
-                        onAddPath(
-                            UiPathPaint(
-                                path = drawPath,
-                                strokeWidth = strokeWidth,
-                                brushSoftness = brushSoftness,
-                                isErasing = isRecoveryOn,
-                                canvasSize = canvasSize,
-                                drawPathMode = drawPathMode
-                            )
-                        )
-
-                        currentDrawPosition = Offset.Unspecified
-                        previousDrawPosition = Offset.Unspecified
-                        motionEvent = MotionEvent.Idle
-
-                        scope.launch {
-                            drawPath = Path()
-                        }
-                    }
-                )
-
                 with(nativeCanvas) {
                     drawColor(Color.Transparent.toArgb(), PorterDuff.Mode.CLEAR)
 
@@ -330,11 +257,18 @@ fun BitmapEraser(
                                         PaintingStyle.Fill
                                     } else PaintingStyle.Stroke
                                     blendMode = if (isRecoveryOn) blendMode else BlendMode.Clear
-                                    strokeCap = StrokeCap.Round
 
                                     if (isRecoveryOn) shader = shaderBitmap?.let { ImageShader(it) }
-                                    this.strokeWidth = stroke.toPx(canvasSize)
-                                    strokeJoin = StrokeJoin.Round
+                                    this.strokeWidth = drawPathMode.convertStrokeWidth(
+                                        strokeWidth = stroke,
+                                        canvasSize = canvasSize
+                                    )
+                                    if (mode.isSharpEdge) {
+                                        strokeCap = StrokeCap.Square
+                                    } else {
+                                        strokeCap = StrokeCap.Round
+                                        strokeJoin = StrokeJoin.Round
+                                    }
                                     isAntiAlias = true
                                 }.asFrameworkPaint().apply {
                                     if (radius.value > 0f) {
@@ -354,12 +288,100 @@ fun BitmapEraser(
                         drawPaint
                     )
                 }
+
+                val drawHelper by rememberPathHelper(
+                    drawDownPosition = drawDownPosition,
+                    currentDrawPosition = currentDrawPosition,
+                    onPathChange = { drawPath = it },
+                    strokeWidth = strokeWidth,
+                    canvasSize = canvasSize,
+                    drawPathMode = drawPathMode,
+                    isEraserOn = false
+                )
+
+                motionEvent.value.handle(
+                    onDown = {
+                        if (currentDrawPosition.isSpecified) {
+                            drawPath.moveTo(currentDrawPosition.x, currentDrawPosition.y)
+                            previousDrawPosition = currentDrawPosition
+                        } else {
+                            drawPath = Path()
+                        }
+                        motionEvent.value = MotionEvent.Idle
+                    },
+                    onMove = {
+                        drawHelper.drawPath(
+                            onBaseDraw = {
+                                if (previousDrawPosition.isUnspecified && currentDrawPosition.isSpecified) {
+                                    drawPath.moveTo(currentDrawPosition.x, currentDrawPosition.y)
+                                    previousDrawPosition = currentDrawPosition
+                                }
+
+                                if (currentDrawPosition.isSpecified && previousDrawPosition.isSpecified) {
+                                    drawPath.quadraticTo(
+                                        previousDrawPosition.x,
+                                        previousDrawPosition.y,
+                                        (previousDrawPosition.x + currentDrawPosition.x) / 2,
+                                        (previousDrawPosition.y + currentDrawPosition.y) / 2
+                                    )
+                                }
+                                previousDrawPosition = currentDrawPosition
+                            },
+                            currentDrawPath = drawPath
+                        )
+
+                        motionEvent.value = MotionEvent.Idle
+                    },
+                    onUp = {
+                        drawHelper.drawPath(
+                            onBaseDraw = {
+                                PathMeasure().apply {
+                                    setPath(drawPath, false)
+                                }.let {
+                                    it.getPosition(it.length)
+                                }.takeOrElse { currentDrawPosition }.let { lastPoint ->
+                                    drawPath.moveTo(lastPoint.x, lastPoint.y)
+                                    drawPath.lineTo(
+                                        currentDrawPosition.x,
+                                        currentDrawPosition.y
+                                    )
+                                }
+                            },
+                            onFloodFill = { tolerance ->
+                                erasedBitmap.floodFill(
+                                    offset = currentDrawPosition,
+                                    tolerance = tolerance
+                                )?.let { drawPath = it }
+                            },
+                            currentDrawPath = null
+                        )
+
+                        onAddPath(
+                            UiPathPaint(
+                                path = drawPath,
+                                strokeWidth = strokeWidth,
+                                brushSoftness = brushSoftness,
+                                isErasing = isRecoveryOn,
+                                canvasSize = canvasSize,
+                                drawPathMode = drawPathMode
+                            )
+                        )
+
+                        currentDrawPosition = Offset.Unspecified
+                        previousDrawPosition = Offset.Unspecified
+                        motionEvent.value = MotionEvent.Idle
+
+                        scope.launch {
+                            drawPath = Path()
+                        }
+                    }
+                )
             }
 
             BitmapDrawerPreview(
                 preview = outputImage,
                 globalTouchPointersCount = globalTouchPointersCount,
-                onReceiveMotionEvent = { motionEvent = it },
+                onReceiveMotionEvent = { motionEvent.value = it },
                 onInvalidate = { invalidations++ },
                 onUpdateCurrentDrawPosition = { currentDrawPosition = it },
                 onUpdateDrawDownPosition = { drawDownPosition = it },
@@ -382,8 +404,3 @@ fun BitmapEraser(
         }
     }
 }
-
-/**
- *  Needed to trigger recomposition
- **/
-private fun ImageBitmap.copy(): ImageBitmap = asAndroidBitmap().asImageBitmap()

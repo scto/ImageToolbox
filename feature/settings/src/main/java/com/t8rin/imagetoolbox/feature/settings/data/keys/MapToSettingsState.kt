@@ -18,10 +18,13 @@
 package com.t8rin.imagetoolbox.feature.settings.data.keys
 
 import androidx.datastore.preferences.core.Preferences
+import com.t8rin.imagetoolbox.core.domain.image.model.ImageFormat
 import com.t8rin.imagetoolbox.core.domain.image.model.ImageScaleMode
 import com.t8rin.imagetoolbox.core.domain.image.model.Preset
+import com.t8rin.imagetoolbox.core.domain.image.model.Quality
 import com.t8rin.imagetoolbox.core.domain.image.model.ResizeType
 import com.t8rin.imagetoolbox.core.domain.image.model.ScaleColorSpace
+import com.t8rin.imagetoolbox.core.domain.json.JsonParser
 import com.t8rin.imagetoolbox.core.domain.model.ColorModel
 import com.t8rin.imagetoolbox.core.domain.model.HashingType
 import com.t8rin.imagetoolbox.core.domain.model.SystemBarsVisibility
@@ -33,10 +36,12 @@ import com.t8rin.imagetoolbox.core.settings.domain.model.NightMode
 import com.t8rin.imagetoolbox.core.settings.domain.model.OneTimeSaveLocation
 import com.t8rin.imagetoolbox.core.settings.domain.model.SettingsState
 import com.t8rin.imagetoolbox.core.settings.domain.model.SliderType
+import com.t8rin.imagetoolbox.core.settings.domain.model.SnowfallMode
 import com.t8rin.imagetoolbox.core.settings.domain.model.SwitchType
 
 internal fun Preferences.toSettingsState(
-    default: SettingsState
+    default: SettingsState,
+    jsonParser: JsonParser
 ): SettingsState = SettingsState(
     nightMode = NightMode.fromOrdinal(this[NIGHT_MODE]) ?: default.nightMode,
     isDynamicColors = this[DYNAMIC_COLORS] ?: default.isDynamicColors,
@@ -193,7 +198,32 @@ internal fun Preferences.toSettingsState(
         color.toIntOrNull()?.let { ColorModel(it) }
     } ?: default.recentColors,
     backgroundForNoAlphaImageFormats = this[BACKGROUND_COLOR_FOR_NA_FORMATS]?.let { ColorModel(it) }
-        ?: default.backgroundForNoAlphaImageFormats
+        ?: default.backgroundForNoAlphaImageFormats,
+    addPresetInfoToFilename = this[ADD_PRESET_TO_FILENAME] ?: default.addPresetInfoToFilename,
+    addImageScaleModeInfoToFilename = this[ADD_SCALE_MODE_TO_FILENAME]
+        ?: default.addImageScaleModeInfoToFilename,
+    allowSkipIfLarger = this[ALLOW_SKIP_IF_LARGER]
+        ?: default.allowSkipIfLarger,
+    customAsciiGradients = this[ASCII_CUSTOM_GRADIENTS]
+        ?: default.customAsciiGradients,
+    isScreenSelectionLauncherMode = this[IS_LAUNCHER_MODE] ?: default.isScreenSelectionLauncherMode,
+    isTelegramGroupOpened = this[IS_TELEGRAM_GROUP_OPENED] ?: default.isTelegramGroupOpened,
+    initialOcrMode = this[INITIAL_OCR_MODE] ?: default.initialOcrMode,
+    spotHealMode = this[SPOT_HEAL_MODE] ?: default.spotHealMode,
+    snowfallMode = this[SNOWFALL_MODE]?.let { SnowfallMode.entries[it] } ?: default.snowfallMode,
+    defaultImageFormat = this[DEFAULT_IMAGE_FORMAT].let { title ->
+        if (title.isNullOrBlank()) {
+            null
+        } else {
+            ImageFormat.entries.find { it.title == title } ?: default.defaultImageFormat
+        }
+    },
+    defaultQuality = this[DEFAULT_QUALITY]?.let {
+        jsonParser.fromJson(
+            json = it,
+            type = Quality::class.java
+        )
+    } ?: default.defaultQuality,
 )
 
 private fun Preferences.toDefaultImageScaleMode(default: SettingsState): ImageScaleMode {

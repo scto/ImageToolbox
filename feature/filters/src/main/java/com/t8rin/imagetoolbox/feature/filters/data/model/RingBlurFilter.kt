@@ -20,31 +20,29 @@ package com.t8rin.imagetoolbox.feature.filters.data.model
 import android.graphics.Bitmap
 import com.awxkee.aire.Aire
 import com.awxkee.aire.ConvolveKernels
-import com.awxkee.aire.EdgeMode
-import com.awxkee.aire.KernelShape
-import com.awxkee.aire.MorphOpMode
-import com.awxkee.aire.Scalar
 import com.t8rin.imagetoolbox.core.domain.model.IntegerSize
 import com.t8rin.imagetoolbox.core.domain.transformation.Transformation
+import com.t8rin.imagetoolbox.core.domain.utils.NEAREST_ODD_ROUNDING
+import com.t8rin.imagetoolbox.core.domain.utils.roundTo
 import com.t8rin.imagetoolbox.core.filters.domain.model.Filter
+import com.t8rin.imagetoolbox.core.ksp.annotations.FilterInject
+import com.t8rin.imagetoolbox.feature.filters.data.utils.convolution.convolve2D
 
+@FilterInject
 internal class RingBlurFilter(
     override val value: Float = 25f,
 ) : Transformation<Bitmap>, Filter.RingBlur {
 
     override val cacheKey: String
-        get() = (value).hashCode().toString()
+        get() = value.hashCode().toString()
 
     override suspend fun transform(
         input: Bitmap,
         size: IntegerSize
     ): Bitmap = Aire.convolve2D(
-        bitmap = input,
-        kernel = ConvolveKernels.ring(value.toInt()),
-        kernelShape = KernelShape(value.toInt(), value.toInt()),
-        edgeMode = EdgeMode.REFLECT_101,
-        scalar = Scalar.ZEROS,
-        mode = MorphOpMode.RGBA
+        input = input,
+        kernelProducer = ConvolveKernels::ring,
+        size = value.roundTo(NEAREST_ODD_ROUNDING).toInt()
     )
 
 }

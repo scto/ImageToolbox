@@ -25,22 +25,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FitScreen
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.t8rin.imagetoolbox.core.domain.image.model.ImageScaleMode
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.settings.presentation.provider.LocalSettingsState
 import com.t8rin.imagetoolbox.core.ui.widget.controls.selection.ScaleModeSelector
 import com.t8rin.imagetoolbox.core.ui.widget.icon_shape.IconShapeContainer
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
+import com.t8rin.imagetoolbox.core.ui.widget.preferences.PreferenceItemDefaults
 
 @Composable
 fun DefaultScaleModeSettingItem(
@@ -72,11 +70,10 @@ fun DefaultScaleModeSettingItem(
                     )
                 }
             )
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = stringResource(R.string.scale_mode),
-                style = LocalTextStyle.current.copy(lineHeight = 18.sp),
-                fontWeight = FontWeight.Medium,
+                style = PreferenceItemDefaults.TitleFontStyle,
                 modifier = Modifier.weight(1f, false)
             )
         }

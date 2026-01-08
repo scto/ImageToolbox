@@ -31,7 +31,7 @@ import com.smarttoolfactory.cropper.model.RectCropShape
 import com.smarttoolfactory.cropper.settings.CropDefaults
 import com.smarttoolfactory.cropper.settings.CropOutlineProperty
 import com.t8rin.curves.ImageCurvesEditorState
-import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
+import com.t8rin.imagetoolbox.core.domain.coroutines.DispatchersHolder
 import com.t8rin.imagetoolbox.core.domain.image.ImageCompressor
 import com.t8rin.imagetoolbox.core.domain.image.ImageGetter
 import com.t8rin.imagetoolbox.core.domain.image.ImagePreviewCreator
@@ -54,6 +54,8 @@ import com.t8rin.imagetoolbox.core.domain.model.IntegerSize
 import com.t8rin.imagetoolbox.core.domain.saving.FileController
 import com.t8rin.imagetoolbox.core.domain.saving.model.ImageSaveTarget
 import com.t8rin.imagetoolbox.core.domain.saving.model.SaveResult
+import com.t8rin.imagetoolbox.core.domain.saving.restoreObject
+import com.t8rin.imagetoolbox.core.domain.saving.saveObject
 import com.t8rin.imagetoolbox.core.domain.transformation.Transformation
 import com.t8rin.imagetoolbox.core.domain.utils.smartJob
 import com.t8rin.imagetoolbox.core.filters.domain.FilterProvider
@@ -108,9 +110,8 @@ class SingleEditComponent @AssistedInject internal constructor(
 
     val addFiltersSheetComponent: AddFiltersSheetComponent = addFiltersSheetComponentFactory(
         componentContext = componentContext.childContext(
-            key = "addFiltersSingle",
-
-            )
+            key = "addFiltersSingle"
+        )
     )
 
     val filterTemplateCreationSheetComponent: FilterTemplateCreationSheetComponent =
@@ -152,8 +153,8 @@ class SingleEditComponent @AssistedInject internal constructor(
     private val _cropProperties = mutableStateOf(
         CropDefaults.properties(
             cropOutlineProperty = CropOutlineProperty(
-                OutlineType.Rect,
-                RectCropShape(
+                outlineType = OutlineType.Rect,
+                cropOutline = RectCropShape(
                     id = 0,
                     title = OutlineType.Rect.name
                 )
@@ -219,10 +220,7 @@ class SingleEditComponent @AssistedInject internal constructor(
             }
         }
         componentScope.launch {
-            val params = fileController.restoreObject(
-                "helperGridParams",
-                HelperGridParams::class
-            ) ?: HelperGridParams()
+            val params = fileController.restoreObject<HelperGridParams>() ?: HelperGridParams()
             _helperGridParams.update { params }
         }
     }
@@ -266,7 +264,8 @@ class SingleEditComponent @AssistedInject internal constructor(
                                 imageInfo = imageInfo.copy(
                                     originalUri = uri.toString()
                                 )
-                            )
+                            ),
+                            presetInfo = presetSelected
                         ),
                         keepOriginalMetadata = true,
                         oneTimeSaveLocationUri = oneTimeSaveLocationUri
@@ -776,10 +775,7 @@ class SingleEditComponent @AssistedInject internal constructor(
 
         smartSavingJob = componentScope.launch {
             delay(200)
-            fileController.saveObject(
-                key = "helperGridParams",
-                value = params
-            )
+            fileController.saveObject(params)
         }
     }
 

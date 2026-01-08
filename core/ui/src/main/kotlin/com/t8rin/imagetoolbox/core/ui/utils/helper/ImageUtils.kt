@@ -28,11 +28,16 @@ import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.graphics.BitmapCompat
+import androidx.core.graphics.applyCanvas
+import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.scale
+import androidx.core.net.toFile
 import androidx.core.text.isDigitsOnly
 import coil3.Image
 import com.t8rin.imagetoolbox.core.domain.image.model.ImageInfo
@@ -232,17 +237,23 @@ object ImageUtils {
     } ?: Bitmap.Config.ARGB_8888
 
     private fun Uri.fileSize(context: Context): Long? {
-        runCatching {
-            context.contentResolver
-                .query(this, null, null, null, null, null)
-                .use { cursor ->
-                    if (cursor != null && cursor.moveToFirst()) {
-                        val sizeIndex: Int = cursor.getColumnIndex(OpenableColumns.SIZE)
-                        if (!cursor.isNull(sizeIndex)) {
-                            return cursor.getLong(sizeIndex)
+        if (this.scheme == "content") {
+            runCatching {
+                context.contentResolver
+                    .query(this, null, null, null, null, null)
+                    .use { cursor ->
+                        if (cursor != null && cursor.moveToFirst()) {
+                            val sizeIndex: Int = cursor.getColumnIndex(OpenableColumns.SIZE)
+                            if (!cursor.isNull(sizeIndex)) {
+                                return cursor.getLong(sizeIndex)
+                            }
                         }
                     }
-                }
+            }
+        } else {
+            runCatching {
+                return this.toFile().length()
+            }
         }
         return null
     }
@@ -364,6 +375,15 @@ object ImageUtils {
                 scale(max, targetHeight)
             }
         }.getOrNull() ?: this
+    }
+
+    fun Bitmap.applyPadding(padding: Int, paddingColor: Color = Color.White): Bitmap {
+        val newWidth = this.width + padding * 2
+        val newHeight = this.height + padding * 2
+        return createBitmap(newWidth, newHeight, getSuitableConfig(this)).applyCanvas {
+            drawColor(paddingColor.toArgb())
+            drawBitmap(this@applyPadding, padding.toFloat(), padding.toFloat(), null)
+        }
     }
 
 }

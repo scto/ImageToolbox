@@ -24,12 +24,14 @@ import com.t8rin.imagetoolbox.core.domain.model.ColorModel
 import com.t8rin.imagetoolbox.core.domain.model.IntegerSize
 import com.t8rin.imagetoolbox.core.domain.transformation.Transformation
 import com.t8rin.imagetoolbox.core.filters.domain.model.Filter
+import com.t8rin.imagetoolbox.core.ksp.annotations.FilterInject
 
+@FilterInject
 internal class RemoveColorFilter(
     override val value: Pair<Float, ColorModel> = 0f to Color(0xFF000000).toModel(),
 ) : Transformation<Bitmap>, Filter.RemoveColor {
     override val cacheKey: String
-        get() = (value).hashCode().toString()
+        get() = value.hashCode().toString()
 
     override suspend fun transform(
         input: Bitmap,

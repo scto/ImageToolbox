@@ -27,5 +27,8 @@ android.namespace = "com.t8rin.imagetoolbox.feature.erase_background"
 dependencies {
     "marketImplementation"(libs.mlkit.subject.segmentation)
     "marketImplementation"(libs.mlkit.segmentation.selfie)
+
+    implementation(libs.toolbox.neuralTools)
+    
     implementation(projects.feature.draw)
 }

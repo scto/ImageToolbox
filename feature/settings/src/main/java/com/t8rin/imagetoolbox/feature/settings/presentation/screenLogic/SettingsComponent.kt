@@ -28,10 +28,12 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.Value
 import com.t8rin.dynamic.theme.ColorTuple
 import com.t8rin.dynamic.theme.extractPrimaryColor
-import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
+import com.t8rin.imagetoolbox.core.domain.coroutines.DispatchersHolder
 import com.t8rin.imagetoolbox.core.domain.image.ImageGetter
 import com.t8rin.imagetoolbox.core.domain.image.ShareProvider
+import com.t8rin.imagetoolbox.core.domain.image.model.ImageFormat
 import com.t8rin.imagetoolbox.core.domain.image.model.ImageScaleMode
+import com.t8rin.imagetoolbox.core.domain.image.model.Quality
 import com.t8rin.imagetoolbox.core.domain.image.model.ResizeType
 import com.t8rin.imagetoolbox.core.domain.model.ColorModel
 import com.t8rin.imagetoolbox.core.domain.model.HashingType
@@ -49,6 +51,7 @@ import com.t8rin.imagetoolbox.core.settings.domain.model.FastSettingsSide
 import com.t8rin.imagetoolbox.core.settings.domain.model.NightMode
 import com.t8rin.imagetoolbox.core.settings.domain.model.SettingsState
 import com.t8rin.imagetoolbox.core.settings.domain.model.SliderType
+import com.t8rin.imagetoolbox.core.settings.domain.model.SnowfallMode
 import com.t8rin.imagetoolbox.core.settings.domain.model.SwitchType
 import com.t8rin.imagetoolbox.core.settings.presentation.model.Setting
 import com.t8rin.imagetoolbox.core.settings.presentation.model.SettingsGroup
@@ -162,7 +165,7 @@ class SettingsComponent @AssistedInject internal constructor(
             _settingsState.value = getSettingsState().also {
                 if (it.clearCacheOnLaunch) clearCache()
             }
-            getSettingsStateFlow().onEach {
+            settingsState.onEach {
                 _settingsState.value = it
             }.collect()
         }
@@ -301,11 +304,11 @@ class SettingsComponent @AssistedInject internal constructor(
             )
             val colorTupleS = listOf(colorTuple).asString()
             setColorTuple(colorTuple)
-            setColorTuples(settingsState.colorTupleList + "*" + colorTupleS)
+            setColorTuples(this@SettingsComponent.settingsState.colorTupleList + "*" + colorTupleS)
             setThemeContrast(0f)
             setThemeStyle(0)
-            if (settingsState.useEmojiAsPrimaryColor) toggleUseEmojiAsPrimaryColor()
-            if (settingsState.isInvertThemeColors) toggleInvertColors()
+            if (this@SettingsComponent.settingsState.useEmojiAsPrimaryColor) toggleUseEmojiAsPrimaryColor()
+            if (this@SettingsComponent.settingsState.isInvertThemeColors) toggleInvertColors()
         } else {
             imageGetter.getImage(data = emoji)
                 ?.extractPrimaryColor()
@@ -313,13 +316,13 @@ class SettingsComponent @AssistedInject internal constructor(
                     val colorTuple = ColorTuple(primary)
                     setColorTuple(colorTuple)
                     settingsManager.setColorTuples(
-                        settingsState.colorTupleList + "*" + listOf(
+                        this@SettingsComponent.settingsState.colorTupleList + "*" + listOf(
                             colorTuple
                         ).asString()
                     )
                 }
         }
-        if (settingsState.isDynamicColors) toggleDynamicColors()
+        if (this@SettingsComponent.settingsState.isDynamicColors) toggleDynamicColors()
     }
 
     fun setThemeContrast(value: Float) = settingsScope { setThemeContrast(value.toDouble()) }
@@ -367,7 +370,9 @@ class SettingsComponent @AssistedInject internal constructor(
     fun toggleExifWidgetInitialState() = settingsScope { toggleExifWidgetInitialState() }
 
     fun setScreensWithBrightnessEnforcement(screen: Screen) = settingsScope {
-        val screens = settingsState.screenListWithMaxBrightnessEnforcement.toggle(screen.id)
+        val screens =
+            this@SettingsComponent.settingsState.screenListWithMaxBrightnessEnforcement
+                .toggle(screen.id)
 
         setScreensWithBrightnessEnforcement(
             screens.joinToString("/") { it.toString() }
@@ -471,6 +476,25 @@ class SettingsComponent @AssistedInject internal constructor(
             onComplete = {}
         )
     }
+
+    fun toggleAddPresetInfoToFilename() = settingsScope { toggleAddPresetInfoToFilename() }
+
+    fun toggleAddImageScaleModeInfoToFilename() =
+        settingsScope { toggleAddImageScaleModeInfoToFilename() }
+
+    fun toggleAllowSkipIfLarger() = settingsScope { toggleAllowSkipIfLarger() }
+
+    fun toggleIsScreenSelectionLauncherMode() =
+        settingsScope { toggleIsScreenSelectionLauncherMode() }
+
+    fun setSnowfallMode(snowfallMode: SnowfallMode) =
+        settingsScope { setSnowfallMode(snowfallMode) }
+
+    fun setDefaultImageFormat(imageFormat: ImageFormat?) =
+        settingsScope { setDefaultImageFormat(imageFormat) }
+
+    fun setDefaultQuality(quality: Quality) =
+        settingsScope { setDefaultQuality(quality) }
 
     private inline fun settingsScope(
         crossinline action: suspend SettingsManager.() -> Unit

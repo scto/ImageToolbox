@@ -26,7 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.core.net.toUri
 import com.arkivanov.decompose.ComponentContext
-import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
+import com.t8rin.imagetoolbox.core.domain.coroutines.DispatchersHolder
 import com.t8rin.imagetoolbox.core.domain.image.ImageCompressor
 import com.t8rin.imagetoolbox.core.domain.image.ImageGetter
 import com.t8rin.imagetoolbox.core.domain.image.ImageScaler
@@ -36,6 +36,8 @@ import com.t8rin.imagetoolbox.core.domain.image.model.ImageInfo
 import com.t8rin.imagetoolbox.core.domain.saving.FileController
 import com.t8rin.imagetoolbox.core.domain.saving.model.ImageSaveTarget
 import com.t8rin.imagetoolbox.core.domain.saving.model.SaveResult
+import com.t8rin.imagetoolbox.core.domain.saving.restoreObject
+import com.t8rin.imagetoolbox.core.domain.saving.saveObject
 import com.t8rin.imagetoolbox.core.domain.utils.smartJob
 import com.t8rin.imagetoolbox.core.ui.utils.BaseComponent
 import com.t8rin.imagetoolbox.core.ui.utils.navigation.Screen
@@ -45,6 +47,7 @@ import com.t8rin.imagetoolbox.feature.draw.domain.DrawPathMode
 import com.t8rin.imagetoolbox.feature.draw.domain.ImageDrawApplier
 import com.t8rin.imagetoolbox.feature.draw.presentation.components.UiPathPaint
 import com.t8rin.imagetoolbox.feature.erase_background.domain.AutoBackgroundRemover
+import com.t8rin.imagetoolbox.feature.erase_background.domain.model.ModelType
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -121,10 +124,7 @@ class EraseBackgroundComponent @AssistedInject internal constructor(
 
     init {
         componentScope.launch {
-            val params = fileController.restoreObject(
-                "helperGridParams",
-                HelperGridParams::class
-            ) ?: HelperGridParams()
+            val params = fileController.restoreObject<HelperGridParams>() ?: HelperGridParams()
             _helperGridParams.update { params }
         }
     }
@@ -184,6 +184,7 @@ class EraseBackgroundComponent @AssistedInject internal constructor(
                     fileController.save(
                         saveTarget = ImageSaveTarget(
                             imageInfo = ImageInfo(
+                                originalUri = _uri.value.toString(),
                                 imageFormat = imageFormat,
                                 width = localBitmap.width,
                                 height = localBitmap.height
@@ -193,6 +194,7 @@ class EraseBackgroundComponent @AssistedInject internal constructor(
                             data = imageCompressor.compressAndTransform(
                                 image = localBitmap,
                                 imageInfo = ImageInfo(
+                                    originalUri = _uri.value.toString(),
                                     imageFormat = imageFormat,
                                     width = localBitmap.width,
                                     height = localBitmap.height
@@ -232,6 +234,7 @@ class EraseBackgroundComponent @AssistedInject internal constructor(
                 _isSaving.value = true
                 shareProvider.shareImage(
                     imageInfo = ImageInfo(
+                        originalUri = _uri.value.toString(),
                         imageFormat = imageFormat,
                         width = it.width,
                         height = it.height
@@ -298,15 +301,18 @@ class EraseBackgroundComponent @AssistedInject internal constructor(
     }
 
     private var autoEraseCount: Int = 0
+
     fun autoEraseBackground(
+        modelType: ModelType,
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
         componentScope.launch {
-            getErasedBitmap(false)?.let { bitmap1 ->
+            getErasedBitmap(false)?.let { image ->
                 _isErasingBG.value = true
                 autoBackgroundRemover.removeBackgroundFromImage(
-                    image = bitmap1,
+                    image = image,
+                    modelType = modelType,
                     onSuccess = {
                         _bitmap.value = it
                         _paths.value = listOf()
@@ -354,6 +360,7 @@ class EraseBackgroundComponent @AssistedInject internal constructor(
                 shareProvider.cacheImage(
                     image = image,
                     imageInfo = ImageInfo(
+                        originalUri = _uri.value.toString(),
                         imageFormat = imageFormat,
                         width = image.width,
                         height = image.height
@@ -379,10 +386,7 @@ class EraseBackgroundComponent @AssistedInject internal constructor(
 
         smartSavingJob = componentScope.launch {
             delay(200)
-            fileController.saveObject(
-                key = "helperGridParams",
-                value = params
-            )
+            fileController.saveObject(params)
         }
     }
 

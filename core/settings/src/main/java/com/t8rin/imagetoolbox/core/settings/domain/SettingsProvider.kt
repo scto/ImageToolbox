@@ -18,18 +18,12 @@
 package com.t8rin.imagetoolbox.core.settings.domain
 
 import com.t8rin.imagetoolbox.core.settings.domain.model.SettingsState
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 interface SettingsProvider {
 
+    val settingsState: StateFlow<SettingsState>
+
     suspend fun getSettingsState(): SettingsState
-
-    fun getSettingsStateFlow(): Flow<SettingsState>
-
-    fun getNeedToShowTelegramGroupDialog(): Flow<Boolean>
-
-    suspend fun getInitialOCRLanguageCodes(): List<String>
-
-    suspend fun getInitialOcrMode(): Int
 
 }

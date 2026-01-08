@@ -33,7 +33,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
@@ -47,6 +46,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -63,7 +63,7 @@ fun PreferenceRow(
     modifier: Modifier = Modifier,
     title: String,
     subtitle: String? = null,
-    color: Color = Color.Unspecified,
+    containerColor: Color = Color.Unspecified,
     enabled: Boolean = true,
     shape: Shape = ShapeDefaults.default,
     pressedShape: Shape = ShapeDefaults.pressed,
@@ -72,7 +72,7 @@ fun PreferenceRow(
     maxLines: Int = Int.MAX_VALUE,
     startContent: (@Composable () -> Unit)? = null,
     endContent: (@Composable () -> Unit)? = null,
-    titleFontStyle: TextStyle = LocalTextStyle.current.copy(lineHeight = 18.sp),
+    titleFontStyle: TextStyle = PreferenceItemDefaults.TitleFontStyle,
     resultModifier: Modifier = Modifier.padding(
         horizontal = if (startContent != null) 0.dp else 16.dp,
         vertical = 8.dp
@@ -93,7 +93,7 @@ fun PreferenceRow(
     )
 
     val internalColor = contentColor
-        ?: contentColorFor(backgroundColor = color)
+        ?: contentColorFor(backgroundColor = containerColor)
     CompositionLocalProvider(
         LocalContentColor provides internalColor,
         LocalSettingsState provides LocalSettingsState.current.let {
@@ -115,7 +115,7 @@ fun PreferenceRow(
             .then(
                 if (drawContainer) {
                     Modifier.container(
-                        color = color,
+                        color = containerColor,
                         shape = animatedShape,
                         resultPadding = 0.dp,
                         autoShadowElevation = autoShadowElevation
@@ -148,14 +148,14 @@ fun PreferenceRow(
                 else Modifier
             )
 
-        val rowContent: @Composable (Modifier) -> Unit = {
+        val rowContent: @Composable (Modifier) -> Unit = { modifier ->
             Row(
-                modifier = it,
+                modifier = modifier,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 startContent?.let { content ->
                     ProvideContainerDefaults(
-                        color = color
+                        color = containerColor
                     ) {
                         if (drawStartIconContainer) {
                             IconShapeContainer(
@@ -179,7 +179,6 @@ fun PreferenceRow(
                             text = it,
                             maxLines = maxLines,
                             style = titleFontStyle,
-                            fontWeight = FontWeight.Medium,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -194,6 +193,7 @@ fun PreferenceRow(
                             Text(
                                 text = it,
                                 fontSize = 12.sp,
+                                textAlign = TextAlign.Start,
                                 fontWeight = FontWeight.Normal,
                                 lineHeight = 14.sp,
                                 color = LocalContentColor.current.copy(alpha = 0.5f)
@@ -233,7 +233,7 @@ fun PreferenceRow(
     changeAlphaWhenDisabled: Boolean = true,
     contentColor: Color? = null,
     shape: Shape = ShapeDefaults.default,
-    titleFontStyle: TextStyle = LocalTextStyle.current.copy(lineHeight = 18.sp),
+    titleFontStyle: TextStyle = PreferenceItemDefaults.TitleFontStyle,
     startIcon: ImageVector?,
     endContent: (@Composable () -> Unit)? = null,
     additionalContent: (@Composable () -> Unit)? = null,
@@ -246,7 +246,7 @@ fun PreferenceRow(
         subtitle = subtitle,
         changeAlphaWhenDisabled = changeAlphaWhenDisabled,
         autoShadowElevation = autoShadowElevation,
-        color = color,
+        containerColor = color,
         contentColor = contentColor,
         shape = shape,
         titleFontStyle = titleFontStyle,

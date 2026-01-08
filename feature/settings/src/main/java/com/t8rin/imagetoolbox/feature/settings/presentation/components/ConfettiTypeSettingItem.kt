@@ -26,7 +26,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ViewKanban
+import androidx.compose.material.icons.outlined.Emergency
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -87,8 +87,9 @@ fun ConfettiTypeSettingItem(
                     bottom = 16.dp,
                     start = 12.dp
                 ),
+                iconEndPadding = 14.dp,
                 text = stringResource(R.string.confetti_type),
-                icon = Icons.Outlined.ViewKanban
+                icon = Icons.Outlined.Emergency
             )
 
             FlowRow(

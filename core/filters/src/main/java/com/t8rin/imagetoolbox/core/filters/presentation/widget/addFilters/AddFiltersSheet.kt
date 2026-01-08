@@ -47,20 +47,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Animation
 import androidx.compose.material.icons.rounded.AutoFixHigh
-import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.EditRoad
-import androidx.compose.material.icons.rounded.Extension
-import androidx.compose.material.icons.rounded.FilterHdr
-import androidx.compose.material.icons.rounded.FormatColorFill
-import androidx.compose.material.icons.rounded.LensBlur
-import androidx.compose.material.icons.rounded.Light
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.SearchOff
-import androidx.compose.material.icons.rounded.Speed
-import androidx.compose.material.icons.rounded.TableChart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryScrollableTabRow
@@ -79,8 +69,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -88,16 +76,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.t8rin.imagetoolbox.core.domain.utils.ListUtils.filterIsNotInstance
-import com.t8rin.imagetoolbox.core.filters.domain.model.Filter
 import com.t8rin.imagetoolbox.core.filters.presentation.model.UiFilter
 import com.t8rin.imagetoolbox.core.filters.presentation.utils.collectAsUiState
 import com.t8rin.imagetoolbox.core.filters.presentation.widget.FilterPreviewSheet
 import com.t8rin.imagetoolbox.core.filters.presentation.widget.FilterSelectionItem
 import com.t8rin.imagetoolbox.core.filters.presentation.widget.FilterTemplateCreationSheetComponent
 import com.t8rin.imagetoolbox.core.resources.R
-import com.t8rin.imagetoolbox.core.resources.icons.Cube
 import com.t8rin.imagetoolbox.core.ui.utils.helper.ContextUtils.getStringLocalized
+import com.t8rin.imagetoolbox.core.ui.utils.provider.LocalComponentActivity
 import com.t8rin.imagetoolbox.core.ui.utils.provider.rememberLocalEssentials
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedBottomSheetDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedButton
@@ -111,9 +97,11 @@ import com.t8rin.imagetoolbox.core.ui.widget.modifier.shapeByInteraction
 import com.t8rin.imagetoolbox.core.ui.widget.text.AutoSizeText
 import com.t8rin.imagetoolbox.core.ui.widget.text.RoundedTextField
 import com.t8rin.imagetoolbox.core.ui.widget.text.TitleItem
-import com.t8rin.imagetoolbox.core.ui.widget.utils.rememberForeverLazyListState
+import com.t8rin.imagetoolbox.core.ui.widget.utils.rememberRetainedLazyListState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
 
 @Composable
@@ -127,26 +115,25 @@ fun AddFiltersSheet(
     onFilterPickedWithParams: (UiFilter<*>) -> Unit,
     canAddTemplates: Boolean = true
 ) {
-    val context = LocalContext.current
-    val groupedFilters by remember(context, canAddTemplates) {
+    val context = LocalComponentActivity.current
+
+    val favoriteFilters by component.favoritesFlow.collectAsUiState()
+
+    val tabs: List<UiFilter.Group> by remember(canAddTemplates, favoriteFilters) {
         derivedStateOf {
-            UiFilter.groupedEntries(context).let { lists ->
-                if (canAddTemplates) lists
-                else lists.map {
-                    it.filterIsNotInstance(
-                        Filter.PaletteTransfer::class,
-                        Filter.LUT512x512::class,
-                        Filter.PaletteTransferVariant::class,
-                        Filter.CubeLut::class,
-                        Filter.LensCorrection::class
-                    )
+            buildList {
+                if (canAddTemplates) {
+                    add(UiFilter.Group.Template)
                 }
+                add(UiFilter.Group.Favorite(favoriteFilters))
+                addAll(UiFilter.groups)
             }
         }
     }
+
     val haptics = LocalHapticFeedback.current
     val pagerState = rememberPagerState(
-        pageCount = { groupedFilters.size + if (canAddTemplates) 2 else 1 },
+        pageCount = { tabs.size },
         initialPage = 2
     )
 
@@ -155,61 +142,41 @@ fun AddFiltersSheet(
     val essentials = rememberLocalEssentials()
     val scope = essentials.coroutineScope
 
-    val favoriteFilters by component.favoritesFlow.collectAsUiState()
-
-    val tabs: List<Pair<ImageVector, String>> by remember(canAddTemplates) {
-        derivedStateOf {
-            listOf(
-                Icons.Rounded.Bookmark to context.getString(R.string.favorite),
-                Icons.Rounded.Speed to context.getString(R.string.simple_effects),
-                Icons.Rounded.FormatColorFill to context.getString(R.string.color),
-                Icons.Rounded.TableChart to context.getString(R.string.lut),
-                Icons.Rounded.Light to context.getString(R.string.light_aka_illumination),
-                Icons.Rounded.FilterHdr to context.getString(R.string.effect),
-                Icons.Rounded.LensBlur to context.getString(R.string.blur),
-                Icons.Rounded.Cube to context.getString(R.string.pixelation),
-                Icons.Rounded.Animation to context.getString(R.string.distortion),
-                Icons.Rounded.EditRoad to context.getString(R.string.dithering)
-            ).let {
-                if (canAddTemplates) listOf(
-                    Icons.Rounded.Extension to context.getString(R.string.template)
-                ) + it
-                else it
-            }
-        }
-    }
-
     var isSearching by rememberSaveable {
         mutableStateOf(false)
     }
     var searchKeyword by rememberSaveable(isSearching) {
         mutableStateOf("")
     }
-    var filtersForSearch by remember {
-        mutableStateOf(
-            groupedFilters.flatten().sortedBy { context.getString(it.title) }
-        )
+    val allFilters = remember {
+        tabs.flatMap { group ->
+            group.filters(canAddTemplates).sortedBy { context.getString(it.title) }
+        }
+    }
+    var filtersForSearch by remember(allFilters) {
+        mutableStateOf(allFilters)
     }
     LaunchedEffect(searchKeyword) {
-        delay(400L) // Debounce calculations
-        if (searchKeyword.isEmpty()) {
-            filtersForSearch = groupedFilters.flatten().sortedBy { context.getString(it.title) }
-            return@LaunchedEffect
-        }
+        withContext(Dispatchers.Default) {
+            delay(400L) // Debounce calculations
+            if (searchKeyword.isEmpty()) {
+                filtersForSearch = allFilters
+                return@withContext
+            }
 
-        filtersForSearch = groupedFilters.flatten().filter {
-            context.getString(it.title).contains(
-                other = searchKeyword,
-                ignoreCase = true
-            ).or(
-                context.getStringLocalized(
-                    it.title, Locale.ENGLISH
+            filtersForSearch = allFilters.filter {
+                context.getString(it.title).contains(
+                    other = searchKeyword,
+                    ignoreCase = true
+                ) || context.getStringLocalized(
+                    resId = it.title,
+                    locale = Locale.ENGLISH
                 ).contains(
                     other = searchKeyword,
                     ignoreCase = true
                 )
-            )
-        }.sortedBy { context.getString(it.title) }
+            }.sortedBy { context.getString(it.title) }
+        }
     }
 
     EnhancedModalBottomSheet(
@@ -276,7 +243,7 @@ fun AddFiltersSheet(
                                     },
                                     text = {
                                         Text(
-                                            text = title,
+                                            text = stringResource(title),
                                             color = color
                                         )
                                     }
@@ -300,7 +267,7 @@ fun AddFiltersSheet(
                     ) { isNotEmpty ->
                         if (isNotEmpty) {
                             LazyColumn(
-                                state = rememberForeverLazyListState("sheet"),
+                                state = rememberRetainedLazyListState("sheet"),
                                 verticalArrangement = Arrangement.spacedBy(4.dp),
                                 modifier = Modifier.animateContentSizeNoClip(),
                                 contentPadding = PaddingValues(16.dp)
@@ -373,54 +340,41 @@ fun AddFiltersSheet(
                         state = pagerState,
                         beyondViewportPageCount = 2
                     ) { page ->
-                        val templatesContent = @Composable {
-                            TemplatesContent(
-                                component = component,
-                                filterTemplateCreationSheetComponent = filterTemplateCreationSheetComponent,
-                                onVisibleChange = onVisibleChange,
-                                onFilterPickedWithParams = onFilterPickedWithParams
-                            )
-                        }
-                        val favoritesContent = @Composable {
-                            FavoritesContent(
-                                component = component,
-                                onVisibleChange = onVisibleChange,
-                                onFilterPickedWithParams = onFilterPickedWithParams,
-                                onFilterPicked = onFilterPicked,
-                                previewBitmap = previewBitmap
-                            )
-                        }
-                        val otherContent = @Composable {
-                            val filters by remember(page) {
-                                derivedStateOf {
-                                    groupedFilters[page - if (canAddTemplates) 2 else 1]
+                        when (val group = tabs[page]) {
+                            is UiFilter.Group.Template -> {
+                                TemplatesContent(
+                                    component = component,
+                                    filterTemplateCreationSheetComponent = filterTemplateCreationSheetComponent,
+                                    onVisibleChange = onVisibleChange,
+                                    onFilterPickedWithParams = onFilterPickedWithParams
+                                )
+                            }
+
+                            is UiFilter.Group.Favorite -> {
+                                FavoritesContent(
+                                    component = component,
+                                    onVisibleChange = onVisibleChange,
+                                    onFilterPickedWithParams = onFilterPickedWithParams,
+                                    onFilterPicked = onFilterPicked,
+                                    previewBitmap = previewBitmap
+                                )
+                            }
+
+                            else -> {
+                                val filters by remember(group, canAddTemplates) {
+                                    derivedStateOf {
+                                        group.filters(canAddTemplates)
+                                    }
                                 }
-                            }
-                            OtherContent(
-                                component = component,
-                                tabs = tabs,
-                                page = page,
-                                filters = filters,
-                                onVisibleChange = onVisibleChange,
-                                onFilterPickedWithParams = onFilterPickedWithParams,
-                                onFilterPicked = onFilterPicked,
-                                previewBitmap = previewBitmap
-                            )
-                        }
-
-                        if (canAddTemplates) {
-                            when (page) {
-                                0 -> templatesContent()
-
-                                1 -> favoritesContent()
-
-                                else -> otherContent()
-                            }
-                        } else {
-                            when (page) {
-                                0 -> favoritesContent()
-
-                                else -> otherContent()
+                                OtherContent(
+                                    component = component,
+                                    currentGroup = group,
+                                    filters = filters,
+                                    onVisibleChange = onVisibleChange,
+                                    onFilterPickedWithParams = onFilterPickedWithParams,
+                                    onFilterPicked = onFilterPicked,
+                                    previewBitmap = previewBitmap
+                                )
                             }
                         }
                     }

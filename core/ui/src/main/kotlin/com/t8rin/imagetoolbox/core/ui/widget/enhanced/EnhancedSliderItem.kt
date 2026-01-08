@@ -90,7 +90,7 @@ fun EnhancedSliderItem(
     valueSuffix: String = "",
     internalStateTransformation: (Float) -> Number = { it },
     visible: Boolean = true,
-    color: Color = Color.Unspecified,
+    containerColor: Color = Color.Unspecified,
     contentColor: Color? = null,
     shape: Shape = ShapeDefaults.default,
     valueTextTapEnabled: Boolean = true,
@@ -99,12 +99,16 @@ fun EnhancedSliderItem(
     titleHorizontalPadding: Dp = if (behaveAsContainer) 16.dp
     else 6.dp,
     valuesPreviewMapping: ImmutableMap<Float, String> = remember { persistentMapOf() },
-    additionalContent: (@Composable () -> Unit)? = null,
+    titleFontWeight: FontWeight = if (behaveAsContainer) {
+        FontWeight.Medium
+    } else FontWeight.Normal,
+    isAnimated: Boolean = true,
+    additionalContent: (@Composable () -> Unit)? = null
 ) {
     val internalColor = contentColor
-        ?: if (color == MaterialTheme.colorScheme.surfaceContainer) {
+        ?: if (containerColor == MaterialTheme.colorScheme.surfaceContainer) {
             contentColorFor(backgroundColor = MaterialTheme.colorScheme.surfaceVariant)
-        } else contentColorFor(backgroundColor = color)
+        } else contentColorFor(backgroundColor = containerColor)
 
     var showValueDialog by rememberSaveable { mutableStateOf(false) }
     val internalState = remember(value) { mutableStateOf(value) }
@@ -122,7 +126,7 @@ fun EnhancedSliderItem(
                         if (behaveAsContainer) {
                             Modifier.container(
                                 shape = shape,
-                                color = color
+                                color = containerColor
                             )
                         } else Modifier
                     )
@@ -147,42 +151,43 @@ fun EnhancedSliderItem(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 val slider = @Composable {
-                    AnimatedContent(
-                        targetState = Pair(
-                            valueRange,
-                            steps
-                        )
-                    ) { (valueRange, steps) ->
-                        EnhancedSlider(
-                            modifier = if (isCompactLayout) {
-                                Modifier.padding(
-                                    top = topContentPadding,
-                                    start = 12.dp,
-                                    end = 12.dp
-                                )
-                            } else {
-                                sliderModifier
-//                                Modifier.padding(
-//                                    top = 6.dp,
-//                                    bottom = 6.dp,
-//                                    end = 6.dp,
-//                                    start = titleHorizontalPadding
-//                                )
-                            },
-                            enabled = enabled,
-                            value = internalState.value.toFloat(),
-                            onValueChange = {
-                                internalState.value = internalStateTransformation(it)
-                                onValueChange(it)
-                            },
-                            onValueChangeFinished = onValueChangeFinished?.let {
-                                {
-                                    it(internalState.value.toFloat())
-                                }
-                            },
-                            valueRange = valueRange,
-                            steps = steps
-                        )
+                    val nonAnimated: @Composable (ClosedFloatingPointRange<Float>, Int) -> Unit =
+                        { valueRange, steps ->
+                            EnhancedSlider(
+                                modifier = if (isCompactLayout) {
+                                    Modifier.padding(
+                                        top = topContentPadding,
+                                        start = 12.dp,
+                                        end = 12.dp
+                                    )
+                                } else {
+                                    sliderModifier
+                                },
+                                enabled = enabled,
+                                value = internalState.value.toFloat(),
+                                onValueChange = {
+                                    internalState.value = internalStateTransformation(it)
+                                    onValueChange(it)
+                                },
+                                onValueChangeFinished = onValueChangeFinished?.let {
+                                    {
+                                        it(internalState.value.toFloat())
+                                    }
+                                },
+                                valueRange = valueRange,
+                                steps = steps,
+                                isAnimated = isAnimated
+                            )
+                        }
+
+                    if (isAnimated) {
+                        AnimatedContent(
+                            targetState = valueRange to steps
+                        ) { (valueRange, steps) ->
+                            nonAnimated(valueRange, steps)
+                        }
+                    } else {
+                        nonAnimated(valueRange, steps)
                     }
                 }
                 AnimatedContent(
@@ -320,9 +325,7 @@ fun EnhancedSliderItem(
                                         )
                                         .weight(1f),
                                     lineHeight = 18.sp,
-                                    fontWeight = if (behaveAsContainer) {
-                                        FontWeight.Medium
-                                    } else FontWeight.Normal
+                                    fontWeight = titleFontWeight
                                 )
                                 ValueText(
                                     enabled = valueTextTapEnabled && enabled,

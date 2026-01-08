@@ -34,7 +34,7 @@ dependencies {
     implementation(projects.feature.weightResize)
     implementation(projects.feature.compare)
     implementation(projects.feature.deleteExif)
-    implementation(projects.feature.generatePalette)
+    implementation(projects.feature.paletteTools)
     implementation(projects.feature.resizeConvert)
     implementation(projects.feature.pdfTools)
     implementation(projects.feature.singleEdit)
@@ -71,4 +71,7 @@ dependencies {
     implementation(projects.feature.imageCutting)
     implementation(projects.feature.audioCoverExtractor)
     implementation(projects.feature.libraryDetails)
+    implementation(projects.feature.wallpapersExport)
+    implementation(projects.feature.asciiArt)
+    implementation(projects.feature.aiTools)
 }

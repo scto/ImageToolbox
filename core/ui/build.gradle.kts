@@ -26,6 +26,7 @@ android.namespace = "com.t8rin.imagetoolbox.core.ui"
 dependencies {
     api(projects.core.resources)
     api(projects.core.domain)
+    api(projects.core.utils)
     implementation(projects.core.di)
     implementation(projects.core.settings)
 
@@ -94,8 +95,13 @@ dependencies {
     "marketImplementation"(libs.quickie.bundled)
     "fossImplementation"(libs.quickie.foss)
     implementation(libs.zxing.android.embedded)
+
+    implementation(libs.toolbox.qrose)
+
     implementation(libs.jsoup)
 
-    api(libs.capturable)
+    api(libs.androidliquidglass)
+    api(libs.capsule)
+
     api(libs.evaluator)
 }

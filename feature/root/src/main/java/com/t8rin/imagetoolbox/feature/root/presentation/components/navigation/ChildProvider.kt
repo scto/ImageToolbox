@@ -21,7 +21,9 @@ import com.arkivanov.decompose.ComponentContext
 import com.t8rin.imagetoolbox.collage_maker.presentation.screenLogic.CollageMakerComponent
 import com.t8rin.imagetoolbox.color_tools.presentation.screenLogic.ColorToolsComponent
 import com.t8rin.imagetoolbox.core.ui.utils.navigation.Screen
+import com.t8rin.imagetoolbox.feature.ai_tools.presentation.screenLogic.AiToolsComponent
 import com.t8rin.imagetoolbox.feature.apng_tools.presentation.screenLogic.ApngToolsComponent
+import com.t8rin.imagetoolbox.feature.ascii_art.presentation.screenLogic.AsciiArtComponent
 import com.t8rin.imagetoolbox.feature.audio_cover_extractor.ui.screenLogic.AudioCoverExtractorComponent
 import com.t8rin.imagetoolbox.feature.base64_tools.presentation.screenLogic.Base64ToolsComponent
 import com.t8rin.imagetoolbox.feature.checksum_tools.presentation.screenLogic.ChecksumToolsComponent
@@ -36,7 +38,6 @@ import com.t8rin.imagetoolbox.feature.edit_exif.presentation.screenLogic.EditExi
 import com.t8rin.imagetoolbox.feature.erase_background.presentation.screenLogic.EraseBackgroundComponent
 import com.t8rin.imagetoolbox.feature.filters.presentation.screenLogic.FiltersComponent
 import com.t8rin.imagetoolbox.feature.format_conversion.presentation.screenLogic.FormatConversionComponent
-import com.t8rin.imagetoolbox.feature.generate_palette.presentation.screenLogic.GeneratePaletteComponent
 import com.t8rin.imagetoolbox.feature.gif_tools.presentation.screenLogic.GifToolsComponent
 import com.t8rin.imagetoolbox.feature.gradient_maker.presentation.screenLogic.GradientMakerComponent
 import com.t8rin.imagetoolbox.feature.image_preview.presentation.screenLogic.ImagePreviewComponent
@@ -49,11 +50,14 @@ import com.t8rin.imagetoolbox.feature.load_net_image.presentation.screenLogic.Lo
 import com.t8rin.imagetoolbox.feature.main.presentation.screenLogic.MainComponent
 import com.t8rin.imagetoolbox.feature.markup_layers.presentation.screenLogic.MarkupLayersComponent
 import com.t8rin.imagetoolbox.feature.mesh_gradients.presentation.screenLogic.MeshGradientsComponent
+import com.t8rin.imagetoolbox.feature.palette_tools.presentation.screenLogic.PaletteToolsComponent
 import com.t8rin.imagetoolbox.feature.pdf_tools.presentation.screenLogic.PdfToolsComponent
 import com.t8rin.imagetoolbox.feature.pick_color.presentation.screenLogic.PickColorFromImageComponent
 import com.t8rin.imagetoolbox.feature.recognize.text.presentation.screenLogic.RecognizeTextComponent
 import com.t8rin.imagetoolbox.feature.resize_convert.presentation.screenLogic.ResizeAndConvertComponent
+import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.AiTools
 import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.ApngTools
+import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.AsciiArt
 import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.AudioCoverExtractor
 import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.Base64Tools
 import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.ChecksumTools
@@ -70,7 +74,6 @@ import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.Na
 import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.EraseBackground
 import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.Filter
 import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.FormatConversion
-import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.GeneratePalette
 import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.GifTools
 import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.GradientMaker
 import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.ImageCutter
@@ -87,6 +90,7 @@ import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.Na
 import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.MarkupLayers
 import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.MeshGradients
 import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.NoiseGeneration
+import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.PaletteTools
 import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.PdfTools
 import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.PickColorFromImage
 import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.RecognizeText
@@ -95,6 +99,7 @@ import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.Na
 import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.Settings
 import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.SingleEdit
 import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.SvgMaker
+import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.WallpapersExport
 import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.Watermarking
 import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.WebpTools
 import com.t8rin.imagetoolbox.feature.root.presentation.components.navigation.NavigationChild.WeightResize
@@ -104,6 +109,7 @@ import com.t8rin.imagetoolbox.feature.scan_qr_code.presentation.screenLogic.Scan
 import com.t8rin.imagetoolbox.feature.settings.presentation.screenLogic.SettingsComponent
 import com.t8rin.imagetoolbox.feature.single_edit.presentation.screenLogic.SingleEditComponent
 import com.t8rin.imagetoolbox.feature.svg_maker.presentation.screenLogic.SvgMakerComponent
+import com.t8rin.imagetoolbox.feature.wallpapers_export.presentation.screenLogic.WallpapersExportComponent
 import com.t8rin.imagetoolbox.feature.watermarking.presentation.screenLogic.WatermarkingComponent
 import com.t8rin.imagetoolbox.feature.webp_tools.presentation.screenLogic.WebpToolsComponent
 import com.t8rin.imagetoolbox.feature.weight_resize.presentation.screenLogic.WeightResizeComponent
@@ -126,7 +132,7 @@ internal class ChildProvider @Inject constructor(
     private val eraseBackgroundComponentFactory: EraseBackgroundComponent.Factory,
     private val filtersComponentFactory: FiltersComponent.Factory,
     private val formatConversionComponentFactory: FormatConversionComponent.Factory,
-    private val generatePaletteComponentFactory: GeneratePaletteComponent.Factory,
+    private val paletteToolsComponentFactory: PaletteToolsComponent.Factory,
     private val gifToolsComponentFactory: GifToolsComponent.Factory,
     private val gradientMakerComponentFactory: GradientMakerComponent.Factory,
     private val imagePreviewComponentFactory: ImagePreviewComponent.Factory,
@@ -161,6 +167,9 @@ internal class ChildProvider @Inject constructor(
     private val imageCutterComponentFactory: ImageCutterComponent.Factory,
     private val audioCoverExtractorComponentFactory: AudioCoverExtractorComponent.Factory,
     private val libraryDetailsComponentFactory: LibraryDetailsComponent.Factory,
+    private val wallpapersExportComponentFactory: WallpapersExportComponent.Factory,
+    private val asciiArtComponentFactory: AsciiArtComponent.Factory,
+    private val aiToolsComponentFactory: AiToolsComponent.Factory,
 ) {
     fun RootComponent.createChild(
         config: Screen,
@@ -288,8 +297,8 @@ internal class ChildProvider @Inject constructor(
             )
         )
 
-        is Screen.GeneratePalette -> GeneratePalette(
-            generatePaletteComponentFactory(
+        is Screen.PaletteTools -> PaletteTools(
+            paletteToolsComponentFactory(
                 componentContext = componentContext,
                 initialUri = config.uri,
                 onGoBack = ::navigateBack
@@ -566,7 +575,33 @@ internal class ChildProvider @Inject constructor(
                 componentContext = componentContext,
                 onGoBack = ::navigateBack,
                 libraryName = config.name,
-                libraryDescription = config.htmlDescription
+                libraryDescription = config.htmlDescription,
+                libraryLink = config.link
+            )
+        )
+
+        is Screen.WallpapersExport -> WallpapersExport(
+            wallpapersExportComponentFactory(
+                componentContext = componentContext,
+                onGoBack = ::navigateBack,
+                onNavigate = ::navigateTo
+            )
+        )
+
+        is Screen.AsciiArt -> AsciiArt(
+            asciiArtComponentFactory(
+                componentContext = componentContext,
+                initialUri = config.uri,
+                onGoBack = ::navigateBack
+            )
+        )
+
+        is Screen.AiTools -> AiTools(
+            aiToolsComponentFactory(
+                componentContext = componentContext,
+                initialUris = config.uris,
+                onGoBack = ::navigateBack,
+                onNavigate = ::navigateTo
             )
         )
     }

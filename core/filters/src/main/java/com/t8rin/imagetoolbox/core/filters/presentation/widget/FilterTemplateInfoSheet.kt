@@ -37,8 +37,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoFixHigh
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Extension
 import androidx.compose.material.icons.rounded.FilePresent
 import androidx.compose.material.icons.rounded.QrCode
@@ -74,7 +72,10 @@ import com.t8rin.imagetoolbox.core.filters.domain.model.TemplateFilter
 import com.t8rin.imagetoolbox.core.filters.presentation.model.UiFilter
 import com.t8rin.imagetoolbox.core.filters.presentation.model.toUiFilter
 import com.t8rin.imagetoolbox.core.resources.R
+import com.t8rin.imagetoolbox.core.resources.icons.Delete
 import com.t8rin.imagetoolbox.core.resources.icons.EditAlt
+import com.t8rin.imagetoolbox.core.ui.utils.capturable.capturable
+import com.t8rin.imagetoolbox.core.ui.utils.capturable.rememberCaptureController
 import com.t8rin.imagetoolbox.core.ui.utils.content_pickers.rememberFileCreator
 import com.t8rin.imagetoolbox.core.ui.utils.helper.LocalFilterPreviewModelProvider
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedAlertDialog
@@ -86,11 +87,10 @@ import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.shimmer
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.transparencyChecker
 import com.t8rin.imagetoolbox.core.ui.widget.other.QrCode
+import com.t8rin.imagetoolbox.core.ui.widget.other.QrCodeParams
 import com.t8rin.imagetoolbox.core.ui.widget.preferences.PreferenceItem
 import com.t8rin.imagetoolbox.core.ui.widget.preferences.PreferenceItemDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.text.TitleItem
-import dev.shreyaspatil.capturable.capturable
-import dev.shreyaspatil.capturable.controller.rememberCaptureController
 import kotlinx.coroutines.launch
 
 @Composable
@@ -175,6 +175,7 @@ internal fun FilterTemplateInfoSheet(
                         ) {
                             QrCode(
                                 content = filterContent,
+                                qrParams = QrCodeParams(),
                                 modifier = Modifier
                                     .padding(top = 36.dp, bottom = 16.dp)
                                     .size(targetSize)
@@ -208,7 +209,7 @@ internal fun FilterTemplateInfoSheet(
                         containerColor = MaterialTheme.colorScheme.error
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.DeleteOutline,
+                            imageVector = Icons.Outlined.Delete,
                             contentDescription = stringResource(R.string.delete)
                         )
                     }

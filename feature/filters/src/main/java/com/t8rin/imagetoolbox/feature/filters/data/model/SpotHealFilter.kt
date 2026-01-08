@@ -22,12 +22,16 @@ import com.t8rin.imagetoolbox.core.domain.model.ImageModel
 import com.t8rin.imagetoolbox.core.domain.model.IntegerSize
 import com.t8rin.imagetoolbox.core.domain.transformation.Transformation
 import com.t8rin.imagetoolbox.core.filters.domain.model.Filter
+import com.t8rin.imagetoolbox.core.filters.domain.model.enums.SpotHealMode
+import com.t8rin.imagetoolbox.core.ksp.annotations.FilterInject
 import com.t8rin.imagetoolbox.feature.filters.data.utils.image.loadBitmap
+import com.t8rin.neural_tools.inpaint.LaMaProcessor
 import com.t8rin.opencv_tools.spot_heal.SpotHealer
 import com.t8rin.opencv_tools.spot_heal.model.HealType
 
+@FilterInject
 internal class SpotHealFilter(
-    override val value: Triple<ImageModel, Float, Int>,
+    override val value: Pair<ImageModel, SpotHealMode>,
 ) : Transformation<Bitmap>, Filter.SpotHeal {
 
     override val cacheKey: String
@@ -39,15 +43,38 @@ internal class SpotHealFilter(
     ): Bitmap {
         val mask = value.first.data.loadBitmap() ?: return input
 
-        return SpotHealer.heal(
-            image = input,
-            mask = mask,
-            radius = value.second,
-            type = when (value.third) {
-                0 -> HealType.NS
-                else -> HealType.TELEA
-            }
-        )
+        return when (value.second) {
+            SpotHealMode.OpenCV -> openCV(
+                input = input,
+                mask = mask
+            )
+
+            SpotHealMode.LaMa -> lama(
+                input = input,
+                mask = mask
+            )
+        }
     }
+
+    private fun openCV(
+        input: Bitmap,
+        mask: Bitmap
+    ) = SpotHealer.heal(
+        image = input,
+        mask = mask,
+        radius = 3f,
+        type = HealType.TELEA
+    )
+
+    private fun lama(
+        input: Bitmap,
+        mask: Bitmap
+    ) = LaMaProcessor.inpaint(
+        image = input,
+        mask = mask
+    ) ?: openCV(
+        input = input,
+        mask = mask
+    )
 
 }

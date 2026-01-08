@@ -127,7 +127,7 @@ internal fun OCRLanguagesColumn(
                 Spacer(modifier = Modifier.height(20.dp))
                 PreferenceRowSwitch(
                     title = stringResource(R.string.allow_multiple_languages),
-                    color = animateColorAsState(
+                    containerColor = animateColorAsState(
                         if (allowMultipleLanguagesSelection) MaterialTheme.colorScheme.primaryContainer
                         else MaterialTheme.colorScheme.surfaceContainer
                     ).value,
@@ -259,7 +259,7 @@ internal fun OCRLanguagesColumn(
                         lang = lang
                     )
                 },
-                color = animateColorAsState(
+                containerColor = animateColorAsState(
                     if (selected) {
                         MaterialTheme.colorScheme.surfaceColorAtElevation(20.dp)
                     } else EnhancedBottomSheetDefaults.contentContainerColor

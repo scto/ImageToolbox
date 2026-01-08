@@ -17,14 +17,17 @@
 
 package com.t8rin.imagetoolbox.core.settings.domain.model
 
+import com.t8rin.imagetoolbox.core.domain.image.model.ImageFormat
 import com.t8rin.imagetoolbox.core.domain.image.model.ImageScaleMode
 import com.t8rin.imagetoolbox.core.domain.image.model.Preset
 import com.t8rin.imagetoolbox.core.domain.image.model.Preset.Percentage
+import com.t8rin.imagetoolbox.core.domain.image.model.Quality
 import com.t8rin.imagetoolbox.core.domain.image.model.ResizeType
 import com.t8rin.imagetoolbox.core.domain.model.ColorModel
 import com.t8rin.imagetoolbox.core.domain.model.DomainAspectRatio
 import com.t8rin.imagetoolbox.core.domain.model.HashingType
 import com.t8rin.imagetoolbox.core.domain.model.SystemBarsVisibility
+import com.t8rin.imagetoolbox.core.domain.utils.Flavor
 
 data class SettingsState(
     val nightMode: NightMode,
@@ -118,6 +121,17 @@ data class SettingsState(
     val enableToolExitConfirmation: Boolean,
     val recentColors: List<ColorModel>,
     val backgroundForNoAlphaImageFormats: ColorModel,
+    val addPresetInfoToFilename: Boolean,
+    val addImageScaleModeInfoToFilename: Boolean,
+    val allowSkipIfLarger: Boolean,
+    val customAsciiGradients: Set<String>,
+    val isScreenSelectionLauncherMode: Boolean,
+    val isTelegramGroupOpened: Boolean,
+    val initialOcrMode: Int,
+    val spotHealMode: Int,
+    val snowfallMode: SnowfallMode,
+    val defaultImageFormat: ImageFormat?,
+    val defaultQuality: Quality
 ) {
 
     companion object {
@@ -135,7 +149,7 @@ data class SettingsState(
                 selectedEmoji = 0,
                 picturePickerModeInt = 0,
                 clearCacheOnLaunch = false,
-                showUpdateDialogOnStartup = true,
+                showUpdateDialogOnStartup = !Flavor.isFoss(),
                 groupOptionsByTypes = true,
                 screenList = emptyList(),
                 colorTupleList = null,
@@ -149,7 +163,7 @@ data class SettingsState(
                 fontScale = 1f,
                 allowCollectCrashlytics = true,
                 allowCollectAnalytics = true,
-                allowBetas = true,
+                allowBetas = !Flavor.isFoss(),
                 drawContainerShadows = true,
                 drawButtonShadows = true,
                 drawSwitchShadows = true,
@@ -214,6 +228,17 @@ data class SettingsState(
                 enableToolExitConfirmation = true,
                 recentColors = emptyList(),
                 backgroundForNoAlphaImageFormats = ColorModel(-0x1000000),
+                addPresetInfoToFilename = false,
+                addImageScaleModeInfoToFilename = false,
+                allowSkipIfLarger = false,
+                customAsciiGradients = emptySet(),
+                isScreenSelectionLauncherMode = false,
+                isTelegramGroupOpened = false,
+                initialOcrMode = 1,
+                spotHealMode = 0,
+                snowfallMode = SnowfallMode.Auto,
+                defaultImageFormat = null,
+                defaultQuality = Quality.Base()
             )
         }
     }

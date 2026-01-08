@@ -69,8 +69,8 @@ import com.smarttoolfactory.colorpicker.util.hexRegexSingleChar
 import com.smarttoolfactory.colorpicker.util.hexWithAlphaRegex
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.ui.theme.inverse
-import com.t8rin.imagetoolbox.core.ui.utils.helper.ContextUtils.copyToClipboard
 import com.t8rin.imagetoolbox.core.ui.utils.helper.ContextUtils.pasteColorFromClipboard
+import com.t8rin.imagetoolbox.core.ui.utils.provider.rememberLocalEssentials
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedAlertDialog
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedButton
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedIconButton
@@ -84,11 +84,11 @@ import kotlin.random.Random
 
 @Composable
 fun ColorInfo(
-    color: Int,
-    onColorChange: (Int) -> Unit,
+    color: Color,
+    onColorChange: (Color) -> Unit,
     onSupportButtonClick: () -> Unit = {
         onColorChange(
-            Color(Random.nextInt()).copy(alpha = Color(color).alpha).toArgb()
+            Color(Random.nextInt()).copy(alpha = color.alpha)
         )
     },
     supportButtonIcon: ImageVector = Icons.Rounded.Shuffle,
@@ -97,12 +97,16 @@ fun ColorInfo(
 ) {
     val context = LocalContext.current
     val colorPasteError = rememberSaveable { mutableStateOf<String?>(null) }
+    val essentials = rememberLocalEssentials()
     val onCopyCustomColor = {
-        context.copyToClipboard(getFormattedColor(color))
+        essentials.copyToClipboard(
+            text = getFormattedColor(color),
+            message = R.string.color_copied
+        )
     }
     val onPasteCustomColor = {
         context.pasteColorFromClipboard(
-            onPastedColor = { onColorChange(it) },
+            onPastedColor = onColorChange,
             onPastedColorFailure = { colorPasteError.value = it },
         )
     }
@@ -120,11 +124,14 @@ fun ColorInfo(
                 .size(56.dp)
                 .container(
                     shape = MaterialTheme.shapes.medium,
-                    color = Color(color),
+                    color = color,
                     resultPadding = 0.dp
                 )
                 .transparencyChecker()
-                .background(Color(color), MaterialTheme.shapes.medium),
+                .background(
+                    color = color,
+                    shape = MaterialTheme.shapes.medium
+                ),
             colors = CardDefaults.cardColors(
                 containerColor = Color.Transparent,
                 contentColor = MaterialTheme.colorScheme.onSurface
@@ -141,18 +148,18 @@ fun ColorInfo(
                         imageVector = supportButtonIcon,
                         contentDescription = stringResource(R.string.edit),
                         tint = animateColorAsState(
-                            Color(color).inverse(
+                            color.inverse(
                                 fraction = { cond ->
                                     if (cond) 0.8f
                                     else 0.5f
                                 },
-                                darkMode = Color(color).luminance() < 0.3f
+                                darkMode = color.luminance() < 0.3f
                             )
                         ).value,
                         modifier = Modifier
                             .size(28.dp)
                             .background(
-                                color = Color(color).copy(alpha = 1f),
+                                color = color.copy(alpha = 1f),
                                 shape = ShapeDefaults.mini
                             )
                             .padding(2.dp)
@@ -308,7 +315,7 @@ fun ColorInfo(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,
                             onClick = {
                                 if (hexWithAlphaRegex.matches(value)) {
-                                    onColorChange(HexUtil.hexToColor(value).toArgb())
+                                    onColorChange(HexUtil.hexToColor(value))
                                 }
                                 expanded = false
                             }
@@ -323,10 +330,10 @@ fun ColorInfo(
 }
 
 /** Receive the clipboard data. */
-private fun getFormattedColor(color: Int): String {
-    return if (Color(color).alpha == 1f) {
-        colorToHex(Color(color))
+private fun getFormattedColor(color: Color): String {
+    return if (color.alpha == 1f) {
+        colorToHex(color)
     } else {
-        colorToHexAlpha(Color(color))
+        colorToHexAlpha(color)
     }.uppercase()
 }

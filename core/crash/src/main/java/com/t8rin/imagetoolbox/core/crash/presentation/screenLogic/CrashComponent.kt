@@ -21,7 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import com.arkivanov.decompose.ComponentContext
 import com.t8rin.imagetoolbox.core.crash.presentation.components.CrashInfo
-import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
+import com.t8rin.imagetoolbox.core.domain.coroutines.DispatchersHolder
 import com.t8rin.imagetoolbox.core.domain.image.ShareProvider
 import com.t8rin.imagetoolbox.core.settings.domain.SettingsManager
 import com.t8rin.imagetoolbox.core.settings.domain.model.SettingsState
@@ -48,7 +48,7 @@ class CrashComponent @AssistedInject internal constructor(
         runBlocking {
             _settingsState.value = settingsManager.getSettingsState()
         }
-        settingsManager.getSettingsStateFlow().onEach {
+        settingsManager.settingsState.onEach {
             _settingsState.value = it
         }.launchIn(componentScope)
     }

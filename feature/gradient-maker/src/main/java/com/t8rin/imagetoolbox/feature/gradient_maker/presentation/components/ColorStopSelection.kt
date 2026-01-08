@@ -31,7 +31,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -45,15 +44,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.t8rin.imagetoolbox.core.resources.R
+import com.t8rin.imagetoolbox.core.resources.icons.Delete
 import com.t8rin.imagetoolbox.core.resources.icons.MiniEdit
 import com.t8rin.imagetoolbox.core.ui.theme.mixedContainer
-import com.t8rin.imagetoolbox.core.ui.widget.color_picker.AlphaColorSelection
 import com.t8rin.imagetoolbox.core.ui.widget.color_picker.ColorInfo
+import com.t8rin.imagetoolbox.core.ui.widget.color_picker.ColorSelection
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedButton
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedModalBottomSheet
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedSlider
@@ -140,11 +139,10 @@ fun ColorStopSelection(
                         .verticalScroll(rememberScrollState())
                         .padding(start = 36.dp, top = 36.dp, end = 36.dp, bottom = 24.dp)
                 ) {
-                    AlphaColorSelection(
-                        color = color.toArgb(),
-                        onColorChange = {
-                            color = Color(it)
-                        }
+                    ColorSelection(
+                        value = color,
+                        onValueChange = { color = it },
+                        withAlpha = true
                     )
                 }
             }
@@ -206,7 +204,7 @@ private fun ColorStopSelectionItem(
                     }
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.DeleteOutline,
+                    imageVector = Icons.Outlined.Delete,
                     contentDescription = stringResource(R.string.delete),
                     modifier = Modifier
                         .padding(16.dp)
@@ -244,9 +242,9 @@ private fun ColorStopSelectionItem(
                     )
             ) {
                 ColorInfo(
-                    color = color.toArgb(),
+                    color = color,
                     onColorChange = {
-                        onValueChange(value to Color(it))
+                        onValueChange(value to it)
                     },
                     supportButtonIcon = Icons.Rounded.MiniEdit,
                     onSupportButtonClick = {
@@ -299,11 +297,12 @@ private fun ColorStopSelectionItem(
                         .verticalScroll(rememberScrollState())
                         .padding(start = 36.dp, top = 36.dp, end = 36.dp, bottom = 24.dp)
                 ) {
-                    AlphaColorSelection(
-                        color = color.toArgb(),
-                        onColorChange = {
-                            onValueChange(value to Color(it))
-                        }
+                    ColorSelection(
+                        value = color,
+                        onValueChange = {
+                            onValueChange(value to it)
+                        },
+                        withAlpha = true
                     )
                 }
             }

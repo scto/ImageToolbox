@@ -26,6 +26,8 @@ android.namespace = "com.t8rin.imagetoolbox.feature.filters"
 
 dependencies {
     api(projects.core.filters)
+    ksp(projects.core.ksp)
+    implementation(projects.core.ksp)
     implementation(projects.feature.draw)
     implementation(projects.feature.pickColor)
     implementation(projects.feature.compare)
@@ -34,6 +36,7 @@ dependencies {
     implementation(libs.trickle)
     implementation(libs.toolbox.gpuimage)
     implementation(libs.toolbox.opencvTools)
+    implementation(libs.toolbox.neuralTools)
     implementation(libs.toolbox.curves)
     implementation(libs.toolbox.jhlabs)
     implementation(libs.toolbox.ascii)

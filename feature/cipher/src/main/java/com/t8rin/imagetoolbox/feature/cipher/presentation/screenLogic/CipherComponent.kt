@@ -22,11 +22,13 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import com.arkivanov.decompose.ComponentContext
-import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
+import com.t8rin.imagetoolbox.core.domain.coroutines.DispatchersHolder
 import com.t8rin.imagetoolbox.core.domain.image.ShareProvider
 import com.t8rin.imagetoolbox.core.domain.model.CipherType
 import com.t8rin.imagetoolbox.core.domain.saving.FileController
 import com.t8rin.imagetoolbox.core.domain.saving.model.SaveResult
+import com.t8rin.imagetoolbox.core.domain.saving.restoreObject
+import com.t8rin.imagetoolbox.core.domain.saving.saveObject
 import com.t8rin.imagetoolbox.core.domain.utils.runSuspendCatching
 import com.t8rin.imagetoolbox.core.domain.utils.smartJob
 import com.t8rin.imagetoolbox.core.ui.utils.BaseComponent
@@ -65,10 +67,7 @@ class CipherComponent @AssistedInject internal constructor(
     init {
         debounce {
             initialUri?.let(::setUri)
-            fileController.restoreObject(
-                key = "cipher_type",
-                kClass = CipherType::class
-            )?.let(::updateCipherType)
+            fileController.restoreObject<CipherType>()?.let(::updateCipherType)
         }
     }
 
@@ -136,10 +135,7 @@ class CipherComponent @AssistedInject internal constructor(
     fun updateCipherType(type: CipherType) {
         _cipherType.update { type }
         componentScope.launch {
-            fileController.saveObject(
-                key = "cipher_type",
-                value = type
-            )
+            fileController.saveObject(type)
         }
         resetCalculatedData()
     }

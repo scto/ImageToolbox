@@ -135,7 +135,8 @@ internal fun List<Uri>.screenList(
                 Screen.Base64Tools(uris.firstOrNull()),
                 Screen.ImagePreview(uris),
                 Screen.PickColorFromImage(uris.firstOrNull()),
-                Screen.GeneratePalette(uris.firstOrNull()),
+                Screen.PaletteTools(uris.firstOrNull()),
+                Screen.AsciiArt(uris.firstOrNull()),
                 Screen.ApngTools(
                     Screen.ApngTools.Type.ImageToApng(uris)
                 ),
@@ -189,6 +190,7 @@ internal fun List<Uri>.screenList(
                 if (uris.size in 1..10) {
                     add(Screen.CollageMaker(uris))
                 }
+                add(Screen.AiTools(uris))
                 add(Screen.GradientMaker(uris))
                 add(
                     Screen.RecognizeText(

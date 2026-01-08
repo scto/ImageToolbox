@@ -25,8 +25,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
+import com.t8rin.imagetoolbox.core.domain.model.QrType
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.ui.utils.provider.rememberLocalEssentials
+import com.t8rin.imagetoolbox.core.utils.toQrType
 import com.t8rin.logger.makeLog
 import io.github.g00fy2.quickie.QRResult
 import io.github.g00fy2.quickie.ScanCustomCode
@@ -58,10 +60,9 @@ interface BarcodeScanner {
     fun scan()
 }
 
-
 @Composable
 fun rememberBarcodeScanner(
-    onSuccess: (rawCode: String) -> Unit
+    onSuccess: (QrType) -> Unit
 ): BarcodeScanner {
     val essentials = rememberLocalEssentials()
 
@@ -78,9 +79,7 @@ fun rememberBarcodeScanner(
                 )
             }
 
-            is QRResult.QRSuccess -> {
-                onSuccess(result.content.rawValue ?: "")
-            }
+            is QRResult.QRSuccess -> onSuccess(result.content.toQrType())
 
             QRResult.QRUserCanceled -> Unit
         }

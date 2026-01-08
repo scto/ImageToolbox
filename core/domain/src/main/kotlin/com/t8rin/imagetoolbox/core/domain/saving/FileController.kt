@@ -18,13 +18,13 @@
 package com.t8rin.imagetoolbox.core.domain.saving
 
 import com.t8rin.imagetoolbox.core.domain.image.Metadata
+import com.t8rin.imagetoolbox.core.domain.image.MetadataProvider
 import com.t8rin.imagetoolbox.core.domain.saving.io.Writeable
 import com.t8rin.imagetoolbox.core.domain.saving.model.SaveResult
 import com.t8rin.imagetoolbox.core.domain.saving.model.SaveTarget
 import kotlinx.coroutines.flow.Flow
-import kotlin.reflect.KClass
 
-interface FileController {
+interface FileController : ObjectSaver, MetadataProvider {
     val defaultSavingPath: String
 
     suspend fun save(
@@ -56,16 +56,6 @@ interface FileController {
         to: Writeable
     ): SaveResult
 
-    suspend fun <O : Any> saveObject(
-        key: String,
-        value: O,
-    ): Boolean
-
-    suspend fun <O : Any> restoreObject(
-        key: String,
-        kClass: KClass<O>,
-    ): O?
-
     suspend fun writeMetadata(
         imageUri: String,
         metadata: Metadata?
@@ -75,4 +65,8 @@ interface FileController {
 
     fun listFilesInDirectoryAsFlow(treeUri: String): Flow<String>
 
+    companion object {
+        fun FileController.toMetadataProvider(): MetadataProvider =
+            object : MetadataProvider by this {}
+    }
 }

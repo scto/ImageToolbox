@@ -17,6 +17,8 @@
 
 package com.t8rin.imagetoolbox.core.ui.widget.enhanced
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SliderColors
@@ -36,6 +38,8 @@ import com.t8rin.imagetoolbox.core.settings.domain.model.SliderType
 import com.t8rin.imagetoolbox.core.settings.presentation.provider.LocalSettingsState
 import com.t8rin.imagetoolbox.core.ui.widget.sliders.FancyRangeSlider
 import com.t8rin.imagetoolbox.core.ui.widget.sliders.FancySlider
+import com.t8rin.imagetoolbox.core.ui.widget.sliders.HyperOSRangeSlider
+import com.t8rin.imagetoolbox.core.ui.widget.sliders.HyperOSSlider
 import com.t8rin.imagetoolbox.core.ui.widget.sliders.M2RangeSlider
 import com.t8rin.imagetoolbox.core.ui.widget.sliders.M2Slider
 import com.t8rin.imagetoolbox.core.ui.widget.sliders.M3RangeSlider
@@ -52,7 +56,8 @@ fun EnhancedSlider(
     enabled: Boolean = true,
     colors: SliderColors? = null,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
-    drawContainer: Boolean = true
+    drawContainer: Boolean = true,
+    isAnimated: Boolean = true
 ) {
     val settingsState = LocalSettingsState.current
     val sliderType = settingsState.sliderType
@@ -70,13 +75,9 @@ fun EnhancedSlider(
             )
         }
 
-        SliderType.MaterialYou -> {
-            SliderDefaults.colors()
-        }
-
-        SliderType.Material -> {
-            SliderDefaults.colors()
-        }
+        SliderType.MaterialYou -> SliderDefaults.colors()
+        SliderType.Material -> SliderDefaults.colors()
+        SliderType.HyperOS -> SliderDefaults.colors()
     }
 
     if (steps != 0) {
@@ -91,6 +92,15 @@ fun EnhancedSlider(
 
             compositions++
         }
+    }
+
+    val value = if (isAnimated) {
+        animateFloatAsState(
+            targetValue = value,
+            animationSpec = tween(100)
+        ).value
+    } else {
+        value
     }
 
     when (sliderType) {
@@ -139,6 +149,21 @@ fun EnhancedSlider(
                 drawContainer = drawContainer
             )
         }
+
+        SliderType.HyperOS -> {
+            HyperOSSlider(
+                value = value,
+                enabled = enabled,
+                colors = realColors,
+                interactionSource = interactionSource,
+                modifier = modifier,
+                onValueChange = onValueChange,
+                onValueChangeFinished = onValueChangeFinished,
+                valueRange = valueRange,
+                steps = steps,
+                drawContainer = drawContainer
+            )
+        }
     }
 }
 
@@ -172,13 +197,9 @@ fun EnhancedRangeSlider(
             )
         }
 
-        SliderType.MaterialYou -> {
-            SliderDefaults.colors()
-        }
-
-        SliderType.Material -> {
-            SliderDefaults.colors()
-        }
+        SliderType.MaterialYou -> SliderDefaults.colors()
+        SliderType.Material -> SliderDefaults.colors()
+        SliderType.HyperOS -> SliderDefaults.colors()
     }
 
     if (steps != 0) {
@@ -231,6 +252,22 @@ fun EnhancedRangeSlider(
 
         SliderType.Material -> {
             M2RangeSlider(
+                value = value,
+                enabled = enabled,
+                colors = realColors,
+                startInteractionSource = startInteractionSource,
+                endInteractionSource = endInteractionSource,
+                modifier = modifier,
+                onValueChange = onValueChange,
+                onValueChangeFinished = onValueChangeFinished,
+                valueRange = valueRange,
+                steps = steps,
+                drawContainer = drawContainer
+            )
+        }
+
+        SliderType.HyperOS -> {
+            HyperOSRangeSlider(
                 value = value,
                 enabled = enabled,
                 colors = realColors,

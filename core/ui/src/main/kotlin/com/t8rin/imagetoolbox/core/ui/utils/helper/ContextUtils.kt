@@ -21,7 +21,6 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.ActivityManager
-import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.ContentResolver
 import android.content.Context
@@ -76,11 +75,14 @@ import kotlin.math.ceil
 
 object ContextUtils {
 
-    fun Activity.requestStoragePermission() {
-        val permissions = listOf(
+    fun Activity.requestStoragePermission() = requestPermissions(
+        permissions = listOf(
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.READ_EXTERNAL_STORAGE
         )
+    )
+
+    fun Activity.requestPermissions(permissions: List<String>) {
         val state = checkPermissions(permissions)
         when (state.permissionStatus.values.first()) {
             PermissionStatus.NOT_GIVEN -> {
@@ -98,13 +100,6 @@ object ContextUtils {
 
             PermissionStatus.ALLOWED -> Unit
         }
-    }
-
-    fun Context.startActivity(
-        clazz: Class<*>,
-        intentBuilder: Intent.() -> Unit,
-    ) {
-        startActivity(buildIntent(clazz, intentBuilder))
     }
 
     fun Context.buildIntent(
@@ -153,7 +148,6 @@ object ContextUtils {
             Manifest.permission.READ_EXTERNAL_STORAGE
         )
         val show = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) false
-        else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) false
         else !permissions.all { (this as Activity).hasPermissionAllowed(it) }
 
         if (!show) setPermissionsAllowed(permissions)
@@ -266,14 +260,6 @@ object ContextUtils {
         else -> null
     }
 
-    fun Context.copyToClipboard(
-        value: String,
-    ) {
-        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val clip = ClipData.newPlainText("plain text", value)
-        clipboard.setPrimaryClip(clip)
-    }
-
     fun Context.getStringLocalized(
         @StringRes
         resId: Int,
@@ -283,7 +269,7 @@ object ContextUtils {
     ).getText(resId).toString()
 
     fun Context.pasteColorFromClipboard(
-        onPastedColor: (Int) -> Unit,
+        onPastedColor: (Color) -> Unit,
         onPastedColorFailure: (String) -> Unit,
     ) {
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -291,7 +277,7 @@ object ContextUtils {
         val text = item?.text?.toString()
         text?.let {
             runCatching {
-                onPastedColor(it.toColorInt())
+                onPastedColor(Color(it.toColorInt()))
             }.getOrElse {
                 onPastedColorFailure(getString(R.string.clipboard_paste_invalid_color_code))
             }
@@ -349,7 +335,10 @@ object ContextUtils {
 
     fun LocaleListCompat.getDisplayName(): String = getDisplayName(toLanguageTags())
 
-    private fun getDisplayName(lang: String?): String {
+    fun getDisplayName(
+        lang: String?,
+        useDefaultLocale: Boolean = false
+    ): String {
         if (lang == null) {
             return ""
         }
@@ -358,20 +347,44 @@ object ContextUtils {
             "" -> LocaleListCompat.getAdjustedDefault()[0]
             else -> Locale.forLanguageTag(lang)
         }
-        return locale!!.getDisplayName(locale).replaceFirstChar { it.uppercase(locale) }
+        return locale!!.getDisplayName(
+            if (useDefaultLocale) Locale.getDefault()
+            else locale
+        ).replaceFirstChar { it.uppercase(locale) }
     }
 
     private const val SCREEN_ID_EXTRA = "screen_id"
-    private const val SHORTCUT_OPEN_ACTION = "shortcut"
+    const val SHORTCUT_OPEN_ACTION = "shortcut"
+
+    fun Intent?.getScreenExtra(): Screen? {
+        if (this?.hasExtra(SCREEN_ID_EXTRA) != true) return null
+
+        val screenIdExtra = getIntExtra(SCREEN_ID_EXTRA, -100).takeIf {
+            it != -100
+        } ?: return null
+
+        return Screen.entries.find {
+            it.id == screenIdExtra
+        }
+    }
+
+    fun Intent.putScreenExtra(screen: Screen?) = apply {
+        if (screen == null) {
+            removeExtra(SCREEN_ID_EXTRA)
+        } else {
+            putExtra(SCREEN_ID_EXTRA, screen.id)
+        }
+    }
+
     fun Intent?.getScreenOpeningShortcut(
         onNavigate: (Screen) -> Unit,
     ): Boolean {
         if (this == null) return false
 
-        if (action == SHORTCUT_OPEN_ACTION && hasExtra(SCREEN_ID_EXTRA)) {
-            Screen.entries.find {
-                it.id == getIntExtra(SCREEN_ID_EXTRA, -100)
-            }?.let(onNavigate) ?: return false
+        val screenExtra = getScreenExtra()
+
+        if (action == SHORTCUT_OPEN_ACTION && screenExtra != null) {
+            onNavigate(screenExtra)
 
             return true
         }
@@ -399,10 +412,10 @@ object ContextUtils {
                     .setLongLabel(getString(screen.subtitle))
                     .setIcon(IconCompat.createWithBitmap(imageBitmap.asAndroidBitmap()))
                     .setIntent(
-                        Intent(context, AppActivityClass).apply {
+                        context.buildIntent(AppActivityClass) {
                             action = SHORTCUT_OPEN_ACTION
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            putExtra(SCREEN_ID_EXTRA, screen.id)
+                            putScreenExtra(screen)
                         }
                     )
                     .build()
@@ -427,26 +440,22 @@ object ContextUtils {
         }
     }
 
-    fun Context.canPinShortcuts(): Boolean =
+    fun Context.canPinShortcuts(): Boolean = runCatching {
         ShortcutManagerCompat.isRequestPinShortcutSupported(this)
+    }.getOrNull() == true
 
     @SuppressLint("MissingPermission")
     fun Context.isNetworkAvailable(): Boolean {
         val connectivityManager =
             getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val nw = connectivityManager.activeNetwork ?: return false
-            val actNw = connectivityManager.getNetworkCapabilities(nw) ?: return false
-            return when {
-                actNw.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
-                actNw.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
-                actNw.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
-                actNw.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH) -> true
-                else -> false
-            }
-        } else {
-            @Suppress("DEPRECATION")
-            return connectivityManager.activeNetworkInfo?.isConnected == true
+        val nw = connectivityManager.activeNetwork ?: return false
+        val actNw = connectivityManager.getNetworkCapabilities(nw) ?: return false
+        return when {
+            actNw.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+            actNw.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+            actNw.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
+            actNw.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH) -> true
+            else -> false
         }
     }
 
@@ -478,7 +487,7 @@ object ContextUtils {
         startActivity(shareIntent)
     }
 
-    fun Context.getExtension(uri: Uri): String? {
+    fun Context.getExtension(uri: Uri): String? = runCatching {
         val filename = getFilename(uri) ?: ""
         if (filename.endsWith(".qoi")) return "qoi"
         if (filename.endsWith(".jxl")) return "jxl"
@@ -490,7 +499,7 @@ object ContextUtils {
         } else {
             MimeTypeMap.getFileExtensionFromUrl(uri.toString()).lowercase(Locale.getDefault())
         }
-    }
+    }.getOrNull()
 
     val Context.density: Density
         get() = object : Density {

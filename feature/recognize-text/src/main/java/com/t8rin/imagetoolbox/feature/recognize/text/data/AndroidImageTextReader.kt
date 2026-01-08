@@ -21,7 +21,8 @@ import android.content.Context
 import android.graphics.Bitmap
 import androidx.core.net.toUri
 import com.googlecode.tesseract.android.TessBaseAPI
-import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
+import com.t8rin.imagetoolbox.core.domain.coroutines.AppScope
+import com.t8rin.imagetoolbox.core.domain.coroutines.DispatchersHolder
 import com.t8rin.imagetoolbox.core.domain.image.ImageGetter
 import com.t8rin.imagetoolbox.core.domain.image.ShareProvider
 import com.t8rin.imagetoolbox.core.resources.R
@@ -35,8 +36,10 @@ import com.t8rin.imagetoolbox.feature.recognize.text.domain.SegmentationMode
 import com.t8rin.imagetoolbox.feature.recognize.text.domain.TessConstants
 import com.t8rin.imagetoolbox.feature.recognize.text.domain.TessParams
 import com.t8rin.imagetoolbox.feature.recognize.text.domain.TextRecognitionResult
+import com.t8rin.logger.makeLog
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
@@ -58,12 +61,15 @@ internal class AndroidImageTextReader @Inject constructor(
     private val imageGetter: ImageGetter<Bitmap>,
     @ApplicationContext private val context: Context,
     private val shareProvider: ShareProvider,
-    dispatchersHolder: DispatchersHolder
+    dispatchersHolder: DispatchersHolder,
+    appScope: AppScope,
 ) : DispatchersHolder by dispatchersHolder, ImageTextReader {
 
     init {
-        RecognitionType.entries.forEach {
-            File(context.filesDir, "${it.displayName}/tessdata").mkdirs()
+        appScope.launch {
+            RecognitionType.entries.forEach {
+                File(context.filesDir, "${it.displayName}/tessdata").mkdirs()
+            }
         }
     }
 
@@ -185,19 +191,21 @@ internal class AndroidImageTextReader @Inject constructor(
     override suspend fun getLanguages(
         type: RecognitionType
     ): List<OCRLanguage> = withContext(ioDispatcher) {
-
         val codes = context.resources.getStringArray(R.array.key_ocr_engine_language_value)
 
         return@withContext codes.mapNotNull { code ->
             val name = getDisplayName(code, false)
             val localizedName = getDisplayName(code, true)
-            if (name.isEmpty() || localizedName.isEmpty()) return@mapNotNull null
+            if (name.isBlank() || localizedName.isBlank()) return@mapNotNull null
 
             OCRLanguage(
                 name = name,
                 code = code,
                 downloaded = RecognitionType.entries.filter {
-                    isLanguageDataExists(it, code)
+                    isLanguageDataExists(
+                        type = it,
+                        languageCode = code
+                    )
                 },
                 localizedName = localizedName
             )
@@ -235,7 +243,11 @@ internal class AndroidImageTextReader @Inject constructor(
         val needToDownloadLanguages = getNeedToDownloadLanguages(type, languageCode)
 
         return if (needToDownloadLanguages.isNotEmpty()) {
-            downloadTrainingDataImpl(type, needToDownloadLanguages, onProgress)
+            downloadTrainingDataImpl(
+                type = type,
+                needToDownloadLanguages = needToDownloadLanguages,
+                onProgress = onProgress
+            )
         } else false
     }
 
@@ -244,7 +256,11 @@ internal class AndroidImageTextReader @Inject constructor(
         needToDownloadLanguages: List<DownloadData>,
         onProgress: (Float, Long) -> Unit
     ): Boolean = needToDownloadLanguages.map {
-        downloadTrainingDataForCode(type, it.languageCode, onProgress)
+        downloadTrainingDataForCode(
+            type = type,
+            lang = it.languageCode,
+            onProgress = onProgress
+        )
     }.all { it }
 
     private suspend fun downloadTrainingDataForCode(
@@ -311,6 +327,8 @@ internal class AndroidImageTextReader @Inject constructor(
             output.flush()
             output.close()
             input.close()
+        }.onFailure {
+            it.makeLog("ImageTextReader")
         }.isSuccess
     }
 
@@ -331,9 +349,10 @@ internal class AndroidImageTextReader @Inject constructor(
             else if (lang.contains("chi_tra")) "zh-TW"
             else lang
         )
-        return if (useDefaultLocale) {
-            locale.getDisplayName(Locale.getDefault()).replaceFirstChar { it.uppercase(locale) }
-        } else locale.getDisplayName(locale).replaceFirstChar { it.uppercase(locale) }
+        return locale.getDisplayName(
+            if (useDefaultLocale) Locale.getDefault()
+            else locale
+        ).replaceFirstChar { it.uppercase(locale) }
     }
 
     override suspend fun exportLanguagesToZip(): String? = withContext(ioDispatcher) {

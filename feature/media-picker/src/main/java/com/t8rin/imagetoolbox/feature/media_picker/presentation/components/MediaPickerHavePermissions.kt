@@ -17,6 +17,7 @@
 
 package com.t8rin.imagetoolbox.feature.media_picker.presentation.components
 
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
@@ -89,7 +90,8 @@ internal fun MediaPickerHavePermissions(
     allowedMedia: AllowedMedia,
     allowMultiple: Boolean,
     onRequestManagePermission: () -> Unit,
-    isManagePermissionAllowed: Boolean
+    isManagePermissionAllowed: Boolean,
+    onPicked: (List<Uri>) -> Unit
 ) {
     var selectedAlbumIndex by rememberSaveable { mutableLongStateOf(-1) }
 
@@ -118,8 +120,7 @@ internal fun MediaPickerHavePermissions(
                         .fadingEdges(listState)
                         .padding(vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(
-                        space = 8.dp,
-                        alignment = Alignment.CenterHorizontally
+                        space = 8.dp
                     ),
                     contentPadding = PaddingValues(
                         start = WindowInsets.displayCutout
@@ -134,16 +135,16 @@ internal fun MediaPickerHavePermissions(
                     items(
                         items = albumsState.albums,
                         key = Album::toString
-                    ) {
-                        val selected = selectedAlbumIndex == it.id
-                        val isImageVisible = showAlbumThumbnail && it.uri.isNotEmpty()
+                    ) { album ->
+                        val selected = selectedAlbumIndex == album.id
+                        val isImageVisible = showAlbumThumbnail && album.uri.isNotEmpty()
                         EnhancedChip(
                             selected = selected,
                             selectedColor = MaterialTheme.colorScheme.secondaryContainer,
                             unselectedColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                             unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             onClick = {
-                                selectedAlbumIndex = it.id
+                                selectedAlbumIndex = album.id
                                 component.getAlbum(selectedAlbumIndex)
                             },
                             contentPadding = PaddingValues(
@@ -158,11 +159,17 @@ internal fun MediaPickerHavePermissions(
                             ),
                             label = {
                                 val title =
-                                    if (it.id == -1L) stringResource(R.string.all) else it.label
+                                    if (album.id == -1L) stringResource(R.string.all) else album.label
                                 Column(
-                                    modifier = Modifier.animateContentSizeNoClip(
-                                        alignment = Alignment.Center
-                                    ),
+                                    modifier = Modifier
+                                        .animateContentSizeNoClip(
+                                            alignment = Alignment.Center
+                                        )
+                                        .then(
+                                            if (showAlbumThumbnail && album.uri.isEmpty()) {
+                                                Modifier.height(140.dp)
+                                            } else Modifier
+                                        ),
                                     verticalArrangement = Arrangement.Center,
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
@@ -190,7 +197,7 @@ internal fun MediaPickerHavePermissions(
                                                 exit = fadeOut() + scaleOut()
                                             ) {
                                                 Picture(
-                                                    model = it.uri,
+                                                    model = album.uri,
                                                     modifier = Modifier
                                                         .padding(top = 8.dp)
                                                         .height(100.dp)
@@ -213,7 +220,7 @@ internal fun MediaPickerHavePermissions(
                                                 contentAlignment = Alignment.Center
                                             ) {
                                                 AutoSizeText(
-                                                    text = it.count.toString(),
+                                                    text = album.count.toString(),
                                                     style = MaterialTheme.typography.headlineLarge.copy(
                                                         fontSize = 20.sp,
                                                         color = MaterialTheme.colorScheme.onSurface,
@@ -250,7 +257,8 @@ internal fun MediaPickerHavePermissions(
             onRequestManagePermission = onRequestManagePermission,
             isManagePermissionAllowed = isManagePermissionAllowed,
             selectedAlbumIndex = selectedAlbumIndex,
-            onSearchingChange = { isSearching = it }
+            onSearchingChange = { isSearching = it },
+            onPicked = onPicked
         )
     }
     BackHandler(selectedAlbumIndex != -1L) {

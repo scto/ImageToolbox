@@ -17,7 +17,6 @@
 
 package com.t8rin.imagetoolbox.core.ui.utils.permission
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -32,7 +31,7 @@ import kotlinx.coroutines.runBlocking
 
 object PermissionUtils {
 
-    fun Activity.checkPermissions(
+    fun Context.checkPermissions(
         permissions: List<String>
     ): PermissionResult {
 
@@ -72,6 +71,14 @@ object PermissionUtils {
             return permissionResult
         }
 
+        val isAnyPermissionNotGiven =
+            permissionStatus.values.any { it == PermissionStatus.NOT_GIVEN }
+
+        if (isAnyPermissionNotGiven) {
+            permissionResult.finalStatus = PermissionStatus.NOT_GIVEN
+            return permissionResult
+        }
+
         permissionResult.finalStatus = PermissionStatus.ALLOWED
         return permissionResult
     }
@@ -85,7 +92,7 @@ object PermissionUtils {
         startActivity(intent)
     }
 
-    fun Activity.hasPermissionAllowed(permission: String): Boolean {
+    fun Context.hasPermissionAllowed(permission: String): Boolean {
         return ContextCompat.checkSelfPermission(
             this,
             permission

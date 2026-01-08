@@ -24,12 +24,14 @@ import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
+import androidx.core.net.toFile
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import com.t8rin.imagetoolbox.core.domain.model.ImageModel
 import com.t8rin.imagetoolbox.core.domain.saving.io.Writeable
 import com.t8rin.imagetoolbox.core.domain.utils.FileMode
 import com.t8rin.imagetoolbox.core.resources.R
+import com.t8rin.imagetoolbox.core.utils.appContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filterIsInstance
@@ -117,17 +119,25 @@ private sealed interface DirUri {
 }
 
 fun Uri.fileSize(context: Context): Long? {
-    runCatching {
-        context.contentResolver
-            .query(this, null, null, null, null, null)
-            .use { cursor ->
-                if (cursor != null && cursor.moveToFirst()) {
-                    val sizeIndex: Int = cursor.getColumnIndex(OpenableColumns.SIZE)
-                    if (!cursor.isNull(sizeIndex)) {
-                        return cursor.getLong(sizeIndex)
+    if (this.toString().isEmpty()) return null
+
+    if (this.scheme == "content") {
+        runCatching {
+            context.contentResolver
+                .query(this, null, null, null, null, null)
+                .use { cursor ->
+                    if (cursor != null && cursor.moveToFirst()) {
+                        val sizeIndex: Int = cursor.getColumnIndex(OpenableColumns.SIZE)
+                        if (!cursor.isNull(sizeIndex)) {
+                            return cursor.getLong(sizeIndex)
+                        }
                     }
                 }
-            }
+        }
+    } else {
+        runCatching {
+            return this.toFile().length()
+        }
     }
     return null
 }
@@ -188,17 +198,17 @@ internal fun Uri.tryRequireOriginal(context: Context): Uri {
 }
 
 fun Uri.getFilename(
-    context: Context
+    context: Context = appContext
 ): String? = DocumentFile.fromSingleUri(context, this)?.name
 
-fun String.decodeEscaped(): String {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+fun String.decodeEscaped(): String = runCatching {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         URLDecoder.decode(URLDecoder.decode(this, Charsets.UTF_8), Charsets.UTF_8)
     } else {
         @Suppress("DEPRECATION")
         URLDecoder.decode(URLDecoder.decode(this))
     }
-}
+}.getOrDefault(this)
 
 fun Writeable.outputStream(): OutputStream = object : OutputStream() {
     override fun write(b: Int) = writeBytes(byteArrayOf(b.toByte()))

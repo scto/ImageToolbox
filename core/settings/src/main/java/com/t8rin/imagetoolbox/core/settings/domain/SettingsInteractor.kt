@@ -17,7 +17,9 @@
 
 package com.t8rin.imagetoolbox.core.settings.domain
 
+import com.t8rin.imagetoolbox.core.domain.image.model.ImageFormat
 import com.t8rin.imagetoolbox.core.domain.image.model.ImageScaleMode
+import com.t8rin.imagetoolbox.core.domain.image.model.Quality
 import com.t8rin.imagetoolbox.core.domain.image.model.ResizeType
 import com.t8rin.imagetoolbox.core.domain.model.ColorModel
 import com.t8rin.imagetoolbox.core.domain.model.HashingType
@@ -29,6 +31,7 @@ import com.t8rin.imagetoolbox.core.settings.domain.model.DomainFontFamily
 import com.t8rin.imagetoolbox.core.settings.domain.model.FastSettingsSide
 import com.t8rin.imagetoolbox.core.settings.domain.model.NightMode
 import com.t8rin.imagetoolbox.core.settings.domain.model.SliderType
+import com.t8rin.imagetoolbox.core.settings.domain.model.SnowfallMode
 import com.t8rin.imagetoolbox.core.settings.domain.model.SwitchType
 
 interface SettingsInteractor : SimpleSettingsInteractor {
@@ -124,8 +127,6 @@ interface SettingsInteractor : SimpleSettingsInteractor {
     suspend fun setCopyToClipboardMode(copyToClipboardMode: CopyToClipboardMode)
 
     suspend fun setVibrationStrength(strength: Int)
-
-    suspend fun toggleOverwriteFiles()
 
     suspend fun setFilenameSuffix(name: String)
 
@@ -226,6 +227,20 @@ interface SettingsInteractor : SimpleSettingsInteractor {
     suspend fun toggleEnableToolExitConfirmation()
 
     suspend fun createLogsExport(): String
+
+    suspend fun toggleAddPresetInfoToFilename()
+
+    suspend fun toggleAddImageScaleModeInfoToFilename()
+
+    suspend fun toggleAllowSkipIfLarger()
+
+    suspend fun toggleIsScreenSelectionLauncherMode()
+
+    suspend fun setSnowfallMode(snowfallMode: SnowfallMode)
+
+    suspend fun setDefaultImageFormat(imageFormat: ImageFormat?)
+
+    suspend fun setDefaultQuality(quality: Quality)
 }
 
 fun SettingsInteractor.toSimpleSettingsInteractor(): SimpleSettingsInteractor =

@@ -81,7 +81,7 @@ fun CropMaskSelection(
 ) {
     var cornerRadius by rememberSaveable { mutableIntStateOf(20) }
 
-    val outlineProperties = outlineProperties()
+    val outlineProperties = DefaultOutlineProperties
 
     val scope = rememberCoroutineScope()
 
@@ -179,7 +179,7 @@ fun CropMaskSelection(
             internalStateTransformation = {
                 it.roundToInt()
             },
-            color = MaterialTheme.colorScheme.surface,
+            containerColor = MaterialTheme.colorScheme.surface,
             onValueChange = {
                 cornerRadius = it.roundToInt()
                 if (selectedItem.cropOutline is CutCornerCropShape) {

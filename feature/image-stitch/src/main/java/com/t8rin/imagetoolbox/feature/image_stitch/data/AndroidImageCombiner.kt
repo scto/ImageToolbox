@@ -26,7 +26,7 @@ import androidx.core.graphics.createBitmap
 import com.t8rin.imagetoolbox.core.data.image.utils.drawBitmap
 import com.t8rin.imagetoolbox.core.data.utils.aspectRatio
 import com.t8rin.imagetoolbox.core.data.utils.getSuitableConfig
-import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
+import com.t8rin.imagetoolbox.core.domain.coroutines.DispatchersHolder
 import com.t8rin.imagetoolbox.core.domain.image.ImageGetter
 import com.t8rin.imagetoolbox.core.domain.image.ImagePreviewCreator
 import com.t8rin.imagetoolbox.core.domain.image.ImageScaler
@@ -34,7 +34,6 @@ import com.t8rin.imagetoolbox.core.domain.image.ImageShareProvider
 import com.t8rin.imagetoolbox.core.domain.image.ImageTransformer
 import com.t8rin.imagetoolbox.core.domain.image.model.ImageFormat
 import com.t8rin.imagetoolbox.core.domain.image.model.ImageInfo
-import com.t8rin.imagetoolbox.core.domain.image.model.ImageScaleMode
 import com.t8rin.imagetoolbox.core.domain.image.model.ImageWithSize
 import com.t8rin.imagetoolbox.core.domain.image.model.Quality
 import com.t8rin.imagetoolbox.core.domain.image.model.withSize
@@ -45,14 +44,10 @@ import com.t8rin.imagetoolbox.core.filters.domain.model.createFilter
 import com.t8rin.imagetoolbox.core.filters.domain.model.enums.FadeSide
 import com.t8rin.imagetoolbox.core.filters.domain.model.params.SideFadeParams
 import com.t8rin.imagetoolbox.core.settings.domain.SettingsProvider
-import com.t8rin.imagetoolbox.core.settings.domain.model.SettingsState
 import com.t8rin.imagetoolbox.feature.image_stitch.domain.CombiningParams
 import com.t8rin.imagetoolbox.feature.image_stitch.domain.ImageCombiner
 import com.t8rin.imagetoolbox.feature.image_stitch.domain.StitchAlignment
 import com.t8rin.imagetoolbox.feature.image_stitch.domain.StitchMode
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlin.math.absoluteValue
@@ -69,15 +64,8 @@ internal class AndroidImageCombiner @Inject constructor(
     dispatchersHolder: DispatchersHolder
 ) : DispatchersHolder by dispatchersHolder, ImageCombiner<Bitmap> {
 
-    private var generatePreviews = SettingsState.Default.generatePreviews
-
-    init {
-        settingsProvider
-            .getSettingsStateFlow()
-            .onEach {
-                generatePreviews = it.generatePreviews
-            }.launchIn(CoroutineScope(defaultDispatcher))
-    }
+    private val _settingsState = settingsProvider.settingsState
+    private val settingsState get() = _settingsState.value
 
     override suspend fun combineImages(
         imageUris: List<String>,
@@ -185,11 +173,9 @@ internal class AndroidImageCombiner @Inject constructor(
                 }
             }
 
-            return imageScaler.scaleImage(
-                image = bitmap,
+            return bitmap.createScaledBitmap(
                 width = (size.width * imageScale).toInt(),
-                height = (size.height * imageScale).toInt(),
-                imageScaleMode = ImageScaleMode.NotPresent
+                height = (size.height * imageScale).toInt()
             ) to ImageInfo(
                 width = (size.width * imageScale).toInt(),
                 height = (size.height * imageScale).toInt(),
@@ -379,7 +365,7 @@ internal class AndroidImageCombiner @Inject constructor(
             combiningParams = combiningParams
         )
 
-        if (!generatePreviews) return@withContext null withSize imageSize
+        if (!settingsState.generatePreviews) return@withContext null withSize imageSize
 
         combineImages(
             imageUris = imageUris,
@@ -412,20 +398,25 @@ internal class AndroidImageCombiner @Inject constructor(
         size: IntegerSize
     ): Bitmap {
         return if (isHorizontal) {
-            imageScaler.scaleImage(
-                image = this,
+            createScaledBitmap(
                 width = (size.height * aspectRatio).toInt(),
-                height = size.height,
-                imageScaleMode = ImageScaleMode.NotPresent
+                height = size.height
             )
         } else {
-            imageScaler.scaleImage(
-                image = this,
+            createScaledBitmap(
                 width = size.width,
-                height = (size.width / aspectRatio).toInt(),
-                imageScaleMode = ImageScaleMode.NotPresent
+                height = (size.width / aspectRatio).toInt()
             )
         }
     }
+
+    private suspend fun Bitmap.createScaledBitmap(
+        width: Int,
+        height: Int
+    ): Bitmap = imageScaler.scaleImage(
+        image = this,
+        width = width,
+        height = height
+    )
 
 }

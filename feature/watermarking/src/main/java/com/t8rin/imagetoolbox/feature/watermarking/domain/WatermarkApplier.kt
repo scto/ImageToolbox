@@ -25,4 +25,8 @@ interface WatermarkApplier<I> {
         params: WatermarkParams
     ): I?
 
+    suspend fun checkHiddenWatermark(
+        image: I
+    ): HiddenWatermark?
+
 }

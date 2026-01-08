@@ -36,7 +36,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CreateNewFolder
 import androidx.compose.material.icons.outlined.DriveFileRenameOutline
 import androidx.compose.material.icons.outlined.SaveAs
-import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material.icons.rounded.RadioButtonChecked
@@ -54,20 +53,22 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.t8rin.imagetoolbox.core.domain.image.model.ImageFormat
 import com.t8rin.imagetoolbox.core.domain.utils.timestamp
 import com.t8rin.imagetoolbox.core.resources.R
+import com.t8rin.imagetoolbox.core.resources.icons.Delete
+import com.t8rin.imagetoolbox.core.resources.icons.FileReplace
 import com.t8rin.imagetoolbox.core.settings.domain.model.OneTimeSaveLocation
 import com.t8rin.imagetoolbox.core.settings.presentation.provider.LocalSettingsState
 import com.t8rin.imagetoolbox.core.settings.presentation.provider.LocalSimpleSettingsInteractor
 import com.t8rin.imagetoolbox.core.ui.theme.takeColorFromScheme
 import com.t8rin.imagetoolbox.core.ui.utils.content_pickers.rememberFileCreator
-import com.t8rin.imagetoolbox.core.ui.utils.content_pickers.rememberFolderOpener
+import com.t8rin.imagetoolbox.core.ui.utils.content_pickers.rememberFolderPicker
 import com.t8rin.imagetoolbox.core.ui.utils.helper.toUiPath
+import com.t8rin.imagetoolbox.core.ui.utils.provider.LocalComponentActivity
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedAlertDialog
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedButton
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.hapticsClickable
@@ -80,6 +81,7 @@ import com.t8rin.imagetoolbox.core.ui.widget.other.SwipeToReveal
 import com.t8rin.imagetoolbox.core.ui.widget.other.rememberRevealState
 import com.t8rin.imagetoolbox.core.ui.widget.preferences.PreferenceItem
 import com.t8rin.imagetoolbox.core.ui.widget.preferences.PreferenceItemDefaults
+import com.t8rin.imagetoolbox.core.ui.widget.preferences.PreferenceRowSwitch
 import kotlinx.coroutines.launch
 
 
@@ -91,6 +93,8 @@ fun OneTimeSaveLocationSelectionDialog(
     formatForFilenameSelection: ImageFormat? = null
 ) {
     val settingsState = LocalSettingsState.current
+    val settingsInteractor = LocalSimpleSettingsInteractor.current
+    val scope = rememberCoroutineScope()
     var tempSelectedSaveFolderUri by rememberSaveable(visible) {
         mutableStateOf(settingsState.saveFolderUri?.toString())
     }
@@ -153,7 +157,7 @@ fun OneTimeSaveLocationSelectionDialog(
                 }
             }
 
-            val context = LocalContext.current
+            val context = LocalComponentActivity.current
             val scrollState = rememberScrollState()
             Column(
                 modifier = Modifier
@@ -192,7 +196,6 @@ fun OneTimeSaveLocationSelectionDialog(
                         }
                     }
                     val selected = selectedSaveFolderUri == item?.uri
-                    val scope = rememberCoroutineScope()
                     val state = rememberRevealState()
                     val interactionSource = remember {
                         MutableInteractionSource()
@@ -203,7 +206,6 @@ fun OneTimeSaveLocationSelectionDialog(
                         size = data.size + 1,
                         forceDefault = isDragged
                     )
-                    val settingsInteractor = LocalSimpleSettingsInteractor.current
                     val canDeleteItem by remember(item, settingsState) {
                         derivedStateOf {
                             item != null && item in settingsState.oneTimeSaveLocations
@@ -236,7 +238,7 @@ fun OneTimeSaveLocationSelectionDialog(
                                     }
                             ) {
                                 Icon(
-                                    imageVector = Icons.Rounded.DeleteOutline,
+                                    imageVector = Icons.Outlined.Delete,
                                     contentDescription = stringResource(R.string.delete),
                                     modifier = Modifier
                                         .padding(16.dp)
@@ -266,6 +268,7 @@ fun OneTimeSaveLocationSelectionDialog(
                                         }
                                     }
                                 } else null,
+                                enabled = !settingsState.overwriteFiles,
                                 startIconTransitionSpec = {
                                     fadeIn() togetherWith fadeOut()
                                 },
@@ -275,13 +278,13 @@ fun OneTimeSaveLocationSelectionDialog(
                                 } else Icons.Rounded.FolderOpen,
                                 endIcon = if (selected) Icons.Rounded.RadioButtonChecked
                                 else Icons.Rounded.RadioButtonUnchecked,
-                                color = takeColorFromScheme {
+                                containerColor = takeColorFromScheme {
                                     if (selected) surface
                                     else surfaceContainer
                                 }
                             )
                         },
-                        enableSwipe = canDeleteItem,
+                        enableSwipe = canDeleteItem && !settingsState.overwriteFiles,
                         interactionSource = interactionSource,
                         modifier = Modifier
                             .fadingEdges(
@@ -292,7 +295,7 @@ fun OneTimeSaveLocationSelectionDialog(
                     )
                 }
                 val currentFolderUri = selectedSaveFolderUri?.toUri() ?: settingsState.saveFolderUri
-                val launcher = rememberFolderOpener(
+                val launcher = rememberFolderPicker(
                     onSuccess = { uri ->
                         context.contentResolver.takePersistableUriPermission(
                             uri,
@@ -310,12 +313,13 @@ fun OneTimeSaveLocationSelectionDialog(
                     shape = ShapeDefaults.bottom,
                     titleFontStyle = PreferenceItemDefaults.TitleFontStyleSmall,
                     onClick = {
-                        launcher.open(currentFolderUri)
+                        launcher.pickFolder(currentFolderUri)
                     },
+                    enabled = !settingsState.overwriteFiles,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 4.dp, vertical = 2.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainer
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
                 )
 
                 if (formatForFilenameSelection != null) {
@@ -334,15 +338,33 @@ fun OneTimeSaveLocationSelectionDialog(
                         startIcon = Icons.Outlined.DriveFileRenameOutline,
                         shape = ShapeDefaults.default,
                         titleFontStyle = PreferenceItemDefaults.TitleFontStyleSmall,
+                        enabled = !settingsState.overwriteFiles,
                         onClick = {
                             createLauncher.make("$imageString.${formatForFilenameSelection.extension}")
                         },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 4.dp, vertical = 2.dp),
-                        color = MaterialTheme.colorScheme.surfaceContainer
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
                     )
                 }
+
+                PreferenceRowSwitch(
+                    title = stringResource(id = R.string.overwrite_files),
+                    subtitle = stringResource(id = R.string.overwrite_files_sub_short),
+                    startIcon = Icons.Outlined.FileReplace,
+                    enabled = !settingsState.randomizeFilename && settingsState.hashingTypeForFilename == null,
+                    shape = ShapeDefaults.default,
+                    titleFontStyle = PreferenceItemDefaults.TitleFontStyleSmall,
+                    checked = settingsState.overwriteFiles,
+                    onClick = {
+                        scope.launch { settingsInteractor.toggleOverwriteFiles() }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp, vertical = 2.dp),
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                )
             }
         }
     )

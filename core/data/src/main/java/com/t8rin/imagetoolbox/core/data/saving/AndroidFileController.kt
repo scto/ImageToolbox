@@ -24,6 +24,7 @@ import android.net.Uri
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
+import com.t8rin.imagetoolbox.core.data.image.toMetadata
 import com.t8rin.imagetoolbox.core.data.saving.io.StreamWriteable
 import com.t8rin.imagetoolbox.core.data.utils.cacheSize
 import com.t8rin.imagetoolbox.core.data.utils.clearCache
@@ -37,7 +38,8 @@ import com.t8rin.imagetoolbox.core.data.utils.listFilesInDirectoryProgressive
 import com.t8rin.imagetoolbox.core.data.utils.openFileDescriptor
 import com.t8rin.imagetoolbox.core.data.utils.openWriteableStream
 import com.t8rin.imagetoolbox.core.data.utils.toUiPath
-import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
+import com.t8rin.imagetoolbox.core.domain.coroutines.AppScope
+import com.t8rin.imagetoolbox.core.domain.coroutines.DispatchersHolder
 import com.t8rin.imagetoolbox.core.domain.image.Metadata
 import com.t8rin.imagetoolbox.core.domain.image.ShareProvider
 import com.t8rin.imagetoolbox.core.domain.json.JsonParser
@@ -55,14 +57,10 @@ import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.settings.domain.SettingsManager
 import com.t8rin.imagetoolbox.core.settings.domain.model.CopyToClipboardMode
 import com.t8rin.imagetoolbox.core.settings.domain.model.OneTimeSaveLocation
-import com.t8rin.imagetoolbox.core.settings.domain.model.SettingsState
 import com.t8rin.logger.makeLog
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okio.use
@@ -78,23 +76,15 @@ internal class AndroidFileController @Inject constructor(
     private val shareProvider: ShareProvider,
     private val filenameCreator: FilenameCreator,
     private val jsonParser: JsonParser,
+    private val appScope: AppScope,
     dispatchersHolder: DispatchersHolder,
     resourceManager: ResourceManager,
 ) : DispatchersHolder by dispatchersHolder,
     ResourceManager by resourceManager,
     FileController {
 
-    private var _settingsState: SettingsState = SettingsState.Default
-
-    private val settingsState get() = _settingsState
-
-    init {
-        settingsManager
-            .getSettingsStateFlow()
-            .onEach { state ->
-                _settingsState = state
-            }.launchIn(CoroutineScope(defaultDispatcher))
-    }
+    private val _settingsState = settingsManager.settingsState
+    private val settingsState get() = _settingsState.value
 
     override fun getSize(uri: String): Long? = uri.toUri().fileSize(context)
 
@@ -164,6 +154,15 @@ internal class AndroidFileController @Inject constructor(
             }
 
             val originalUri = saveTarget.originalUri.toUri()
+
+            if (saveTarget is ImageSaveTarget && saveTarget.canSkipIfLarger && settingsState.allowSkipIfLarger) {
+                val originalSize = originalUri.fileSize(context)
+                val newSize = data.size
+
+                if (originalSize != null && newSize > originalSize) {
+                    return@withContext SaveResult.Skipped
+                }
+            }
 
             if (settingsState.overwriteFiles) {
                 runCatching {
@@ -337,7 +336,7 @@ internal class AndroidFileController @Inject constructor(
     override fun clearCache(
         onComplete: (String) -> Unit,
     ) {
-        CoroutineScope(ioDispatcher).launch {
+        appScope.launch {
             context.clearCache()
             onComplete(getReadableCacheSize())
         }
@@ -431,6 +430,7 @@ internal class AndroidFileController @Inject constructor(
         key: String,
         value: O,
     ): Boolean = withContext(ioDispatcher) {
+        "saveObject".makeLog(key)
         val json = jsonParser.toJson(value, value::class.java) ?: return@withContext false
         val file = File(context.filesDir, "$key.json")
 
@@ -439,8 +439,10 @@ internal class AndroidFileController @Inject constructor(
                 it.write(json.toByteArray(Charsets.UTF_8))
             }
         }.onSuccess {
+            "saveObject success".makeLog(key)
             return@withContext true
         }.onFailure {
+            it.makeLog("saveObject $key")
             return@withContext false
         }
 
@@ -452,11 +454,16 @@ internal class AndroidFileController @Inject constructor(
         kClass: KClass<O>,
     ): O? = withContext(ioDispatcher) {
         runCatching {
+            "restoreObject".makeLog(key)
             val file = File(context.filesDir, "$key.json").apply {
                 if (!exists()) createNewFile()
             }
 
             jsonParser.fromJson<O>(file.readText(Charsets.UTF_8), kClass.java)
+        }.onFailure {
+            it.makeLog("restoreObject $key")
+        }.onSuccess {
+            "restoreObject success".makeLog(key)
         }.getOrNull()
     }
 
@@ -471,6 +478,10 @@ internal class AndroidFileController @Inject constructor(
             originalUri = imageUri.toUri()
         )
     }
+
+    override suspend fun readMetadata(
+        imageUri: String
+    ): Metadata? = context.openFileDescriptor(imageUri.toUri())?.fileDescriptor?.toMetadata()
 
     override suspend fun listFilesInDirectory(
         treeUri: String

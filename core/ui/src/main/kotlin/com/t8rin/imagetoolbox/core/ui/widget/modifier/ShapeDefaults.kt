@@ -35,7 +35,6 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Outline
@@ -46,11 +45,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.t8rin.imagetoolbox.core.domain.utils.autoCast
 import com.t8rin.imagetoolbox.core.ui.utils.animation.lessSpringySpec
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 object ShapeDefaults {
@@ -84,20 +83,20 @@ object ShapeDefaults {
     val top = RoundedCornerShape(
         topStart = 16.dp,
         topEnd = 16.dp,
-        bottomStart = 6.dp,
-        bottomEnd = 6.dp
+        bottomStart = 4.dp,
+        bottomEnd = 4.dp
     )
 
     val center = RoundedCornerShape(
-        topStart = 6.dp,
-        topEnd = 6.dp,
-        bottomStart = 6.dp,
-        bottomEnd = 6.dp
+        topStart = 4.dp,
+        topEnd = 4.dp,
+        bottomStart = 4.dp,
+        bottomEnd = 4.dp
     )
 
     val bottom = RoundedCornerShape(
-        topStart = 6.dp,
-        topEnd = 6.dp,
+        topStart = 4.dp,
+        topEnd = 4.dp,
         bottomStart = 16.dp,
         bottomEnd = 16.dp
     )
@@ -123,11 +122,32 @@ object ShapeDefaults {
         bottomStart = 4.dp
     )
 
+    val topStart = RoundedCornerShape(
+        topEnd = 4.dp,
+        topStart = 16.dp,
+        bottomEnd = 4.dp,
+        bottomStart = 4.dp
+    )
+
     val bottomEnd = RoundedCornerShape(
         topEnd = 4.dp,
         topStart = 4.dp,
         bottomEnd = 16.dp,
         bottomStart = 4.dp
+    )
+
+    val smallTop = RoundedCornerShape(
+        topStart = 12.dp,
+        topEnd = 12.dp,
+        bottomStart = 4.dp,
+        bottomEnd = 4.dp
+    )
+
+    val smallBottom = RoundedCornerShape(
+        topStart = 4.dp,
+        topEnd = 4.dp,
+        bottomStart = 12.dp,
+        bottomEnd = 12.dp
     )
 
     val smallStart = RoundedCornerShape(
@@ -254,7 +274,9 @@ internal class AnimatedShape(
         layoutDirection: LayoutDirection,
         density: Density
     ): Outline {
-        this.size = size
+        if (size.width > 1f && size.height > 1f) {
+            this.size = size
+        }
 
         return RoundedCornerShape(
             topStart = topStart.boundedValue(),
@@ -290,6 +312,15 @@ internal fun rememberAnimatedShape(
     val channel = remember { Channel<CornerBasedShape>(Channel.CONFLATED) }
 
     SideEffect { channel.trySend(currentShape) }
+
+    LifecycleResumeEffect(Unit) {
+        channel.trySend(currentShape)
+
+        onPauseOrDispose {
+            channel.trySend(currentShape)
+        }
+    }
+
     LaunchedEffect(state, channel) {
         for (target in channel) {
             val newTarget = channel.tryReceive().getOrNull() ?: target
@@ -315,7 +346,6 @@ fun shapeByInteraction(
     pressedShape: Shape,
     interactionSource: InteractionSource?,
     animationSpec: FiniteAnimationSpec<Float> = lessSpringySpec(),
-    delay: Long = 300,
     enabled: Boolean = true
 ): Shape {
     if (!enabled || interactionSource == null) return shape
@@ -325,20 +355,7 @@ fun shapeByInteraction(
 
     val usePressedShape = pressed || focused
 
-    val targetShapeState = remember {
-        mutableStateOf(shape)
-    }
-
-    LaunchedEffect(usePressedShape, shape) {
-        if (usePressedShape) {
-            targetShapeState.value = pressedShape
-        } else {
-            if (shape is CornerBasedShape) delay(delay)
-            targetShapeState.value = shape
-        }
-    }
-
-    val targetShape = targetShapeState.value
+    val targetShape = if (usePressedShape) pressedShape else shape
 
     if (targetShape is CornerBasedShape) {
         return animateShape(

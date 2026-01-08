@@ -25,17 +25,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.net.toUri
 import com.arkivanov.decompose.ComponentContext
-import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
+import com.t8rin.imagetoolbox.core.domain.coroutines.DispatchersHolder
 import com.t8rin.imagetoolbox.core.domain.image.ImageCompressor
 import com.t8rin.imagetoolbox.core.domain.image.ImageShareProvider
 import com.t8rin.imagetoolbox.core.domain.image.model.ImageFormat
 import com.t8rin.imagetoolbox.core.domain.image.model.ImageInfo
 import com.t8rin.imagetoolbox.core.domain.image.model.Quality
+import com.t8rin.imagetoolbox.core.domain.model.QrType
 import com.t8rin.imagetoolbox.core.domain.saving.FileController
 import com.t8rin.imagetoolbox.core.domain.saving.model.ImageSaveTarget
 import com.t8rin.imagetoolbox.core.domain.saving.model.SaveResult
+import com.t8rin.imagetoolbox.core.domain.utils.onResult
 import com.t8rin.imagetoolbox.core.domain.utils.smartJob
-import com.t8rin.imagetoolbox.core.filters.domain.FavoriteFiltersInteractor
+import com.t8rin.imagetoolbox.core.filters.domain.FilterParamsInteractor
 import com.t8rin.imagetoolbox.core.settings.domain.SettingsProvider
 import com.t8rin.imagetoolbox.core.settings.domain.model.SettingsState
 import com.t8rin.imagetoolbox.core.settings.presentation.model.toUiFont
@@ -58,17 +60,13 @@ class ScanQrCodeComponent @AssistedInject internal constructor(
     private val fileController: FileController,
     private val shareProvider: ImageShareProvider<Bitmap>,
     private val imageCompressor: ImageCompressor<Bitmap>,
-    private val favoriteFiltersInteractor: FavoriteFiltersInteractor,
+    private val filterParamsInteractor: FilterParamsInteractor,
     private val imageBarcodeReader: ImageBarcodeReader,
     settingsProvider: SettingsProvider,
     dispatchersHolder: DispatchersHolder
 ) : BaseComponent(dispatchersHolder, componentContext) {
 
-    private val _params: MutableState<QrPreviewParams> = mutableStateOf(
-        QrPreviewParams.Default.copy(
-            content = initialQrCodeContent ?: ""
-        )
-    )
+    private val _params: MutableState<QrPreviewParams> = mutableStateOf(QrPreviewParams.Default)
     val params by _params
 
     private val _isSaving: MutableState<Boolean> = mutableStateOf(false)
@@ -80,8 +78,14 @@ class ScanQrCodeComponent @AssistedInject internal constructor(
 
     private var settingsState: SettingsState = SettingsState.Default
 
+    private val _mayBeNotScannable = mutableStateOf(false)
+    val mayBeNotScannable by _mayBeNotScannable
+
+    private val _isSaveEnabled = mutableStateOf(false)
+    val isSaveEnabled by _isSaveEnabled
+
     init {
-        settingsProvider.getSettingsStateFlow().onEach { state ->
+        settingsProvider.settingsState.onEach { state ->
             settingsState = state
             _params.update {
                 it.copy(
@@ -89,6 +93,14 @@ class ScanQrCodeComponent @AssistedInject internal constructor(
                 )
             }
         }.launchIn(componentScope)
+
+        initialQrCodeContent?.let { content ->
+            updateParams(
+                params.copy(
+                    content = QrType.Plain(content)
+                )
+            )
+        }
 
         uriToAnalyze?.let(::readBarcodeFromImage)
     }
@@ -182,9 +194,9 @@ class ScanQrCodeComponent @AssistedInject internal constructor(
         onSuccess: (filterName: String, filtersCount: Int) -> Unit
     ) {
         componentScope.launch {
-            if (favoriteFiltersInteractor.isValidTemplateFilter(params.content)) {
-                favoriteFiltersInteractor.addTemplateFilterFromString(
-                    string = params.content,
+            if (filterParamsInteractor.isValidTemplateFilter(params.content.raw)) {
+                filterParamsInteractor.addTemplateFilterFromString(
+                    string = params.content.raw,
                     onSuccess = onSuccess,
                     onFailure = {}
                 )
@@ -199,21 +211,33 @@ class ScanQrCodeComponent @AssistedInject internal constructor(
     }
 
     fun readBarcodeFromImage(
-        imageUri: Uri,
+        image: Any,
         onFailure: (Throwable) -> Unit = {}
     ) {
         componentScope.launch {
-            imageBarcodeReader
-                .readBarcode(imageUri)
-                .onSuccess {
-                    updateParams(
-                        params.copy(
-                            content = it
-                        )
-                    )
-                }
-                .onFailure(onFailure)
+            syncReadBarcodeFromImage(image).onFailure(onFailure)
         }
+    }
+
+    suspend fun syncReadBarcodeFromImage(
+        image: Any?
+    ): Result<QrType> {
+        _isSaveEnabled.value = image != null
+
+        if (image == null) return Result.failure(Throwable("Barcode not rendered"))
+
+        return imageBarcodeReader
+            .readBarcode(image)
+            .onResult { isSuccess ->
+                _mayBeNotScannable.value = !isSuccess
+            }
+            .onSuccess {
+                updateParams(
+                    params.copy(
+                        content = it
+                    )
+                )
+            }
     }
 
     @AssistedFactory

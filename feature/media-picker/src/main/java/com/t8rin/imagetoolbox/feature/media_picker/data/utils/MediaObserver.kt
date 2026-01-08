@@ -155,6 +155,7 @@ fun Cursor.getMediaFromCursor(): Media {
 
     val uri = ContentUris.withAppendedId(contentUri, id)
     val formattedDate = modifiedTimestamp.getDate(FULL_DATE_FORMAT)
+
     return Media(
         id = id,
         label = title,
@@ -170,7 +171,7 @@ fun Cursor.getMediaFromCursor(): Media {
         duration = duration,
         favorite = 0,
         trashed = 0,
-        mimeType = mimeType
+        mimeType = mimeType,
     )
 }
 

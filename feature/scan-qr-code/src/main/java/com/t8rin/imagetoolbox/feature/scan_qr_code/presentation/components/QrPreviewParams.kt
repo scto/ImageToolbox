@@ -18,30 +18,32 @@
 package com.t8rin.imagetoolbox.feature.scan_qr_code.presentation.components
 
 import android.net.Uri
+import com.t8rin.imagetoolbox.core.domain.model.QrType
 import com.t8rin.imagetoolbox.core.settings.presentation.model.UiFontFamily
 import com.t8rin.imagetoolbox.core.ui.widget.other.BarcodeType
+import com.t8rin.imagetoolbox.core.ui.widget.other.QrCodeParams
 
 data class QrPreviewParams(
     val imageUri: Uri?,
     val description: String,
-    val content: String,
+    val content: QrType,
     val cornersSize: Int,
     val descriptionFont: UiFontFamily,
     val heightRatio: Float,
     val type: BarcodeType,
-    val enforceBlackAndWhite: Boolean
+    val qrParams: QrCodeParams,
 ) {
     companion object {
         val Default by lazy {
             QrPreviewParams(
                 imageUri = null,
                 description = "",
-                content = "",
+                content = QrType.Empty,
                 cornersSize = 4,
                 descriptionFont = UiFontFamily.System,
                 heightRatio = 2f,
                 type = BarcodeType.QR_CODE,
-                enforceBlackAndWhite = false
+                qrParams = QrCodeParams()
             )
         }
     }

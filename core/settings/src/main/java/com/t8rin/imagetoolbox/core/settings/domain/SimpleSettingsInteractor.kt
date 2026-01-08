@@ -53,4 +53,10 @@ interface SimpleSettingsInteractor {
         color: ColorModel
     )
 
+    suspend fun toggleCustomAsciiGradient(gradient: String)
+
+    suspend fun toggleOverwriteFiles()
+
+    suspend fun setSpotHealMode(mode: Int)
+
 }

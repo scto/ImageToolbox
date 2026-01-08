@@ -27,7 +27,6 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
@@ -54,6 +53,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toFile
 import com.smarttoolfactory.colordetector.util.ColorUtil.roundToTwoDigits
@@ -63,12 +63,12 @@ import com.smarttoolfactory.cropper.settings.CropDefaults
 import com.smarttoolfactory.cropper.settings.CropProperties
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.settings.presentation.provider.LocalSettingsState
-import com.t8rin.imagetoolbox.core.ui.utils.helper.plus
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.transparencyChecker
 import com.t8rin.imagetoolbox.core.ui.widget.other.BoxAnimatedVisibility
 import com.t8rin.opencv_tools.free_corners_crop.compose.FreeCornersCropper
 import com.yalantis.ucrop.compose.UCropper
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 @Composable
 fun Cropper(
@@ -108,6 +108,7 @@ fun Cropper(
                                 .apply(onImageCropFinished)
                         }
                     },
+                    isOverlayDraggable = true,
                     rotationAngleState = rotationState,
                     onLoadingStateChange = {
                         if (it) onImageCropStarted()
@@ -131,11 +132,19 @@ fun Cropper(
                             mutableFloatStateOf(1f)
                         }
                         val bmp = remember(bitmap) { bitmap.asImageBitmap() }
+                        val minDimension = remember(cropProperties.handleSize) {
+                            val size = (cropProperties.handleSize * 3).roundToInt()
+
+                            IntSize(size, size)
+                        }
                         ImageCropper(
                             backgroundModifier = Modifier.transparencyChecker(),
                             imageBitmap = bmp,
                             contentDescription = null,
-                            cropProperties = cropProperties.copy(fixedAspectRatio = fixedAspectRatio),
+                            cropProperties = cropProperties.copy(
+                                fixedAspectRatio = fixedAspectRatio,
+                                minDimension = minDimension
+                            ),
                             onCropStart = onImageCropStarted,
                             crop = crop,
                             cropStyle = CropDefaults.style(
@@ -172,6 +181,8 @@ fun Cropper(
             }
 
             CropType.FreeCorners -> {
+                val settingsState = LocalSettingsState.current
+
                 FreeCornersCropper(
                     bitmap = bitmap,
                     croppingTrigger = crop,
@@ -185,7 +196,16 @@ fun Cropper(
                             if (addVerticalInsets) it.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
                             else it.only(WindowInsetsSides.Horizontal)
                         }
-                        .asPaddingValues() + PaddingValues(16.dp)
+                        .union(
+                            WindowInsets(
+                                left = 16.dp,
+                                top = 16.dp,
+                                right = 16.dp,
+                                bottom = 16.dp
+                            )
+                        )
+                        .asPaddingValues(),
+                    showMagnifier = settingsState.magnifierEnabled
                 )
             }
         }

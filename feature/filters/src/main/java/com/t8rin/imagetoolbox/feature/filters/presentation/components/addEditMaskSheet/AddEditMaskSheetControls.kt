@@ -53,7 +53,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.t8rin.imagetoolbox.core.domain.model.Pt
@@ -67,6 +66,7 @@ import com.t8rin.imagetoolbox.core.filters.presentation.widget.addFilters.AddFil
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.ui.theme.outlineVariant
 import com.t8rin.imagetoolbox.core.ui.utils.helper.isPortraitOrientationAsState
+import com.t8rin.imagetoolbox.core.ui.utils.provider.LocalComponentActivity
 import com.t8rin.imagetoolbox.core.ui.widget.buttons.EraseModeButton
 import com.t8rin.imagetoolbox.core.ui.widget.buttons.PanModeButton
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedIconButton
@@ -108,7 +108,7 @@ internal fun AddEditMaskSheetControls(
 ) {
     var showAddFilterSheet by rememberSaveable { mutableStateOf(false) }
 
-    val context = LocalContext.current
+    val context = LocalComponentActivity.current
     val toastHostState = LocalToastHostState.current
     val scope = rememberCoroutineScope()
 
@@ -201,7 +201,7 @@ internal fun AddEditMaskSheetControls(
             PreferenceRowSwitch(
                 title = stringResource(id = R.string.mask_preview),
                 subtitle = stringResource(id = R.string.mask_preview_sub),
-                color = animateColorAsState(
+                containerColor = animateColorAsState(
                     if (component.maskPreviewModeEnabled) MaterialTheme.colorScheme.onPrimary
                     else Color.Unspecified,
                 ).value,
@@ -251,6 +251,8 @@ internal fun AddEditMaskSheetControls(
             values = remember {
                 listOf(
                     DrawPathMode.Free,
+                    DrawPathMode.FloodFill(),
+                    DrawPathMode.Spray(),
                     DrawPathMode.Lasso,
                     DrawPathMode.Rect(),
                     DrawPathMode.Oval,
@@ -290,7 +292,7 @@ internal fun AddEditMaskSheetControls(
             end = 16.dp,
             top = 8.dp
         ),
-        color = Color.Unspecified,
+        containerColor = Color.Unspecified,
         resultModifier = Modifier.padding(16.dp),
         applyHorizontalPadding = false,
         shape = ShapeDefaults.extraLarge,
@@ -324,9 +326,9 @@ internal fun AddEditMaskSheetControls(
                         FilterItem(
                             backgroundColor = MaterialTheme.colorScheme.surface,
                             filter = filter,
-                            onFilterChange = {
+                            onFilterChange = { value ->
                                 component.updateFilter(
-                                    value = it,
+                                    value = value,
                                     index = index,
                                     showError = {
                                         scope.launch {

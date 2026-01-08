@@ -19,9 +19,6 @@ package com.t8rin.imagetoolbox.feature.erase_background.domain
 
 internal interface AutoBackgroundRemoverBackend<I> {
 
-    fun performBackgroundRemove(
-        image: I,
-        onFinish: (Result<I>) -> Unit
-    )
+    suspend fun performBackgroundRemove(image: I): Result<I>
 
 }

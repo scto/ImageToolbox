@@ -50,6 +50,7 @@ import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
 import com.t8rin.imagetoolbox.core.ui.widget.switches.CupertinoSwitch
 import com.t8rin.imagetoolbox.core.ui.widget.switches.CupertinoSwitchDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.switches.FluentSwitch
+import com.t8rin.imagetoolbox.core.ui.widget.switches.HyperOSSwitch
 import com.t8rin.imagetoolbox.core.ui.widget.switches.LiquidGlassSwitch
 import com.t8rin.imagetoolbox.core.ui.widget.switches.M3Switch
 import com.t8rin.imagetoolbox.core.ui.widget.switches.PixelSwitch
@@ -63,6 +64,7 @@ fun EnhancedSwitch(
     enabled: Boolean = true,
     colors: SwitchColors? = null,
     interactionSource: MutableInteractionSource? = null,
+    colorUnderSwitch: Color = Color.Unspecified
 ) {
     val switchColors = colors ?: SwitchDefaults.colors(
         disabledUncheckedThumbColor = MaterialTheme.colorScheme.onSurface
@@ -175,33 +177,28 @@ fun EnhancedSwitch(
                     LiquidGlassSwitch(
                         checked = checked,
                         onCheckedChange = switchOnCheckedChange,
-                        modifier = switchModifier,
+                        internalModifier = switchModifier,
+                        modifier = modifier,
                         enabled = enabled,
                         interactionSource = interactionSource,
-                        colors = CupertinoSwitchDefaults.colors()
+                        colors = CupertinoSwitchDefaults.colors(),
+                        backgroundColor = colorUnderSwitch
+                    )
+                }
+
+                is SwitchType.HyperOS -> {
+                    HyperOSSwitch(
+                        modifier = switchModifier,
+                        colors = switchColors.copy(
+                            uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                        ),
+                        checked = checked,
+                        enabled = enabled,
+                        onCheckedChange = switchOnCheckedChange,
+                        interactionSource = interactionSource
                     )
                 }
             }
         }
     }
 }
-
-@Suppress("UnusedReceiverParameter")
-fun SwitchDefaults.transparentColors() = SwitchColors(
-    Color.Transparent,
-    Color.Transparent,
-    Color.Transparent,
-    Color.Transparent,
-    Color.Transparent,
-    Color.Transparent,
-    Color.Transparent,
-    Color.Transparent,
-    Color.Transparent,
-    Color.Transparent,
-    Color.Transparent,
-    Color.Transparent,
-    Color.Transparent,
-    Color.Transparent,
-    Color.Transparent,
-    Color.Transparent
-)

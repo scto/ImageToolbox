@@ -48,6 +48,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.resources.icons.Cube
+import com.t8rin.imagetoolbox.core.resources.icons.HyperOS
 import com.t8rin.imagetoolbox.core.resources.icons.IOS
 import com.t8rin.imagetoolbox.core.resources.icons.MaterialDesign
 import com.t8rin.imagetoolbox.core.resources.icons.MiniEdit
@@ -122,7 +123,7 @@ fun SwitchTypeSettingItem(
                     onClick = { onValueChange(type) },
                     title = type.title,
                     subtitle = type.subtitle,
-                    color = takeColorFromScheme {
+                    containerColor = takeColorFromScheme {
                         if (selected) secondaryContainer
                         else SafeLocalContainerColor
                     },
@@ -158,6 +159,7 @@ private val SwitchType.title: String
         SwitchType.Fluent -> stringResource(R.string.fluent_switch)
         SwitchType.Cupertino -> stringResource(R.string.cupertino_switch)
         SwitchType.LiquidGlass -> stringResource(R.string.liquid_glass)
+        SwitchType.HyperOS -> stringResource(R.string.hyper_os)
     }
 
 private val SwitchType.subtitle: String
@@ -169,15 +171,17 @@ private val SwitchType.subtitle: String
         SwitchType.Fluent -> stringResource(R.string.fluent_switch_sub)
         SwitchType.Cupertino -> stringResource(R.string.cupertino_switch_sub)
         SwitchType.LiquidGlass -> stringResource(R.string.liquid_glass_sub)
+        SwitchType.HyperOS -> stringResource(R.string.hyper_os_sub)
     }
 
 
 private val SwitchType.icon: ImageVector
     get() = when (this) {
         SwitchType.MaterialYou -> Icons.Outlined.MaterialDesign
-        SwitchType.Compose -> Icons.Rounded.Cube
+        SwitchType.Compose -> Icons.Outlined.Cube
         SwitchType.Pixel -> Icons.Rounded.Android
         SwitchType.Fluent -> Icons.Rounded.Windows
         SwitchType.Cupertino -> Icons.Rounded.IOS
         SwitchType.LiquidGlass -> Icons.Rounded.Water
+        SwitchType.HyperOS -> Icons.Outlined.HyperOS
     }

@@ -23,7 +23,6 @@ import android.graphics.Bitmap
 import android.graphics.BlurMaskFilter
 import android.graphics.Canvas
 import android.graphics.Matrix
-import android.graphics.Typeface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -54,7 +53,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.applyCanvas
 import androidx.core.graphics.createBitmap
 import coil3.imageLoader
@@ -70,9 +68,9 @@ import com.t8rin.imagetoolbox.core.filters.presentation.model.UiNativeStackBlurF
 import com.t8rin.imagetoolbox.core.filters.presentation.model.UiPixelationFilter
 import com.t8rin.imagetoolbox.core.filters.presentation.model.toUiFilter
 import com.t8rin.imagetoolbox.core.resources.shapes.MaterialStarShape
-import com.t8rin.imagetoolbox.core.settings.domain.model.FontType
 import com.t8rin.imagetoolbox.core.ui.utils.helper.ContextUtils.density
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.Line
+import com.t8rin.imagetoolbox.core.utils.toTypeface
 import com.t8rin.imagetoolbox.feature.draw.domain.DrawLineStyle
 import com.t8rin.imagetoolbox.feature.draw.domain.DrawMode
 import com.t8rin.imagetoolbox.feature.draw.domain.DrawPathMode
@@ -80,6 +78,11 @@ import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import android.graphics.Paint as NativePaint
 import android.graphics.Path as NativePath
+
+/**
+ *  Needed to trigger recomposition
+ **/
+fun ImageBitmap.copy(): ImageBitmap = asAndroidBitmap().asImageBitmap()
 
 internal fun Path.copy(): Path = copyAsAndroidPath().asComposePath()
 
@@ -116,6 +119,7 @@ internal fun NativePath.mirror(
     return mirroredPath
 }
 
+@Suppress("unused")
 internal fun Path.mirrorIfNeeded(
     canvasSize: IntegerSize,
     mirroringLines: List<Line>
@@ -144,6 +148,7 @@ internal fun NativePath.mirrorIfNeeded(
     this
 }
 
+@Suppress("unused")
 internal fun Path.mirror(
     x: Float,
     y: Float,
@@ -156,7 +161,7 @@ internal fun Path.mirror(
     y1 = y1
 ).asComposePath()
 
-
+@Suppress("unused")
 fun Canvas.drawInfiniteLine(
     line: Line,
     paint: NativePaint = NativePaint().apply {
@@ -201,14 +206,16 @@ fun Canvas.drawInfiniteLine(
 internal fun ImageBitmap.clipBitmap(
     path: Path,
     paint: Paint,
-): ImageBitmap = asAndroidBitmap().applyCanvas {
+): ImageBitmap = asAndroidBitmap()
+    .let { it.copy(it.safeConfig, true) }
+    .applyCanvas {
         drawPath(
             NativePath(path.asAndroidPath()).apply {
                 fillType = NativePath.FillType.INVERSE_WINDING
             },
             paint.asFrameworkPaint()
         )
-}.asImageBitmap()
+    }.asImageBitmap()
 
 internal fun ImageBitmap.overlay(overlay: ImageBitmap): ImageBitmap {
     val image = this.asAndroidBitmap()
@@ -270,7 +277,10 @@ internal fun rememberPaint(
                             style = PaintingStyle.Fill
                         } else {
                             style = PaintingStyle.Stroke
-                            this.strokeWidth = strokeWidth.toPx(canvasSize)
+                            this.strokeWidth = drawPathMode.convertStrokeWidth(
+                                strokeWidth = strokeWidth,
+                                canvasSize = canvasSize
+                            )
                             if (drawMode is DrawMode.Highlighter || isSharpEdge) {
                                 strokeCap = StrokeCap.Square
                             } else {
@@ -304,15 +314,7 @@ internal fun rememberPaint(
                 if (drawMode is DrawMode.Text && !isEraserOn) {
                     isAntiAlias = true
                     textSize = strokeWidth.toPx(canvasSize)
-                    if (drawMode.font != null) {
-                        typeface = when (drawMode.font) {
-                            is FontType.File -> Typeface.createFromFile(drawMode.font.path)
-                            is FontType.Resource -> ResourcesCompat.getFont(
-                                context,
-                                drawMode.font.resId
-                            )
-                        }
-                    }
+                    typeface = drawMode.font.toTypeface()
                 }
             }
         }

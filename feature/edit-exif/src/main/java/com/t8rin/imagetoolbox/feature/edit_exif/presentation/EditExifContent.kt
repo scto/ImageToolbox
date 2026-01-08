@@ -178,6 +178,7 @@ fun EditExifContent(
                     onSuccess = {
                         aspectRatio = it.result.image.toBitmap().safeAspectRatio
                     },
+                    isLoadingFromDifferentPlace = component.isImageLoading,
                     shape = MaterialTheme.shapes.medium,
                     contentScale = ContentScale.FillBounds
                 )

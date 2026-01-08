@@ -20,35 +20,34 @@
 package com.t8rin.imagetoolbox.core.settings.presentation.model
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Architecture
 import androidx.compose.material.icons.rounded.Celebration
 import androidx.compose.material.icons.rounded.Description
-import androidx.compose.material.icons.rounded.Explore
-import androidx.compose.material.icons.rounded.Face6
 import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material.icons.rounded.Palette
-import androidx.compose.material.icons.rounded.PersonSearch
-import androidx.compose.material.icons.rounded.PhoneAndroid
-import androidx.compose.material.icons.rounded.SettingsBackupRestore
-import androidx.compose.material.icons.rounded.ShieldMoon
-import androidx.compose.material.icons.rounded.SortByAlpha
-import androidx.compose.material.icons.rounded.SystemSecurityUpdate
-import androidx.compose.material.icons.rounded.Vibration
-import androidx.compose.material.icons.rounded.ViewCarousel
-import androidx.compose.material.icons.twotone.Palette
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.t8rin.imagetoolbox.core.resources.BuildConfig
+import com.t8rin.imagetoolbox.core.domain.utils.Flavor
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.resources.icons.ClipboardFile
+import com.t8rin.imagetoolbox.core.resources.icons.Cool
+import com.t8rin.imagetoolbox.core.resources.icons.Database
+import com.t8rin.imagetoolbox.core.resources.icons.DesignServices
 import com.t8rin.imagetoolbox.core.resources.icons.Draw
 import com.t8rin.imagetoolbox.core.resources.icons.Exif
 import com.t8rin.imagetoolbox.core.resources.icons.Firebase
 import com.t8rin.imagetoolbox.core.resources.icons.FolderOpened
+import com.t8rin.imagetoolbox.core.resources.icons.Glyphs
+import com.t8rin.imagetoolbox.core.resources.icons.HardDrive
 import com.t8rin.imagetoolbox.core.resources.icons.ImageSearch
 import com.t8rin.imagetoolbox.core.resources.icons.LabelPercent
-import com.t8rin.imagetoolbox.core.resources.icons.Mop
-import com.t8rin.imagetoolbox.core.resources.icons.Shadow
-import com.t8rin.imagetoolbox.core.resources.icons.Stacks
+import com.t8rin.imagetoolbox.core.resources.icons.Mobile
+import com.t8rin.imagetoolbox.core.resources.icons.MobileArrowDown
+import com.t8rin.imagetoolbox.core.resources.icons.MobileCast
+import com.t8rin.imagetoolbox.core.resources.icons.MobileLayout
+import com.t8rin.imagetoolbox.core.resources.icons.MobileVibrate
+import com.t8rin.imagetoolbox.core.resources.icons.Psychology
+import com.t8rin.imagetoolbox.core.resources.icons.ResponsiveLayout
+import com.t8rin.imagetoolbox.core.resources.icons.Routine
+import com.t8rin.imagetoolbox.core.resources.icons.SquareFoot
+import com.t8rin.imagetoolbox.core.resources.icons.Tonality
 
 sealed class SettingsGroup(
     val id: Int,
@@ -59,7 +58,7 @@ sealed class SettingsGroup(
 ) {
     data object ContactMe : SettingsGroup(
         id = 0,
-        icon = Icons.Rounded.PersonSearch,
+        icon = Icons.Rounded.MobileCast,
         titleId = R.string.contact_me,
         settingsList = listOf(
             Setting.Author,
@@ -71,13 +70,12 @@ sealed class SettingsGroup(
 
     data object PrimaryCustomization : SettingsGroup(
         id = 1,
-        icon = Icons.Rounded.Palette,
+        icon = Icons.Rounded.DesignServices,
         titleId = R.string.customization,
         settingsList = listOf(
             Setting.ColorScheme,
             Setting.DynamicColors,
             Setting.AmoledMode,
-            Setting.AllowImageMonet,
             Setting.IconShape
         ),
         initialState = true
@@ -85,10 +83,11 @@ sealed class SettingsGroup(
 
     data object SecondaryCustomization : SettingsGroup(
         id = 2,
-        icon = Icons.TwoTone.Palette,
+        icon = Icons.TwoTone.DesignServices,
         titleId = R.string.secondary_customization,
         settingsList = listOf(
             Setting.ColorBlindScheme,
+            Setting.AllowImageMonet,
             Setting.BorderThickness,
             Setting.MainScreenTitle
         ),
@@ -97,7 +96,7 @@ sealed class SettingsGroup(
 
     data object Layout : SettingsGroup(
         id = 3,
-        icon = Icons.Rounded.ViewCarousel,
+        icon = Icons.Rounded.MobileLayout,
         titleId = R.string.layout,
         settingsList = listOf(
             Setting.SwitchType,
@@ -112,7 +111,7 @@ sealed class SettingsGroup(
 
     data object NightMode : SettingsGroup(
         id = 4,
-        icon = Icons.Rounded.ShieldMoon,
+        icon = Icons.Rounded.Routine,
         titleId = R.string.night_mode,
         settingsList = listOf(
             Setting.NightMode
@@ -122,7 +121,7 @@ sealed class SettingsGroup(
 
     data object Shadows : SettingsGroup(
         id = 5,
-        icon = Icons.Filled.Shadow,
+        icon = Icons.Rounded.Tonality,
         titleId = R.string.shadows,
         settingsList = listOf(
             Setting.ContainerShadows,
@@ -137,7 +136,7 @@ sealed class SettingsGroup(
 
     data object Font : SettingsGroup(
         id = 6,
-        icon = Icons.Rounded.SortByAlpha,
+        icon = Icons.Outlined.Glyphs,
         titleId = R.string.text,
         settingsList = listOf(
             Setting.ChangeLanguage,
@@ -149,11 +148,12 @@ sealed class SettingsGroup(
 
     data object ToolsArrangement : SettingsGroup(
         id = 7,
-        icon = Icons.Rounded.Stacks,
+        icon = Icons.Rounded.ResponsiveLayout,
         titleId = R.string.tools_arrangement,
         settingsList = listOf(
             Setting.ScreenOrder,
             Setting.ScreenSearch,
+            Setting.EnableLauncherMode,
             Setting.GroupOptions
         ),
         initialState = false
@@ -172,11 +172,13 @@ sealed class SettingsGroup(
 
     data object DefaultValues : SettingsGroup(
         id = 9,
-        icon = Icons.Outlined.Architecture,
+        icon = Icons.Rounded.SquareFoot,
         titleId = R.string.default_values,
         settingsList = listOf(
             Setting.DefaultScaleMode,
             Setting.DefaultColorSpace,
+            Setting.DefaultImageFormat,
+            Setting.DefaultQuality,
             Setting.DefaultResizeType
         ),
         initialState = false
@@ -229,6 +231,8 @@ sealed class SettingsGroup(
             Setting.ReplaceSequenceNumber,
             Setting.AddTimestampToFilename,
             Setting.UseFormattedFilenameTimestamp,
+            Setting.AddPresetToFilename,
+            Setting.AddImageScaleModeToFilename,
             Setting.OverwriteFiles,
             Setting.ChecksumAsFilename,
             Setting.RandomizeFilename
@@ -238,7 +242,7 @@ sealed class SettingsGroup(
 
     data object Cache : SettingsGroup(
         id = 14,
-        icon = Icons.Rounded.Mop,
+        icon = Icons.Rounded.Database,
         titleId = R.string.cache,
         settingsList = listOf(
             Setting.ClearCache,
@@ -259,7 +263,7 @@ sealed class SettingsGroup(
 
     data object BackupRestore : SettingsGroup(
         id = 16,
-        icon = Icons.Rounded.SettingsBackupRestore,
+        icon = Icons.Rounded.HardDrive,
         titleId = R.string.backup_and_restore,
         settingsList = listOf(
             Setting.Backup,
@@ -282,7 +286,7 @@ sealed class SettingsGroup(
 
     data object Updates : SettingsGroup(
         id = 18,
-        icon = Icons.Rounded.SystemSecurityUpdate,
+        icon = Icons.Rounded.MobileArrowDown,
         titleId = R.string.updates,
         settingsList = listOf(
             Setting.AutoCheckUpdates,
@@ -302,8 +306,8 @@ sealed class SettingsGroup(
             Setting.HelpTranslate,
             Setting.IssueTracker,
             Setting.FreeSoftwarePartner,
-            Setting.TelegramChannel,
             Setting.TelegramGroup,
+            Setting.TelegramChannel,
             Setting.SourceCode
         ),
         initialState = true
@@ -323,7 +327,7 @@ sealed class SettingsGroup(
 
     data object Haptics : SettingsGroup(
         id = 21,
-        icon = Icons.Rounded.Vibration,
+        icon = Icons.Rounded.MobileVibrate,
         titleId = R.string.vibration,
         settingsList = listOf(
             Setting.VibrationStrength
@@ -333,7 +337,7 @@ sealed class SettingsGroup(
 
     data object Screen : SettingsGroup(
         id = 22,
-        icon = Icons.Rounded.PhoneAndroid,
+        icon = Icons.Rounded.Mobile,
         titleId = R.string.screen,
         settingsList = listOf(
             Setting.BrightnessEnforcement,
@@ -346,7 +350,7 @@ sealed class SettingsGroup(
 
     data object Emoji : SettingsGroup(
         id = 23,
-        icon = Icons.Rounded.Face6,
+        icon = Icons.Rounded.Cool,
         titleId = R.string.emoji,
         settingsList = listOf(
             Setting.Emoji,
@@ -371,15 +375,17 @@ sealed class SettingsGroup(
 
     data object Behavior : SettingsGroup(
         id = 25,
-        icon = Icons.Rounded.Explore,
+        icon = Icons.Rounded.Psychology,
         titleId = R.string.behavior,
         settingsList = listOf(
             Setting.SkipFilePicking,
+            Setting.AllowSkipIfLarger,
             Setting.EnableToolExitConfirmation,
             Setting.ShowSettingsInLandscape,
             Setting.UseFullscreenSettings,
             Setting.FastSettingsSide,
             Setting.OpenEditInsteadOfPreview,
+            Setting.SnowfallMode,
             Setting.EnableLinksPreview,
             Setting.GeneratePreviews
         ),
@@ -416,7 +422,7 @@ sealed class SettingsGroup(
                 Updates,
                 AboutApp
             ).filter {
-                !(it is Firebase && BuildConfig.FLAVOR == "foss")
+                !(it is Firebase && Flavor.isFoss())
             }
         }
     }

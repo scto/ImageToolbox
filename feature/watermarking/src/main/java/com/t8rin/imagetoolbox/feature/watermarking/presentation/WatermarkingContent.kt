@@ -67,6 +67,7 @@ import com.t8rin.imagetoolbox.core.ui.widget.text.TopAppBarTitle
 import com.t8rin.imagetoolbox.core.ui.widget.utils.AutoContentBasedColors
 import com.t8rin.imagetoolbox.feature.compare.presentation.components.CompareSheet
 import com.t8rin.imagetoolbox.feature.watermarking.domain.WatermarkParams
+import com.t8rin.imagetoolbox.feature.watermarking.presentation.components.HiddenWatermarkInfo
 import com.t8rin.imagetoolbox.feature.watermarking.presentation.components.WatermarkDataSelector
 import com.t8rin.imagetoolbox.feature.watermarking.presentation.components.WatermarkParamsSelectionGroup
 import com.t8rin.imagetoolbox.feature.watermarking.presentation.components.WatermarkingTypeSelector
@@ -201,6 +202,9 @@ fun WatermarkingContent(
                         showPickImageFromUrisSheet = true
                     }
                 )
+                HiddenWatermarkInfo(
+                    hiddenWatermark = component.currentHiddenWatermark
+                )
                 WatermarkingTypeSelector(
                     value = component.watermarkParams,
                     onValueChange = component::updateWatermarkParams
@@ -230,9 +234,9 @@ fun WatermarkingContent(
             }
         },
         buttons = {
-            val saveBitmaps: (oneTimeSaveLocationUri: String?) -> Unit = {
+            val saveBitmaps: (oneTimeSaveLocationUri: String?) -> Unit = { oneTimeSaveLocationUri ->
                 component.saveBitmaps(
-                    oneTimeSaveLocationUri = it,
+                    oneTimeSaveLocationUri = oneTimeSaveLocationUri,
                     onResult = essentials::parseSaveResults
                 )
             }

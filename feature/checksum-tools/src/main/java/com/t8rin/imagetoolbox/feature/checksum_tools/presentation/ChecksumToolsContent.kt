@@ -19,7 +19,6 @@ package com.t8rin.imagetoolbox.feature.checksum_tools.presentation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -49,7 +48,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.t8rin.imagetoolbox.core.domain.model.HashingType
 import com.t8rin.imagetoolbox.core.resources.R
-import com.t8rin.imagetoolbox.core.ui.utils.helper.plus
 import com.t8rin.imagetoolbox.core.ui.utils.provider.rememberLocalEssentials
 import com.t8rin.imagetoolbox.core.ui.widget.AdaptiveLayoutScreen
 import com.t8rin.imagetoolbox.core.ui.widget.controls.selection.DataSelector
@@ -127,7 +125,7 @@ fun ChecksumToolsContent(
                     .padding(horizontal = 20.dp)
                     .padding(insets),
                 value = component.hashingType,
-                color = Color.Unspecified,
+                containerColor = Color.Unspecified,
                 selectedItemColor = MaterialTheme.colorScheme.secondary,
                 onValueChange = component::updateChecksumType,
                 entries = HashingType.entries,
@@ -141,7 +139,7 @@ fun ChecksumToolsContent(
             HorizontalPager(
                 state = pagerState,
                 beyondViewportPageCount = 3,
-                contentPadding = insets + PaddingValues(20.dp),
+                contentPadding = insets,
                 pageSpacing = remember(insets, direction) {
                     20.dp + insets.calculateStartPadding(direction) + insets.calculateEndPadding(
                         direction
@@ -150,7 +148,9 @@ fun ChecksumToolsContent(
                 verticalAlignment = Alignment.Top
             ) { pageIndex ->
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {

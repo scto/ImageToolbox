@@ -17,6 +17,12 @@
 
 package com.t8rin.imagetoolbox.core.ui.utils.helper
 
+import android.content.Context
+import android.content.Intent
+import android.provider.MediaStore
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import com.t8rin.imagetoolbox.core.domain.utils.Flavor
 import com.t8rin.imagetoolbox.core.resources.BuildConfig
 
 val AppActivityClass: Class<*> by lazy {
@@ -31,6 +37,27 @@ val MediaPickerActivityClass: Class<*> by lazy {
     )
 }
 
+fun createMediaPickerIntent(
+    context: Context,
+    allowMultiple: Boolean,
+    currentAccent: Color,
+    imageExtension: String
+): Intent = Intent(
+    Intent.ACTION_PICK,
+    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+    context,
+    MediaPickerActivityClass
+).apply {
+    setDataAndType(
+        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+        "image/$imageExtension"
+    )
+    if (allowMultiple) {
+        putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+    }
+    putExtra(ColorSchemeName, currentAccent.toArgb())
+}
+
 val AppVersionPreRelease: String by lazy {
     BuildConfig.VERSION_NAME
         .replace(BuildConfig.FLAVOR, "")
@@ -40,18 +67,16 @@ val AppVersionPreRelease: String by lazy {
         ?.takeWhile { it.isLetter() } ?: ""
 }
 
-@Suppress("KotlinConstantConditions")
 val AppVersionPreReleaseFlavored: String by lazy {
-    if (BuildConfig.FLAVOR == "market") {
+    if (!Flavor.isFoss()) {
         AppVersionPreRelease
     } else {
         "${BuildConfig.FLAVOR} $AppVersionPreRelease"
     }.uppercase()
 }
 
-@Suppress("KotlinConstantConditions")
 val AppVersion: String by lazy {
-    BuildConfig.VERSION_NAME + if (BuildConfig.FLAVOR == "foss") "-foss" else ""
+    BuildConfig.VERSION_NAME + if (Flavor.isFoss()) "-foss" else ""
 }
 
 const val ColorSchemeName = "scheme"

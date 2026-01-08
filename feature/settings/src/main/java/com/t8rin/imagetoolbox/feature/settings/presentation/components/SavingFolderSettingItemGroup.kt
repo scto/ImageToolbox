@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.dp
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.settings.presentation.provider.LocalSettingsState
 import com.t8rin.imagetoolbox.core.ui.theme.takeColorFromScheme
-import com.t8rin.imagetoolbox.core.ui.utils.content_pickers.rememberFolderOpener
+import com.t8rin.imagetoolbox.core.ui.utils.content_pickers.rememberFolderPicker
 import com.t8rin.imagetoolbox.core.ui.utils.helper.toUiPath
 import com.t8rin.imagetoolbox.core.ui.utils.provider.SafeLocalContainerColor
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
@@ -55,7 +55,7 @@ fun SavingFolderSettingItemGroup(
 
         val settingsState = LocalSettingsState.current
         val currentFolderUri = settingsState.saveFolderUri
-        val launcher = rememberFolderOpener(
+        val launcher = rememberFolderPicker(
             onSuccess = { uri ->
                 context.contentResolver.takePersistableUriPermission(
                     uri,
@@ -71,7 +71,7 @@ fun SavingFolderSettingItemGroup(
             onClick = { onValueChange(null) },
             title = stringResource(R.string.def),
             subtitle = stringResource(R.string.default_folder),
-            color = takeColorFromScheme {
+            containerColor = takeColorFromScheme {
                 if (currentFolderUri == null) secondaryContainer.copy(0.7f)
                 else SafeLocalContainerColor
             },
@@ -93,14 +93,14 @@ fun SavingFolderSettingItemGroup(
         PreferenceItem(
             shape = ShapeDefaults.bottom,
             onClick = {
-                launcher.open(currentFolderUri)
+                launcher.pickFolder(currentFolderUri)
             },
             title = stringResource(R.string.custom),
             subtitle = currentFolderUri.toUiPath(
                 context = context,
                 default = stringResource(R.string.unspecified)
             ),
-            color = takeColorFromScheme {
+            containerColor = takeColorFromScheme {
                 if (currentFolderUri != null) secondaryContainer.copy(0.7f)
                 else Color.Unspecified
             },

@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -41,8 +42,10 @@ import com.t8rin.dynamic.theme.ColorBlindType
 import com.t8rin.dynamic.theme.ColorTuple
 import com.t8rin.dynamic.theme.PaletteStyle
 import com.t8rin.dynamic.theme.extractPrimaryColor
+import com.t8rin.imagetoolbox.core.domain.image.model.ImageFormat
 import com.t8rin.imagetoolbox.core.domain.image.model.ImageScaleMode
 import com.t8rin.imagetoolbox.core.domain.image.model.Preset
+import com.t8rin.imagetoolbox.core.domain.image.model.Quality
 import com.t8rin.imagetoolbox.core.domain.image.model.ResizeType
 import com.t8rin.imagetoolbox.core.domain.model.DomainAspectRatio
 import com.t8rin.imagetoolbox.core.domain.model.HashingType
@@ -57,6 +60,7 @@ import com.t8rin.imagetoolbox.core.settings.domain.model.NightMode
 import com.t8rin.imagetoolbox.core.settings.domain.model.OneTimeSaveLocation
 import com.t8rin.imagetoolbox.core.settings.domain.model.SettingsState
 import com.t8rin.imagetoolbox.core.settings.domain.model.SliderType
+import com.t8rin.imagetoolbox.core.settings.domain.model.SnowfallMode
 import com.t8rin.imagetoolbox.core.settings.domain.model.SwitchType
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.launch
@@ -153,13 +157,22 @@ data class UiSettingsState(
     val enableToolExitConfirmation: Boolean,
     val recentColors: List<Color>,
     val backgroundForNoAlphaImageFormats: Color,
+    val addPresetInfoToFilename: Boolean,
+    val addImageScaleModeInfoToFilename: Boolean,
+    val allowSkipIfLarger: Boolean,
+    val customAsciiGradients: Set<String>,
+    val isScreenSelectionLauncherMode: Boolean,
+    val spotHealMode: Int,
+    val snowfallMode: SnowfallMode,
+    val defaultImageFormat: ImageFormat?,
+    val defaultQuality: Quality
 )
 
 fun UiSettingsState.isFirstLaunch(
     approximate: Boolean = true,
 ) = if (approximate) {
     appOpenCount <= 3
-} else appOpenCount < 1
+} else appOpenCount <= 1
 
 @Composable
 fun SettingsState.toUiState(
@@ -288,13 +301,7 @@ fun SettingsState.toUiState(
         }
     }
 
-    val mainScreenTitle by remember(mainScreenTitle) {
-        derivedStateOf {
-            mainScreenTitle.ifEmpty {
-                context.getString(R.string.app_name)
-            }
-        }
-    }
+    val mainScreenTitle = mainScreenTitle.ifEmpty { stringResource(R.string.app_name) }
 
     val customFonts by remember(customFonts) {
         derivedStateOf {
@@ -396,7 +403,16 @@ fun SettingsState.toUiState(
                 customFonts = customFonts,
                 enableToolExitConfirmation = enableToolExitConfirmation,
                 recentColors = recentColors,
-                backgroundForNoAlphaImageFormats = Color(backgroundForNoAlphaImageFormats.colorInt)
+                backgroundForNoAlphaImageFormats = Color(backgroundForNoAlphaImageFormats.colorInt),
+                addPresetInfoToFilename = addPresetInfoToFilename,
+                addImageScaleModeInfoToFilename = addImageScaleModeInfoToFilename,
+                allowSkipIfLarger = allowSkipIfLarger,
+                customAsciiGradients = customAsciiGradients,
+                isScreenSelectionLauncherMode = isScreenSelectionLauncherMode,
+                spotHealMode = spotHealMode,
+                snowfallMode = snowfallMode,
+                defaultImageFormat = defaultImageFormat,
+                defaultQuality = defaultQuality
             )
         }
     }.value

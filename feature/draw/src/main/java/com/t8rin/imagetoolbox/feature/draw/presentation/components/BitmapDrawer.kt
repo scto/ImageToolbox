@@ -62,6 +62,7 @@ import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.MotionE
 import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.copy
 import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.drawRepeatedImageOnPath
 import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.drawRepeatedTextOnPath
+import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.floodFill
 import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.handle
 import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.overlay
 import com.t8rin.imagetoolbox.feature.draw.presentation.components.utils.pointerDrawObserver
@@ -118,7 +119,7 @@ fun BitmapDrawer(
         contentAlignment = Alignment.Center
     ) {
         BoxWithConstraints(modifier) {
-            var motionEvent by remember { mutableStateOf(MotionEvent.Idle) }
+            val motionEvent = remember { mutableStateOf(MotionEvent.Idle) }
             var previousDrawPosition by remember { mutableStateOf(Offset.Unspecified) }
             var drawDownPosition by remember { mutableStateOf(Offset.Unspecified) }
 
@@ -146,14 +147,14 @@ fun BitmapDrawer(
                 }
             }
 
-            val drawPathBitmap: ImageBitmap by remember(imageWidth, imageHeight) {
+            var invalidations by remember {
+                mutableIntStateOf(0)
+            }
+
+            val drawPathBitmap: ImageBitmap by remember(imageWidth, imageHeight, invalidations) {
                 derivedStateOf {
                     createBitmap(imageWidth, imageHeight).asImageBitmap()
                 }
-            }
-
-            var invalidations by remember {
-                mutableIntStateOf(0)
             }
 
             LaunchedEffect(
@@ -231,146 +232,6 @@ fun BitmapDrawer(
             ) { mutableStateOf(Path()) }
 
             with(canvas) {
-                val drawHelper by rememberPathHelper(
-                    drawDownPosition = drawDownPosition,
-                    currentDrawPosition = currentDrawPosition,
-                    onPathChange = { drawPath = it },
-                    strokeWidth = strokeWidth,
-                    canvasSize = canvasSize,
-                    drawPathMode = drawPathMode,
-                    isEraserOn = isEraserOn
-                )
-
-                motionEvent.handle(
-                    onDown = {
-                        if (currentDrawPosition.isSpecified) {
-                            onDrawStart?.invoke()
-                            drawPath.moveTo(currentDrawPosition.x, currentDrawPosition.y)
-                            previousDrawPosition = currentDrawPosition
-                            pathWithoutTransformations = drawPath.copy()
-                        } else {
-                            drawPath = Path()
-                            pathWithoutTransformations = Path()
-                        }
-
-                        motionEvent = MotionEvent.Idle
-                    },
-                    onMove = {
-                        drawHelper.drawPath(
-                            onDrawFreeArrow = {
-                                if (previousDrawPosition.isUnspecified && currentDrawPosition.isSpecified) {
-                                    drawPath = Path().apply {
-                                        moveTo(
-                                            currentDrawPosition.x,
-                                            currentDrawPosition.y
-                                        )
-                                    }
-                                    pathWithoutTransformations = drawPath.copy()
-                                    previousDrawPosition = currentDrawPosition
-                                }
-                                if (previousDrawPosition.isSpecified && currentDrawPosition.isSpecified) {
-                                    drawPath = pathWithoutTransformations
-                                    drawPath.quadraticTo(
-                                        previousDrawPosition.x,
-                                        previousDrawPosition.y,
-                                        (previousDrawPosition.x + currentDrawPosition.x) / 2,
-                                        (previousDrawPosition.y + currentDrawPosition.y) / 2
-                                    )
-                                    previousDrawPosition = currentDrawPosition
-
-                                    pathWithoutTransformations = drawPath.copy()
-
-                                    drawArrowsIfNeeded(drawPath)
-                                }
-                            },
-                            onBaseDraw = {
-                                if (previousDrawPosition.isUnspecified && currentDrawPosition.isSpecified) {
-                                    drawPath.moveTo(currentDrawPosition.x, currentDrawPosition.y)
-                                    previousDrawPosition = currentDrawPosition
-                                }
-
-                                if (currentDrawPosition.isSpecified && previousDrawPosition.isSpecified) {
-                                    drawPath.quadraticTo(
-                                        previousDrawPosition.x,
-                                        previousDrawPosition.y,
-                                        (previousDrawPosition.x + currentDrawPosition.x) / 2,
-                                        (previousDrawPosition.y + currentDrawPosition.y) / 2
-                                    )
-                                }
-                                previousDrawPosition = currentDrawPosition
-                            }
-                        )
-
-                        motionEvent = MotionEvent.Idle
-                    },
-                    onUp = {
-                        if (currentDrawPosition.isSpecified && drawDownPosition.isSpecified) {
-                            drawHelper.drawPath(
-                                onDrawFreeArrow = {
-                                    drawPath = pathWithoutTransformations
-                                    PathMeasure().apply {
-                                        setPath(drawPath, false)
-                                    }.let {
-                                        it.getPosition(it.length)
-                                    }.let { lastPoint ->
-                                        if (!lastPoint.isSpecified) {
-                                            drawPath.moveTo(
-                                                currentDrawPosition.x,
-                                                currentDrawPosition.y
-                                            )
-                                        }
-                                        drawPath.lineTo(
-                                            currentDrawPosition.x,
-                                            currentDrawPosition.y
-                                        )
-                                    }
-
-                                    drawArrowsIfNeeded(drawPath)
-                                },
-                                onBaseDraw = {
-                                    PathMeasure().apply {
-                                        setPath(drawPath, false)
-                                    }.let {
-                                        it.getPosition(it.length)
-                                    }.takeOrElse { currentDrawPosition }.let { lastPoint ->
-                                        drawPath.moveTo(lastPoint.x, lastPoint.y)
-                                        drawPath.lineTo(
-                                            currentDrawPosition.x,
-                                            currentDrawPosition.y
-                                        )
-                                    }
-                                }
-                            )
-
-                            onAddPath(
-                                UiPathPaint(
-                                    path = drawPath,
-                                    strokeWidth = strokeWidth,
-                                    brushSoftness = brushSoftness,
-                                    drawColor = drawColor,
-                                    isErasing = isEraserOn,
-                                    drawMode = drawMode,
-                                    canvasSize = canvasSize,
-                                    drawPathMode = drawPathMode,
-                                    drawLineStyle = drawLineStyle
-                                )
-                            )
-                        }
-
-                        currentDrawPosition = Offset.Unspecified
-                        previousDrawPosition = Offset.Unspecified
-                        motionEvent = MotionEvent.Idle
-
-                        scope.launch {
-                            if ((drawMode is DrawMode.PathEffect || drawMode is DrawMode.SpotHeal) && !isEraserOn) Unit
-                            else drawPath = Path()
-
-                            pathWithoutTransformations = Path()
-                        }
-                        onDrawFinish?.invoke()
-                    }
-                )
-
                 with(nativeCanvas) {
                     drawColor(Color.Transparent.toArgb(), PorterDuff.Mode.CLEAR)
                     drawColor(backgroundColor.toArgb())
@@ -417,15 +278,168 @@ fun BitmapDrawer(
                                 invalidations = invalidations
                             )
                         } else if (drawMode is DrawMode.SpotHeal && !isEraserOn) {
-                            drawPath(
-                                androidPath,
-                                drawPaint.apply { color = Color.Red.copy(0.5f).toArgb() }
-                            )
+                            with(drawPathCanvas.nativeCanvas) {
+                                drawColor(Color.Transparent.toArgb(), PorterDuff.Mode.CLEAR)
+                                drawPath(
+                                    androidPath,
+                                    drawPaint.apply { color = Color.Red.copy(0.5f).toArgb() }
+                                )
+                            }
                         } else {
                             drawPath(androidPath, drawPaint)
                         }
                     }
                 }
+
+                val drawHelper by rememberPathHelper(
+                    drawDownPosition = drawDownPosition,
+                    currentDrawPosition = currentDrawPosition,
+                    onPathChange = { drawPath = it },
+                    strokeWidth = strokeWidth,
+                    canvasSize = canvasSize,
+                    drawPathMode = drawPathMode,
+                    isEraserOn = isEraserOn
+                )
+
+                motionEvent.value.handle(
+                    onDown = {
+                        if (currentDrawPosition.isSpecified) {
+                            onDrawStart?.invoke()
+                            drawPath.moveTo(currentDrawPosition.x, currentDrawPosition.y)
+                            previousDrawPosition = currentDrawPosition
+                            pathWithoutTransformations = drawPath.copy()
+                        } else {
+                            drawPath = Path()
+                            pathWithoutTransformations = Path()
+                        }
+
+                        motionEvent.value = MotionEvent.Idle
+                    },
+                    onMove = {
+                        drawHelper.drawPath(
+                            currentDrawPath = drawPath,
+                            onDrawFreeArrow = {
+                                if (previousDrawPosition.isUnspecified && currentDrawPosition.isSpecified) {
+                                    drawPath = Path().apply {
+                                        moveTo(
+                                            currentDrawPosition.x,
+                                            currentDrawPosition.y
+                                        )
+                                    }
+                                    pathWithoutTransformations = drawPath.copy()
+                                    previousDrawPosition = currentDrawPosition
+                                }
+                                if (previousDrawPosition.isSpecified && currentDrawPosition.isSpecified) {
+                                    drawPath = pathWithoutTransformations
+                                    drawPath.quadraticTo(
+                                        previousDrawPosition.x,
+                                        previousDrawPosition.y,
+                                        (previousDrawPosition.x + currentDrawPosition.x) / 2,
+                                        (previousDrawPosition.y + currentDrawPosition.y) / 2
+                                    )
+                                    previousDrawPosition = currentDrawPosition
+
+                                    pathWithoutTransformations = drawPath.copy()
+
+                                    drawArrowsIfNeeded(drawPath)
+                                }
+                            },
+                            onBaseDraw = {
+                                if (previousDrawPosition.isUnspecified && currentDrawPosition.isSpecified) {
+                                    drawPath.moveTo(currentDrawPosition.x, currentDrawPosition.y)
+                                    previousDrawPosition = currentDrawPosition
+                                }
+
+                                if (currentDrawPosition.isSpecified && previousDrawPosition.isSpecified) {
+                                    drawPath.quadraticTo(
+                                        previousDrawPosition.x,
+                                        previousDrawPosition.y,
+                                        (previousDrawPosition.x + currentDrawPosition.x) / 2,
+                                        (previousDrawPosition.y + currentDrawPosition.y) / 2
+                                    )
+                                }
+                                previousDrawPosition = currentDrawPosition
+                            },
+                        )
+
+                        motionEvent.value = MotionEvent.Idle
+                    },
+                    onUp = {
+                        if (currentDrawPosition.isSpecified && drawDownPosition.isSpecified) {
+                            drawHelper.drawPath(
+                                currentDrawPath = null,
+                                onDrawFreeArrow = {
+                                    drawPath = pathWithoutTransformations
+                                    PathMeasure().apply {
+                                        setPath(drawPath, false)
+                                    }.let {
+                                        it.getPosition(it.length)
+                                    }.let { lastPoint ->
+                                        if (!lastPoint.isSpecified) {
+                                            drawPath.moveTo(
+                                                currentDrawPosition.x,
+                                                currentDrawPosition.y
+                                            )
+                                        }
+                                        drawPath.lineTo(
+                                            currentDrawPosition.x,
+                                            currentDrawPosition.y
+                                        )
+                                    }
+
+                                    drawArrowsIfNeeded(drawPath)
+                                },
+                                onBaseDraw = {
+                                    PathMeasure().apply {
+                                        setPath(drawPath, false)
+                                    }.let {
+                                        it.getPosition(it.length)
+                                    }.takeOrElse { currentDrawPosition }.let { lastPoint ->
+                                        drawPath.moveTo(lastPoint.x, lastPoint.y)
+                                        drawPath.lineTo(
+                                            currentDrawPosition.x,
+                                            currentDrawPosition.y
+                                        )
+                                    }
+                                },
+                                onFloodFill = { tolerance ->
+                                    outputImage
+                                        .floodFill(
+                                            offset = currentDrawPosition,
+                                            tolerance = tolerance
+                                        )
+                                        ?.let { drawPath = it }
+                                }
+                            )
+
+                            onAddPath(
+                                UiPathPaint(
+                                    path = drawPath,
+                                    strokeWidth = strokeWidth,
+                                    brushSoftness = brushSoftness,
+                                    drawColor = drawColor,
+                                    isErasing = isEraserOn,
+                                    drawMode = drawMode,
+                                    canvasSize = canvasSize,
+                                    drawPathMode = drawPathMode,
+                                    drawLineStyle = drawLineStyle
+                                )
+                            )
+                        }
+
+                        currentDrawPosition = Offset.Unspecified
+                        previousDrawPosition = Offset.Unspecified
+                        motionEvent.value = MotionEvent.Idle
+
+                        scope.launch {
+                            if ((drawMode is DrawMode.PathEffect || drawMode is DrawMode.SpotHeal) && !isEraserOn) Unit
+                            else drawPath = Path()
+
+                            pathWithoutTransformations = Path()
+                        }
+                        onDrawFinish?.invoke()
+                    }
+                )
             }
 
             if (drawMode is DrawMode.PathEffect && !isEraserOn) {
@@ -453,7 +467,7 @@ fun BitmapDrawer(
             BitmapDrawerPreview(
                 preview = previewBitmap,
                 globalTouchPointersCount = globalTouchPointersCount,
-                onReceiveMotionEvent = { motionEvent = it },
+                onReceiveMotionEvent = { motionEvent.value = it },
                 onInvalidate = { invalidations++ },
                 onUpdateCurrentDrawPosition = { currentDrawPosition = it },
                 onUpdateDrawDownPosition = { drawDownPosition = it },

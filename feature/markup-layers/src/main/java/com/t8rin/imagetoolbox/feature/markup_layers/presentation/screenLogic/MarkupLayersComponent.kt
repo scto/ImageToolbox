@@ -32,7 +32,7 @@ import androidx.core.net.toUri
 import com.arkivanov.decompose.ComponentContext
 import com.t8rin.imagetoolbox.core.data.image.utils.drawBitmap
 import com.t8rin.imagetoolbox.core.data.utils.safeConfig
-import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
+import com.t8rin.imagetoolbox.core.domain.coroutines.DispatchersHolder
 import com.t8rin.imagetoolbox.core.domain.image.ImageCompressor
 import com.t8rin.imagetoolbox.core.domain.image.ImageGetter
 import com.t8rin.imagetoolbox.core.domain.image.ImageScaler
@@ -101,6 +101,8 @@ class MarkupLayersComponent @AssistedInject internal constructor(
 
     private val _undoneLayers: MutableState<List<UiMarkupLayer>> = mutableStateOf(emptyList())
     val undoneLayers: List<UiMarkupLayer> by _undoneLayers
+
+    val coerceToBounds get() = layers.all { it.state.coerceToBounds }
 
     fun undo() {
         if (layers.isEmpty() && lastLayers.isNotEmpty()) {
@@ -415,6 +417,18 @@ class MarkupLayersComponent @AssistedInject internal constructor(
             if (it is BackgroundBehavior.Color) {
                 it.copy(color = color.toArgb())
             } else it
+        }
+    }
+
+    fun toggleCoerceToBounds() {
+        val result = !coerceToBounds
+
+        _layers.update { list ->
+            list.map {
+                it.copy(
+                    coerceToBounds = result
+                )
+            }
         }
     }
 

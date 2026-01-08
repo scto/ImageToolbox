@@ -28,20 +28,19 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.t8rin.imagetoolbox.core.domain.PARTNER_FREE_SOFTWARE
-import com.t8rin.imagetoolbox.core.resources.BuildConfig
+import com.t8rin.imagetoolbox.core.domain.utils.Flavor
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.resources.icons.HandshakeAlt
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.preferences.PreferenceRow
 import java.util.Locale
 
-@Suppress("KotlinConstantConditions")
 @Composable
 fun FreeSoftwarePartnerSettingItem(
     shape: Shape = ShapeDefaults.center,
     modifier: Modifier = Modifier.padding(horizontal = 8.dp)
 ) {
-    if (BuildConfig.FLAVOR == "foss" || Locale.getDefault().language != "ru") return
+    if (Flavor.isFoss() || Locale.getDefault().language != "ru") return
 
     val linkHandler = LocalUriHandler.current
     PreferenceRow(
@@ -52,9 +51,9 @@ fun FreeSoftwarePartnerSettingItem(
         startIcon = Icons.Outlined.HandshakeAlt,
         title = stringResource(R.string.free_software_partner),
         subtitle = stringResource(R.string.free_software_partner_sub),
-        color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.2f)
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.35f)
             .compositeOver(MaterialTheme.colorScheme.surface),
-        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(0.9f),
         modifier = modifier
     )
 }

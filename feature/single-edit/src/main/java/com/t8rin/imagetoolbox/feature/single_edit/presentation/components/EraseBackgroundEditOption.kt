@@ -44,7 +44,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Redo
 import androidx.compose.material.icons.automirrored.rounded.Undo
-import androidx.compose.material.icons.outlined.ZoomIn
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -69,11 +68,11 @@ import androidx.compose.ui.unit.dp
 import com.t8rin.imagetoolbox.core.domain.model.pt
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.settings.presentation.provider.LocalSettingsState
-import com.t8rin.imagetoolbox.core.settings.presentation.provider.LocalSimpleSettingsInteractor
 import com.t8rin.imagetoolbox.core.ui.theme.outlineVariant
 import com.t8rin.imagetoolbox.core.ui.utils.confetti.LocalConfettiHostState
 import com.t8rin.imagetoolbox.core.ui.widget.buttons.PanModeButton
 import com.t8rin.imagetoolbox.core.ui.widget.controls.selection.HelperGridParamsSelector
+import com.t8rin.imagetoolbox.core.ui.widget.controls.selection.MagnifierEnabledSelector
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedIconButton
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedLoadingIndicator
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedTopAppBar
@@ -85,7 +84,6 @@ import com.t8rin.imagetoolbox.core.ui.widget.other.BoxAnimatedVisibility
 import com.t8rin.imagetoolbox.core.ui.widget.other.DrawLockScreenOrientation
 import com.t8rin.imagetoolbox.core.ui.widget.other.LocalToastHostState
 import com.t8rin.imagetoolbox.core.ui.widget.other.showFailureToast
-import com.t8rin.imagetoolbox.core.ui.widget.preferences.PreferenceRowSwitch
 import com.t8rin.imagetoolbox.core.ui.widget.saver.PtSaver
 import com.t8rin.imagetoolbox.core.ui.widget.text.marquee
 import com.t8rin.imagetoolbox.feature.draw.domain.DrawPathMode
@@ -108,7 +106,7 @@ fun EraseBackgroundEditOption(
     onDismiss: () -> Unit,
     useScaffold: Boolean,
     bitmap: Bitmap?,
-    onGetBitmap: (Bitmap) -> Unit,
+    onGetBitmap: (Bitmap, Boolean) -> Unit,
     clearErasing: (Boolean) -> Unit,
     undo: () -> Unit,
     redo: () -> Unit,
@@ -230,13 +228,14 @@ fun EraseBackgroundEditOption(
                         onClick = { isRecoveryOn = !isRecoveryOn }
                     )
                     AutoEraseBackgroundCard(
-                        onClick = {
+                        onClick = { modelType ->
                             scope.launch {
                                 scaffoldState?.bottomSheetState?.partialExpand()
                             }
                             loading = true
                             autoBackgroundRemover.removeBackgroundFromImage(
                                 image = erasedBitmap,
+                                modelType = modelType,
                                 onSuccess = {
                                     loading = false
                                     bitmapState = it
@@ -275,6 +274,8 @@ fun EraseBackgroundEditOption(
                         values = remember {
                             listOf(
                                 DrawPathMode.Free,
+                                DrawPathMode.FloodFill(),
+                                DrawPathMode.Spray(),
                                 DrawPathMode.Line,
                                 DrawPathMode.Lasso,
                                 DrawPathMode.Rect(),
@@ -282,7 +283,7 @@ fun EraseBackgroundEditOption(
                             )
                         }
                     )
-                    BoxAnimatedVisibility(drawPathMode.isStroke) {
+                    BoxAnimatedVisibility(drawPathMode.canChangeStrokeWidth) {
                         LineWidthSelector(
                             modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp),
                             value = strokeWidth.value,
@@ -313,8 +314,7 @@ fun EraseBackgroundEditOption(
                             top = 8.dp,
                         )
                     )
-                    val settingsInteractor = LocalSimpleSettingsInteractor.current
-                    PreferenceRowSwitch(
+                    MagnifierEnabledSelector(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(
@@ -323,16 +323,7 @@ fun EraseBackgroundEditOption(
                                 top = 8.dp,
                                 bottom = 16.dp
                             ),
-                        shape = ShapeDefaults.extraLarge,
-                        title = stringResource(R.string.magnifier),
-                        subtitle = stringResource(R.string.magnifier_sub),
-                        checked = settingsState.magnifierEnabled,
-                        onClick = {
-                            scope.launch {
-                                settingsInteractor.toggleMagnifierEnabled()
-                            }
-                        },
-                        startIcon = Icons.Outlined.ZoomIn
+                        shape = ShapeDefaults.extraLarge
                     )
                 }
             },
@@ -357,10 +348,17 @@ fun EraseBackgroundEditOption(
                                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                                 onClick = {
                                     scope.launch {
-                                        onGetBitmap(
-                                            if (trimImage) autoBackgroundRemover.trimEmptyParts(
+                                        val trimmed = if (trimImage) {
+                                            autoBackgroundRemover.trimEmptyParts(
                                                 erasedBitmap
-                                            ) else erasedBitmap
+                                            )
+                                        } else {
+                                            erasedBitmap
+                                        }
+
+                                        onGetBitmap(
+                                            trimmed,
+                                            trimmed.width == erasedBitmap.width && trimmed.height == erasedBitmap.height
                                         )
                                         clearErasing(false)
                                     }

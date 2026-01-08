@@ -38,7 +38,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.FormatColorFill
+import androidx.compose.material.icons.outlined.Rectangle
 import androidx.compose.material3.Badge
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -67,9 +67,12 @@ import androidx.compose.ui.zIndex
 import androidx.core.graphics.applyCanvas
 import com.t8rin.dynamic.theme.LocalDynamicThemeState
 import com.t8rin.imagetoolbox.core.resources.R
+import com.t8rin.imagetoolbox.core.resources.icons.BackgroundColor
 import com.t8rin.imagetoolbox.core.settings.presentation.provider.rememberAppColorTuple
 import com.t8rin.imagetoolbox.core.ui.theme.outlineVariant
 import com.t8rin.imagetoolbox.core.ui.theme.toColor
+import com.t8rin.imagetoolbox.core.ui.utils.capturable.capturable
+import com.t8rin.imagetoolbox.core.ui.utils.capturable.rememberCaptureController
 import com.t8rin.imagetoolbox.core.ui.utils.content_pickers.Picker
 import com.t8rin.imagetoolbox.core.ui.utils.content_pickers.rememberImagePicker
 import com.t8rin.imagetoolbox.core.ui.utils.helper.isPortraitOrientationAsState
@@ -90,6 +93,7 @@ import com.t8rin.imagetoolbox.core.ui.widget.modifier.clearFocusOnTap
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.tappable
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.transparencyChecker
+import com.t8rin.imagetoolbox.core.ui.widget.preferences.PreferenceRowSwitch
 import com.t8rin.imagetoolbox.core.ui.widget.text.marquee
 import com.t8rin.imagetoolbox.core.ui.widget.utils.AutoContentBasedColors
 import com.t8rin.imagetoolbox.feature.markup_layers.presentation.components.Layer
@@ -100,8 +104,6 @@ import com.t8rin.imagetoolbox.feature.markup_layers.presentation.components.Mark
 import com.t8rin.imagetoolbox.feature.markup_layers.presentation.components.MarkupLayersUndoRedo
 import com.t8rin.imagetoolbox.feature.markup_layers.presentation.components.model.BackgroundBehavior
 import com.t8rin.imagetoolbox.feature.markup_layers.presentation.screenLogic.MarkupLayersComponent
-import dev.shreyaspatil.capturable.capturable
-import dev.shreyaspatil.capturable.controller.rememberCaptureController
 import kotlinx.coroutines.flow.collectLatest
 import net.engawapg.lib.zoomable.rememberZoomState
 import net.engawapg.lib.zoomable.zoomable
@@ -325,7 +327,7 @@ fun MarkupLayersContent(
                     ColorRowSelector(
                         value = behavior.color.toColor(),
                         onValueChange = component::updateBackgroundColor,
-                        icon = Icons.Rounded.FormatColorFill,
+                        icon = Icons.Outlined.BackgroundColor,
                         modifier = Modifier
                             .fillMaxWidth()
                             .container(
@@ -333,6 +335,17 @@ fun MarkupLayersContent(
                             )
                     )
                 }
+                PreferenceRowSwitch(
+                    title = stringResource(R.string.coerce_points_to_image_bounds),
+                    subtitle = stringResource(R.string.coerce_points_to_image_bounds_sub),
+                    startIcon = Icons.Outlined.Rectangle,
+                    checked = component.coerceToBounds,
+                    onClick = {
+                        component.toggleCoerceToBounds()
+                    },
+                    shape = ShapeDefaults.large,
+                    modifier = Modifier.fillMaxWidth()
+                )
                 SaveExifWidget(
                     modifier = Modifier.fillMaxWidth(),
                     checked = component.saveExif,

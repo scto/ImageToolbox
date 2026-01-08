@@ -42,7 +42,6 @@ import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -87,7 +86,7 @@ fun Picture(
     colorFilter: ColorFilter? = if (model is ImageVector) {
         ColorFilter.tint(LocalContentColor.current)
     } else null,
-    filterQuality: FilterQuality = DrawScope.DefaultFilterQuality,
+    filterQuality: FilterQuality = FilterQuality.None,
     shimmerEnabled: Boolean = true,
     crossfadeEnabled: Boolean = true,
     allowHardware: Boolean = true,
@@ -98,21 +97,22 @@ fun Picture(
     contentPadding: PaddingValues = PaddingValues()
 ) {
     when (model) {
-        is Painter -> {
+        is ImageBitmap -> {
             Image(
-                painter = model,
+                bitmap = model,
                 contentDescription = contentDescription,
                 modifier = modifier,
                 alignment = alignment,
                 contentScale = contentScale,
                 alpha = alpha,
-                colorFilter = colorFilter
+                colorFilter = colorFilter,
+                filterQuality = filterQuality
             )
         }
 
-        is ImageBitmap -> {
+        is Painter -> {
             Image(
-                bitmap = model,
+                painter = model,
                 contentDescription = contentDescription,
                 modifier = modifier,
                 alignment = alignment,
@@ -194,7 +194,6 @@ private fun CoilPicture(
     size: Int?,
     contentPadding: PaddingValues = PaddingValues()
 ) {
-
     val context = LocalComponentActivity.current
 
     var errorOccurred by rememberSaveable { mutableStateOf(false) }

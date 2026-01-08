@@ -15,7 +15,14 @@
  * along with this program.  If not, see <http://www.apache.org/licenses/LICENSE-2.0>.
  */
 
+@file:Suppress("unused")
+
 package com.t8rin.imagetoolbox.feature.media_picker.domain.model
+
+import androidx.core.net.toUri
+import com.t8rin.imagetoolbox.core.data.utils.fileSize
+import com.t8rin.imagetoolbox.core.domain.utils.humanFileSize
+import com.t8rin.imagetoolbox.core.utils.appContext
 
 
 data class Media(
@@ -35,6 +42,9 @@ data class Media(
     val trashed: Int,
     val duration: String? = null,
 ) {
+    val fileSize: Long by lazy { uri.toUri().fileSize(appContext) ?: 0 }
+
+    val humanFileSize: String by lazy { humanFileSize(fileSize) }
 
     val isVideo: Boolean = mimeType.startsWith("video/") && duration != null
 

@@ -31,20 +31,31 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.DrawerState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
+import com.t8rin.imagetoolbox.core.settings.domain.model.SnowfallMode
 import com.t8rin.imagetoolbox.core.settings.presentation.provider.LocalSettingsState
 import com.t8rin.imagetoolbox.core.ui.utils.helper.ProvidesValue
 import com.t8rin.imagetoolbox.core.ui.utils.navigation.Screen
+import com.t8rin.imagetoolbox.core.ui.utils.provider.rememberCurrentLifecycleEvent
+import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedTopAppBarType
+import com.t8rin.imagetoolbox.core.ui.widget.modifier.realisticSnowfall
+import kotlinx.coroutines.delay
+import java.time.LocalDate
 
 @Composable
 internal fun MainContentImpl(
@@ -56,7 +67,7 @@ internal fun MainContentImpl(
     onGetClipList: (List<Uri>) -> Unit,
     onNavigate: (Screen) -> Unit,
     onToggleFavorite: (Screen) -> Unit,
-    onShowSnowfall: () -> Unit,
+    onShowFeaturesFall: () -> Unit,
     onTryGetUpdate: () -> Unit,
     isUpdateAvailable: Boolean
 ) {
@@ -73,21 +84,72 @@ internal fun MainContentImpl(
     )
 
     LocalLayoutDirection.ProvidesValue(layoutDirection) {
-        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+        val snowfallMode = settingsState.snowfallMode
+
+        val event = rememberCurrentLifecycleEvent()
+
+        val showSnowfall by remember(snowfallMode, event) {
+            derivedStateOf {
+                when (snowfallMode) {
+                    SnowfallMode.Auto -> {
+                        LocalDate.now().run {
+                            (monthValue == 12 && dayOfMonth >= 22) || (monthValue == 1 && dayOfMonth <= 11)
+                        }
+                    }
+
+                    SnowfallMode.Enabled -> true
+                    SnowfallMode.Disabled -> false
+                }
+            }
+        }
+
+        val scrollBehavior = if (showSnowfall) {
+            TopAppBarDefaults.pinnedScrollBehavior()
+        } else {
+            TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+        }
+
+        val topBar: @Composable () -> Unit = {
+            MainTopAppBar(
+                scrollBehavior = scrollBehavior,
+                onShowFeaturesFall = onShowFeaturesFall,
+                sideSheetState = sideSheetState,
+                isSheetSlideable = isSheetSlideable,
+                onNavigate = onNavigate,
+                type = if (showSnowfall) {
+                    EnhancedTopAppBarType.Medium
+                } else {
+                    EnhancedTopAppBarType.Large
+                },
+                modifier = Modifier.realisticSnowfall(
+                    enabled = showSnowfall
+                )
+            )
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
         ) {
-            MainTopAppBar(
-                scrollBehavior = scrollBehavior,
-                onShowSnowfall = onShowSnowfall,
-                sideSheetState = sideSheetState,
-                isSheetSlideable = isSheetSlideable,
-                onNavigateToSettings = {
-                    onNavigate(Screen.Settings())
+            val colorScheme = MaterialTheme.colorScheme
+
+            var key by remember {
+                mutableStateOf(colorScheme.primary)
+            }
+
+            LaunchedEffect(colorScheme) {
+                delay(200)
+                key = colorScheme.primary
+            }
+
+            if (showSnowfall) {
+                key(key) {
+                    topBar()
                 }
-            )
+            } else {
+                topBar()
+            }
 
             Row(
                 modifier = Modifier.weight(1f)

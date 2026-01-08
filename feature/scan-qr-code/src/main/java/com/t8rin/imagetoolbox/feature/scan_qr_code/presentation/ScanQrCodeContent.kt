@@ -40,16 +40,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asAndroidBitmap
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.ui.theme.takeColorFromScheme
+import com.t8rin.imagetoolbox.core.ui.utils.capturable.rememberCaptureController
 import com.t8rin.imagetoolbox.core.ui.utils.content_pickers.Picker
 import com.t8rin.imagetoolbox.core.ui.utils.content_pickers.rememberImagePicker
 import com.t8rin.imagetoolbox.core.ui.utils.helper.isPortraitOrientationAsState
 import com.t8rin.imagetoolbox.core.ui.utils.helper.rememberBarcodeScanner
+import com.t8rin.imagetoolbox.core.ui.utils.provider.LocalComponentActivity
 import com.t8rin.imagetoolbox.core.ui.utils.provider.rememberLocalEssentials
 import com.t8rin.imagetoolbox.core.ui.widget.AdaptiveLayoutScreen
 import com.t8rin.imagetoolbox.core.ui.widget.buttons.BottomButtonsBlock
@@ -61,12 +61,12 @@ import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedFloatingActionButt
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.scaleOnTap
 import com.t8rin.imagetoolbox.core.ui.widget.other.BarcodeType
 import com.t8rin.imagetoolbox.core.ui.widget.other.TopAppBarEmoji
+import com.t8rin.imagetoolbox.core.ui.widget.other.renderAsQr
 import com.t8rin.imagetoolbox.core.ui.widget.text.marquee
 import com.t8rin.imagetoolbox.feature.scan_qr_code.presentation.components.QrCodePreview
 import com.t8rin.imagetoolbox.feature.scan_qr_code.presentation.components.ScanQrCodeControls
 import com.t8rin.imagetoolbox.feature.scan_qr_code.presentation.screenLogic.ScanQrCodeComponent
-import dev.shreyaspatil.capturable.controller.CaptureController
-import dev.shreyaspatil.capturable.controller.rememberCaptureController
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @SuppressLint("StringFormatInvalid")
@@ -74,7 +74,7 @@ import kotlinx.coroutines.launch
 fun ScanQrCodeContent(
     component: ScanQrCodeComponent
 ) {
-    val context = LocalContext.current
+    val context = LocalComponentActivity.current
 
     val essentials = rememberLocalEssentials()
     val scope = essentials.coroutineScope
@@ -90,14 +90,30 @@ fun ScanQrCodeContent(
         )
     }
 
+    val isNotScannable = params.content.raw.isNotEmpty() && component.mayBeNotScannable
+    val isSaveEnabled = params.content.raw.isNotEmpty() && component.isSaveEnabled
+
     val analyzerImagePicker = rememberImagePicker { uri: Uri ->
         component.readBarcodeFromImage(
-            imageUri = uri,
+            image = uri,
             onFailure = {
                 essentials.showFailureToast(
                     Throwable(context.getString(R.string.no_barcode_found), it)
                 )
             }
+        )
+    }
+
+    val captureController = rememberCaptureController()
+
+    LaunchedEffect(params) {
+        if (params.content.raw.isEmpty()) return@LaunchedEffect
+        delay(500)
+        component.syncReadBarcodeFromImage(
+            image = params.qrParams.renderAsQr(
+                content = params.content.raw,
+                type = params.type
+            )
         )
     }
 
@@ -115,8 +131,6 @@ fun ScanQrCodeContent(
             }
         )
     }
-
-    val captureController = rememberCaptureController()
 
     val saveBitmap: (oneTimeSaveLocationUri: String?, bitmap: Bitmap) -> Unit =
         { oneTimeSaveLocationUri, bitmap ->
@@ -159,7 +173,7 @@ fun ScanQrCodeContent(
         onGoBack = component.onGoBack,
         actions = {
             ShareButton(
-                enabled = params.content.isNotEmpty(),
+                enabled = params.content.raw.isNotEmpty(),
                 onShare = {
                     scope.launch {
                         component.shareImage(
@@ -215,20 +229,28 @@ fun ScanQrCodeContent(
                 mutableStateOf(false)
             }
             BottomButtonsBlock(
-                isNoData = params.content.isEmpty() && isPortrait,
+                isNoData = params.content.raw.isEmpty() && isPortrait,
                 secondaryButtonIcon = Icons.Outlined.QrCodeScanner,
                 secondaryButtonText = stringResource(R.string.start_scanning),
                 onSecondaryButtonClick = scanner::scan,
+                isPrimaryButtonEnabled = isSaveEnabled,
                 onPrimaryButtonClick = {
                     scope.launch {
-                        val bitmap = captureController.captureAsync().await().asAndroidBitmap()
-                        saveBitmap(null, bitmap)
+                        saveBitmap(null, captureController.bitmap())
                     }
+                },
+                primaryButtonContainerColor = takeColorFromScheme {
+                    if (isNotScannable) error
+                    else primaryContainer
+                },
+                primaryButtonContentColor = takeColorFromScheme {
+                    if (isNotScannable) onError
+                    else onPrimaryContainer
                 },
                 onPrimaryButtonLongClick = {
                     showFolderSelectionDialog = true
                 },
-                isPrimaryButtonVisible = isPortrait || params.content.isNotEmpty(),
+                isPrimaryButtonVisible = isPortrait || params.content.raw.isNotEmpty(),
                 actions = {
                     if (isPortrait) actions()
                 },
@@ -240,7 +262,7 @@ fun ScanQrCodeContent(
                             showOneTimeImagePickingDialog = true
                         },
                         containerColor = takeColorFromScheme {
-                            if (params.content.isEmpty()) tertiaryContainer
+                            if (params.content.raw.isEmpty()) tertiaryContainer
                             else secondaryContainer
                         }
                     ) {
@@ -256,8 +278,7 @@ fun ScanQrCodeContent(
                 onDismiss = { showFolderSelectionDialog = false },
                 onSaveRequest = {
                     scope.launch {
-                        val bitmap = captureController.captureAsync().await().asAndroidBitmap()
-                        saveBitmap(it, bitmap)
+                        saveBitmap(it, captureController.bitmap())
                     }
                 },
                 formatForFilenameSelection = component.getFormatForFilenameSelection()
@@ -278,5 +299,3 @@ fun ScanQrCodeContent(
     )
 
 }
-
-private suspend fun CaptureController.bitmap(): Bitmap = captureAsync().await().asAndroidBitmap()

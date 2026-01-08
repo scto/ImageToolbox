@@ -22,7 +22,10 @@ import android.net.Uri
 import androidx.core.net.toUri
 import com.t8rin.imagetoolbox.core.data.utils.computeFromByteArray
 import com.t8rin.imagetoolbox.core.data.utils.getFilename
-import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
+import com.t8rin.imagetoolbox.core.domain.coroutines.DispatchersHolder
+import com.t8rin.imagetoolbox.core.domain.image.model.ImageScaleMode
+import com.t8rin.imagetoolbox.core.domain.image.model.Preset
+import com.t8rin.imagetoolbox.core.domain.image.model.title
 import com.t8rin.imagetoolbox.core.domain.resource.ResourceManager
 import com.t8rin.imagetoolbox.core.domain.saving.FilenameCreator
 import com.t8rin.imagetoolbox.core.domain.saving.RandomStringGenerator
@@ -30,12 +33,9 @@ import com.t8rin.imagetoolbox.core.domain.saving.model.ImageSaveTarget
 import com.t8rin.imagetoolbox.core.domain.utils.timestamp
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.settings.domain.SettingsManager
-import com.t8rin.imagetoolbox.core.settings.domain.model.SettingsState
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 import kotlin.random.Random
 
@@ -44,23 +44,13 @@ internal class AndroidFilenameCreator @Inject constructor(
     @ApplicationContext private val context: Context,
     settingsManager: SettingsManager,
     dispatchersHolder: DispatchersHolder,
-    resourceManager: ResourceManager,
+    resourceManager: ResourceManager
 ) : FilenameCreator,
     DispatchersHolder by dispatchersHolder,
     ResourceManager by resourceManager {
 
-    private var _settingsState: SettingsState = SettingsState.Default
-
-    private val settingsState get() = _settingsState
-
-    init {
-        settingsManager
-            .getSettingsStateFlow()
-            .onEach { state ->
-                _settingsState = state
-            }.launchIn(CoroutineScope(defaultDispatcher))
-    }
-
+    private val _settingsState = settingsManager.settingsState
+    private val settingsState get() = _settingsState.value
 
     override fun constructImageFilename(
         saveTarget: ImageSaveTarget,
@@ -78,11 +68,15 @@ internal class AndroidFilenameCreator @Inject constructor(
 
         if (settingsState.randomizeFilename) return "${randomStringGenerator.generate(32)}.$extension"
 
-        val wh =
-            "(" + (if (saveTarget.originalUri.toUri() == Uri.EMPTY) getString(R.string.width)
-                .split(" ")[0] else saveTarget.imageInfo.width) + ")x(" + (if (saveTarget.originalUri.toUri() == Uri.EMPTY) getString(
-                R.string.height
-            ).split(" ")[0] else saveTarget.imageInfo.height) + ")"
+        val isOriginalEmpty = saveTarget.originalUri.toUri() == Uri.EMPTY
+
+        val widthString =
+            if (isOriginalEmpty) getString(R.string.width).split(" ")[0] else saveTarget.imageInfo.width
+        val heightString = if (isOriginalEmpty) getString(
+            R.string.height
+        ).split(" ")[0] else saveTarget.imageInfo.height
+
+        val wh = "($widthString)x($heightString)"
 
         var prefix = oneTimePrefix ?: settingsState.filenamePrefix
         var suffix = settingsState.filenameSuffix
@@ -101,6 +95,19 @@ internal class AndroidFilenameCreator @Inject constructor(
             }
         }
         if (settingsState.addSizeInFilename && !forceNotAddSizeInFilename) prefix += wh
+
+        if (settingsState.addPresetInfoToFilename && saveTarget.presetInfo != null && saveTarget.presetInfo != Preset.None) {
+            suffix += "_${saveTarget.presetInfo?.asString()}"
+        }
+
+        if (settingsState.addImageScaleModeInfoToFilename && saveTarget.imageInfo.imageScaleMode != ImageScaleMode.NotPresent) {
+            suffix += "_${
+                getStringLocalized(
+                    resId = saveTarget.imageInfo.imageScaleMode.title,
+                    language = Locale.ENGLISH.language
+                ).replace(" ", "-")
+            }"
+        }
 
         val randomNumber: () -> String = {
             Random(Random.nextInt()).hashCode().toString().take(4)

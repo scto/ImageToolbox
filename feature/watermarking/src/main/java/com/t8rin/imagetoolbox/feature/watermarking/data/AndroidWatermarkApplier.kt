@@ -23,18 +23,16 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.PorterDuffXfermode
-import android.graphics.Typeface
 import android.os.Build
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.applyCanvas
 import coil3.transform.RoundedCornersTransformation
 import com.t8rin.imagetoolbox.core.data.image.utils.drawBitmap
 import com.t8rin.imagetoolbox.core.data.image.utils.toAndroidBlendMode
 import com.t8rin.imagetoolbox.core.data.image.utils.toPorterDuffMode
 import com.t8rin.imagetoolbox.core.data.utils.asDomain
-import com.t8rin.imagetoolbox.core.domain.dispatchers.DispatchersHolder
+import com.t8rin.imagetoolbox.core.domain.coroutines.DispatchersHolder
 import com.t8rin.imagetoolbox.core.domain.image.ImageGetter
 import com.t8rin.imagetoolbox.core.domain.image.ImageScaler
 import com.t8rin.imagetoolbox.core.domain.image.ImageTransformer
@@ -42,19 +40,25 @@ import com.t8rin.imagetoolbox.core.domain.image.model.BlendingMode
 import com.t8rin.imagetoolbox.core.domain.image.model.ResizeType
 import com.t8rin.imagetoolbox.core.domain.model.IntegerSize
 import com.t8rin.imagetoolbox.core.domain.model.Position
+import com.t8rin.imagetoolbox.core.domain.utils.runSuspendCatching
 import com.t8rin.imagetoolbox.core.domain.utils.timestamp
-import com.t8rin.imagetoolbox.core.settings.domain.model.FontType
+import com.t8rin.imagetoolbox.core.utils.toTypeface
 import com.t8rin.imagetoolbox.feature.watermarking.domain.DigitalParams
+import com.t8rin.imagetoolbox.feature.watermarking.domain.HiddenWatermark
 import com.t8rin.imagetoolbox.feature.watermarking.domain.TextParams
 import com.t8rin.imagetoolbox.feature.watermarking.domain.WatermarkApplier
 import com.t8rin.imagetoolbox.feature.watermarking.domain.WatermarkParams
 import com.t8rin.imagetoolbox.feature.watermarking.domain.WatermarkingType
 import com.watermark.androidwm.WatermarkBuilder
+import com.watermark.androidwm.WatermarkDetector
 import com.watermark.androidwm.bean.WatermarkImage
 import com.watermark.androidwm.bean.WatermarkText
 import com.watermark.androidwm.listener.BuildFinishListener
+import com.watermark.androidwm.listener.DetectFinishListener
+import com.watermark.androidwm.task.DetectionReturnValue
 import com.watermark.androidwm.utils.BitmapUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -93,15 +97,7 @@ internal class AndroidWatermarkApplier @Inject constructor(
                             .setBackgroundColor(type.params.backgroundColor)
                             .setTextColor(type.params.color)
                             .apply {
-                                when (val font = type.params.font) {
-                                    is FontType.File -> Typeface.createFromFile(font.path)
-                                    is FontType.Resource -> ResourcesCompat.getFont(
-                                        context,
-                                        font.resId
-                                    )
-
-                                    null -> null
-                                }?.let(::setTextTypeface)
+                                type.params.font.toTypeface()?.let(::setTextTypeface)
                             }
                             .setTextStyle(
                                 Paint.Style.FILL
@@ -184,21 +180,48 @@ internal class AndroidWatermarkApplier @Inject constructor(
         }
     }
 
+    @OptIn(InternalCoroutinesApi::class)
+    override suspend fun checkHiddenWatermark(
+        image: Bitmap
+    ): HiddenWatermark? = runSuspendCatching {
+        suspendCancellableCoroutine { continuation ->
+            WatermarkDetector
+                .create(image, true)
+                .detect(
+                    object : DetectFinishListener {
+                        override fun onSuccess(
+                            returnValue: DetectionReturnValue
+                        ) = continuation.resume(
+                            returnValue.watermarkBitmap
+                                ?.let(HiddenWatermark::Image)
+                                ?: returnValue.watermarkString?.takeIf { it.isNotEmpty() }
+                                    ?.let(HiddenWatermark::Text)
+                        )
+
+                        override fun onFailure(message: String?) = continuation.resume(null)
+                    }
+                )
+        }
+    }.getOrNull()
+
+    @OptIn(InternalCoroutinesApi::class)
     private suspend fun WatermarkBuilder.generateImage(
         params: DigitalParams
-    ): Bitmap? = if (params.isInvisible) {
-        suspendCancellableCoroutine { cont ->
-            setInvisibleWMListener(
-                params.isLSB,
-                object : BuildFinishListener<Bitmap> {
-                    override fun onSuccess(image: Bitmap) = cont.resume(image)
-                    override fun onFailure(reason: String) = cont.resume(null)
-                }
-            )
+    ): Bitmap? = runSuspendCatching {
+        if (params.isInvisible) {
+            suspendCancellableCoroutine { continuation ->
+                setInvisibleWMListener(
+                    params.isLSB,
+                    object : BuildFinishListener<Bitmap> {
+                        override fun onSuccess(image: Bitmap) = continuation.resume(image)
+                        override fun onFailure(reason: String) = continuation.resume(null)
+                    }
+                )
+            }
+        } else {
+            watermark?.outputImage
         }
-    } else {
-        watermark?.outputImage
-    }
+    }.getOrNull()
 
     private suspend fun drawStamp(
         image: Bitmap,
@@ -220,15 +243,7 @@ internal class AndroidWatermarkApplier @Inject constructor(
                 .setBackgroundColor(params.backgroundColor)
                 .setTextColor(params.color)
                 .apply {
-                    when (val font = params.font) {
-                        is FontType.File -> Typeface.createFromFile(font.path)
-                        is FontType.Resource -> ResourcesCompat.getFont(
-                            context,
-                            font.resId
-                        )
-
-                        null -> null
-                    }?.let(::setTextTypeface)
+                    params.font.toTypeface()?.let(::setTextTypeface)
                 }
                 .setTextStyle(
                     Paint.Style.FILL

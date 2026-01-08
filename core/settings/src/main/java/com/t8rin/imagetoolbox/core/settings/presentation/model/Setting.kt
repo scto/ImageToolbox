@@ -497,4 +497,39 @@ sealed class Setting(
         title = R.string.send_logs,
         subtitle = R.string.send_logs_sub
     )
+
+    data object AddPresetToFilename : Setting(
+        title = R.string.add_preset_to_filename,
+        subtitle = R.string.add_preset_to_filename_sub
+    )
+
+    data object AddImageScaleModeToFilename : Setting(
+        title = R.string.add_image_scale_mode_to_filename,
+        subtitle = R.string.add_image_scale_mode_to_filename_sub
+    )
+
+    data object AllowSkipIfLarger : Setting(
+        title = R.string.allow_skip_if_larger,
+        subtitle = R.string.allow_skip_if_larger_sub
+    )
+
+    data object EnableLauncherMode : Setting(
+        title = R.string.launcher_mode,
+        subtitle = R.string.launcher_mode_sub
+    )
+
+    data object SnowfallMode : Setting(
+        title = R.string.snowfall_mode,
+        subtitle = null
+    )
+
+    data object DefaultImageFormat : Setting(
+        title = R.string.image_format,
+        subtitle = null
+    )
+
+    data object DefaultQuality : Setting(
+        title = R.string.quality,
+        subtitle = null
+    )
 }

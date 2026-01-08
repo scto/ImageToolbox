@@ -31,7 +31,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Blender
 import androidx.compose.material.icons.rounded.ContentCopy
-import androidx.compose.material.icons.rounded.ContentPaste
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,7 +40,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -49,7 +47,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -57,8 +54,8 @@ import com.smarttoolfactory.colordetector.parser.ColorNameParser
 import com.t8rin.dynamic.theme.ColorTuple
 import com.t8rin.imagetoolbox.core.resources.R
 import com.t8rin.imagetoolbox.core.ui.theme.inverse
-import com.t8rin.imagetoolbox.core.ui.utils.helper.ContextUtils.copyToClipboard
 import com.t8rin.imagetoolbox.core.ui.utils.helper.toHex
+import com.t8rin.imagetoolbox.core.ui.utils.provider.rememberLocalEssentials
 import com.t8rin.imagetoolbox.core.ui.widget.controls.selection.ColorRowSelector
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.EnhancedSliderItem
 import com.t8rin.imagetoolbox.core.ui.widget.enhanced.hapticsClickable
@@ -66,21 +63,16 @@ import com.t8rin.imagetoolbox.core.ui.widget.modifier.ShapeDefaults
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.container
 import com.t8rin.imagetoolbox.core.ui.widget.modifier.transparencyChecker
 import com.t8rin.imagetoolbox.core.ui.widget.other.ExpandableItem
-import com.t8rin.imagetoolbox.core.ui.widget.other.LocalToastHostState
 import com.t8rin.imagetoolbox.core.ui.widget.saver.ColorSaver
 import com.t8rin.imagetoolbox.core.ui.widget.text.TitleItem
-import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @Composable
 internal fun ColorMixing(
     selectedColor: Color,
     appColorTuple: ColorTuple,
-    parser: ColorNameParser
 ) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val toastHostState = LocalToastHostState.current
+    val essentials = rememberLocalEssentials()
 
     var mixingVariation by rememberSaveable {
         mutableIntStateOf(3)
@@ -135,7 +127,7 @@ internal fun ColorMixing(
                     internalStateTransformation = { it.roundToInt() },
                     shape = ShapeDefaults.bottom,
                     behaveAsContainer = true,
-                    color = MaterialTheme.colorScheme.surface,
+                    containerColor = MaterialTheme.colorScheme.surface,
                     steps = 12
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -166,13 +158,10 @@ internal fun ColorMixing(
                                 .transparencyChecker()
                                 .background(boxColor)
                                 .hapticsClickable {
-                                    context.copyToClipboard(getFormattedColor(color))
-                                    scope.launch {
-                                        toastHostState.showToast(
-                                            icon = Icons.Rounded.ContentPaste,
-                                            message = context.getString(R.string.color_copied)
-                                        )
-                                    }
+                                    essentials.copyToClipboard(
+                                        text = getFormattedColor(color),
+                                        message = R.string.color_copied
+                                    )
                                 }
                         ) {
                             Icon(
@@ -207,7 +196,7 @@ internal fun ColorMixing(
                             Text(
                                 text = remember(color) {
                                     derivedStateOf {
-                                        parser.parseColorName(color)
+                                        ColorNameParser.parseColorName(color)
                                     }
                                 }.value,
                                 color = contentColor,

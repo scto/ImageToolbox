@@ -17,14 +17,14 @@
 
 @file:Suppress("UnstableApiUsage")
 
+var isFoss = false
+
 plugins {
     alias(libs.plugins.image.toolbox.application)
     alias(libs.plugins.image.toolbox.hilt)
 }
 
 android {
-    var isFoss = false
-
     val supportedAbi = arrayOf("armeabi-v7a", "arm64-v8a", "x86_64")
 
     namespace = "com.t8rin.imagetoolbox"
@@ -112,6 +112,8 @@ android {
     packaging {
         jniLibs {
             pickFirsts.add("lib/*/libcoder.so")
+            pickFirsts.add("**/libc++_shared.so")
+            useLegacyPackaging = true
         }
         resources {
             excludes += "META-INF/"
@@ -138,17 +140,20 @@ dependencies {
     implementation(projects.feature.quickTiles)
 
     implementation(libs.toolbox.opencvTools)
+    implementation(libs.toolbox.neuralTools)
 
     implementation(libs.bouncycastle.pkix)
     implementation(libs.bouncycastle.provider)
+
+    "marketImplementation"(libs.quickie.bundled)
+    "fossImplementation"(libs.quickie.foss)
 }
 
-allprojects {
-    configurations.all {
-        resolutionStrategy.dependencySubstitution {
-            substitute(module("com.caverock:androidsvg-aar:1.4")).using(module("com.github.deckerst:androidsvg:cc9d59a88f"))
-        }
-    }
+dependencySubstitution {
+    substitute(
+        dependency = "com.caverock:androidsvg-aar:1.4",
+        using = "com.github.deckerst:androidsvg:cc9d59a88f"
+    )
 }
 
 afterEvaluate {
@@ -166,3 +171,16 @@ afterEvaluate {
         }
     }
 }
+
+fun Project.dependencySubstitution(action: DependencySubstitutions.() -> Unit) {
+    allprojects {
+        configurations.all {
+            resolutionStrategy.dependencySubstitution(action)
+        }
+    }
+}
+
+fun DependencySubstitutions.substitute(
+    dependency: String,
+    using: String
+) = substitute(module(dependency)).using(module(using))

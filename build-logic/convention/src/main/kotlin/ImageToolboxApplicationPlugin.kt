@@ -30,6 +30,7 @@ import com.t8rin.imagetoolbox.projects
 import com.t8rin.imagetoolbox.resources
 import com.t8rin.imagetoolbox.settings
 import com.t8rin.imagetoolbox.ui
+import com.t8rin.imagetoolbox.utils
 import io.gitlab.arturbosch.detekt.extensions.DetektExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -47,7 +48,7 @@ class ImageToolboxApplicationPlugin : Plugin<Project> {
             apply(plugin = "kotlin-parcelize")
             apply(plugin = "com.google.gms.google-services")
             apply(plugin = "com.google.firebase.crashlytics")
-            apply(plugin = "com.mikepenz.aboutlibraries.plugin")
+            apply(plugin = "com.mikepenz.aboutlibraries.plugin.android")
             apply(plugin = "org.jetbrains.kotlin.plugin.compose")
             apply(plugin = "io.gitlab.arturbosch.detekt")
 
@@ -70,6 +71,7 @@ class ImageToolboxApplicationPlugin : Plugin<Project> {
                 implementation(projects.core.settings)
                 implementation(projects.core.di)
                 implementation(projects.core.crash)
+                implementation(projects.core.utils)
             }
 
             configureCompose(extensions.getByType<ApplicationExtension>())

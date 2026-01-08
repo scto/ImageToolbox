@@ -21,46 +21,23 @@ import android.graphics.Bitmap
 import com.t8rin.imagetoolbox.core.domain.model.IntegerSize
 import com.t8rin.imagetoolbox.core.domain.transformation.Transformation
 import com.t8rin.imagetoolbox.core.filters.domain.model.Filter
-import com.t8rin.imagetoolbox.feature.filters.data.utils.pixelation.Pixelate
-import com.t8rin.imagetoolbox.feature.filters.data.utils.pixelation.PixelationLayer
+import com.t8rin.imagetoolbox.core.ksp.annotations.FilterInject
+import com.t8rin.imagetoolbox.feature.filters.data.utils.pixelation.PixelationTool
 
-
+@FilterInject
 internal class EnhancedCirclePixelationFilter(
     override val value: Float = 32f,
 ) : Transformation<Bitmap>, Filter.EnhancedCirclePixelation {
+
     override val cacheKey: String
-        get() = (value).hashCode().toString()
+        get() = value.hashCode().toString()
 
     override suspend fun transform(
         input: Bitmap,
         size: IntegerSize
-    ): Bitmap {
-        return Pixelate.fromBitmap(
-            input = input,
-            layers = arrayOf(
-                PixelationLayer.Builder(PixelationLayer.Shape.Square)
-                    .setResolution(value)
-                    .build(),
-                PixelationLayer.Builder(PixelationLayer.Shape.Circle)
-                    .setResolution(value)
-                    .setOffset(value / 2)
-                    .build(),
-                PixelationLayer.Builder(PixelationLayer.Shape.Circle)
-                    .setResolution(value)
-                    .setSize(value / 1.2f)
-                    .setOffset(value / 2.5f)
-                    .build(),
-                PixelationLayer.Builder(PixelationLayer.Shape.Circle)
-                    .setResolution(value)
-                    .setSize(value / 1.8f)
-                    .setOffset(value / 3)
-                    .build(),
-                PixelationLayer.Builder(PixelationLayer.Shape.Circle)
-                    .setResolution(value)
-                    .setSize(value / 2.7f)
-                    .setOffset(value / 4)
-                    .build()
-            )
-        )
-    }
+    ): Bitmap = PixelationTool.pixelate(
+        input = input,
+        layers = { enhancedCircle(value) }
+    )
+
 }
